@@ -20,7 +20,8 @@ func SetupRoutes(r *gin.Engine) {
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.GET("/price", controllers.GetPriceInfo)
+		Routes.GET("/price", controllers.GetPriceInfoApi)
+		Routes.GET("/income_data", controllers.GetIncomeDataInRangeApi)
 		// 他のエンドポイントのルーティングもここで設定
 	}
 }

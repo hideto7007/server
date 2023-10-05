@@ -1,8 +1,7 @@
-// test/test_common.go
+// test/common_test.go
 package common
 
 import (
-	"errors"
 	"net/http/httptest"
 	"server/common"
 	"testing"
@@ -48,7 +47,8 @@ func TestIntgetPrameter(t *testing.T) {
 		}
 
 		assert.Empty(t, paramMap)
-		assert.EqualError(t, errors.New("notanumber"), "notanumber")
+		expectedErrorMessage := "strconv.Atoi: parsing \"notanumber\": invalid syntax"
+		assert.EqualError(t, err, expectedErrorMessage)
 
 		t.Logf("paramMap[]: %v", paramMap)
 		t.Logf("err: %s", err)
