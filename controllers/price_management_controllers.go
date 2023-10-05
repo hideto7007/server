@@ -45,21 +45,21 @@ func PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
 	return priceinfo
 }
 
-// GetPriceInfo は価格情報を取得するエンドポイントハンドラーです。
+// GetPriceInfoApi は価格情報を取得するエンドポイントハンドラーです。
 //
 // クライアントから送信されたクエリーパラメータ money_received、bouns、fixed_cost、loan、private を
 // 解析し、それらの値を使用して価格計算を行います。正常な場合、計算結果を JSON レスポンスとして
 // 返し、HTTPステータスコード 200 (OK) を返します。エラーが発生した場合、エラーメッセージを JSON
 // レスポンスとして返し、HTTPステータスコード 400 (Bad Request) を返します。
 //
-// Parameters:
+// 引数:
 //   - c: Ginコンテキスト
 //
-// Example:
+// 期待するURL:
 //
 //	GET /get-price-info?money_received=100&bouns=50&fixed_cost=30&loan=20&private=10
 //
-// Returns:
+// 戻り値:
 //
 //	JSONレスポンス例（成功時）:
 //	{
@@ -76,7 +76,7 @@ func PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
 //	  "message": "Invalid query parameters"
 //	}
 
-func GetPriceInfo(c *gin.Context) {
+func GetPriceInfoApi(c *gin.Context) {
 	// CORSヘッダーを設定
 	c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
 	c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
