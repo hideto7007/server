@@ -28,7 +28,7 @@ func TestPriceCalc(t *testing.T) {
 }
 
 func TestGetPriceInfo(t *testing.T) {
-	t.Run("success GetPriceInfo()", func(t *testing.T) {
+	t.Run("success GetPriceInfoApi()", func(t *testing.T) {
 		// テスト用のGinコンテキストを作成
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?money_received=300&bouns=100&fixed_cost=50&loan=50&private=50", nil)
@@ -38,8 +38,8 @@ func TestGetPriceInfo(t *testing.T) {
 		// PriceCalc 関数をモック化
 		res := controllers.PriceCalc(paramMap["money_received"], paramMap["bouns"], paramMap["fixed_cost"], paramMap["loan"], paramMap["private"])
 
-		// GetPriceInfo 関数を呼び出し
-		controllers.GetPriceInfo(c)
+		// GetPriceInfoApi 関数を呼び出し
+		controllers.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusOK, c.Writer.Status())
@@ -61,15 +61,15 @@ func TestGetPriceInfo(t *testing.T) {
 		t.Logf("err: %v", err)
 	})
 
-	t.Run("error case GetPriceInfo()", func(t *testing.T) {
+	t.Run("error case GetPriceInfoApi()", func(t *testing.T) {
 		// エラーを引き起こすリクエストをシミュレート
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?money_received=300&bouns=100&fixed_cost=notanumber&loan=50&private=50", nil)
 
 		paramMap, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private")
 
-		// GetPriceInfo 関数を呼び出し
-		controllers.GetPriceInfo(c)
+		// GetPriceInfoApi 関数を呼び出し
+		controllers.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, c.Writer.Status())

@@ -52,7 +52,7 @@ func main() {
 	// HTTPハンドラーを作成
 	handler := http.NewServeMux()
 	handler.HandleFunc("/delftstack", DelftstackHandler)
-	handler.HandleFunc("/api/price", controllers.GetPriceInfo)
+	handler.HandleFunc("/api/price", controllers.GetPriceInfoApi)
 
 	// CORSミドルウェアを適用したサーバーを作成
 	server := &http.Server{
@@ -99,7 +99,7 @@ func priceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
 	return priceinfo
 }
 
-// func GetPriceInfo(c *gin.Context) {
+// func GetPriceInfoApi(c *gin.Context) {
 // 	// CORSヘッダーを設定
 // 	// c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
 // 	// c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -119,7 +119,7 @@ func priceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
 //
 // }
 
-func GetPriceInfo(Response_Writer http.ResponseWriter, req *http.Request) {
+func GetPriceInfoApi(Response_Writer http.ResponseWriter, req *http.Request) {
 
 	// レスポンスのContent-Typeを設定
 	Response_Writer.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -146,3 +146,10 @@ func GetPriceInfo(Response_Writer http.ResponseWriter, req *http.Request) {
 
 
 ```
+
+- DB取得時のエラーについて
+ - 構造体とdb出力カラムが一致してないと以下のエラーが発生
+ ```
+ expected 9 destination arguments in Scan, not 12
+
+ ```
