@@ -4,7 +4,8 @@ package common
 import (
 	// "fmt"
 	"strconv"
-	// "time"
+	"time"
+
 	// "net/http"
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +34,20 @@ func IntgetPrameter(c *gin.Context, prams ...string) (map[string]int, error) {
 		paramMap[keyParam] = intParam
 	}
 	return paramMap, nil
+}
+
+// 日付を文字列に変換
+//
+// 引数:
+//
+//	param1: time.Time型
+//
+// 戻り値:
+//
+//	戻り値1: 日付を文字列変換
+
+func TimeToStr(t time.Time) string {
+	return t.Format("2006-01-02")
 }
 
 // クエリーパラメータを整数値でまとめたマップで返す。
