@@ -1,0 +1,11 @@
+http://localhost:8080/api/range_date?user_id=1
+
+
+
+# http://localhost:8080/api/income_data?start_date=2022-01-25&end_date=2023-01-10
+
+
+http://localhost:8080/api/price?money_received=350000&bouns=1000000&fixed_cost=120000&loan=43000&private=55000
+
+
+
