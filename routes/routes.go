@@ -22,6 +22,7 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		Routes.GET("/price", controllers.GetPriceInfoApi)
 		Routes.GET("/income_data", controllers.GetIncomeDataInRangeApi)
+		Routes.GET("/range_date", controllers.GetStartDataAndEndDateApi)
 		// 他のエンドポイントのルーティングもここで設定
 	}
 }
