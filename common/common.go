@@ -10,6 +10,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type (
+	CommonFetcher interface {
+		IntgetPrameter(c *gin.Context, prams ...string) (map[string]int, error)
+		TimeToStr(t time.Time) string
+	}
+	commonFetcherImpl struct{}
+)
+
+func NewCommonFetcher() CommonFetcher {
+	return &commonFetcherImpl{}
+}
+
 // クエリーパラメータを整数値でまとめたマップで返す。
 //
 //
@@ -23,7 +35,7 @@ import (
 //	戻り値1: nilと数値変換出来なかった際のエラー内容
 //	戻り値2: 整数値が格納されたマップとnil
 
-func IntgetPrameter(c *gin.Context, prams ...string) (map[string]int, error) {
+func (cf *commonFetcherImpl) IntgetPrameter(c *gin.Context, prams ...string) (map[string]int, error) {
 	paramMap := map[string]int{}
 	for _, keyParam := range prams {
 		stringParam := c.DefaultQuery(keyParam, "0")
@@ -46,7 +58,7 @@ func IntgetPrameter(c *gin.Context, prams ...string) (map[string]int, error) {
 //
 //	戻り値1: 日付を文字列変換
 
-func TimeToStr(t time.Time) string {
+func (cf *commonFetcherImpl) TimeToStr(t time.Time) string {
 	return t.Format("2006-01-02")
 }
 

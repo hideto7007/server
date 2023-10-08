@@ -153,3 +153,7 @@ func GetPriceInfoApi(Response_Writer http.ResponseWriter, req *http.Request) {
  expected 9 destination arguments in Scan, not 12
 
  ```
+
+
+ - 定数や関数定義する際
+  - 初めのイニシャルは大文字にする

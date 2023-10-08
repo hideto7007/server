@@ -9,18 +9,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 月の残額と1年間の総貯金額の構造体
+type (
+	PriceManagementFetcher interface {
+		PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo
+		GetPriceInfoApi(c *gin.Context)
+	}
 
-type PriceInfo struct {
-	LeftAmount  int `json:"left_amount"`
-	TotalAmount int `json:"total_amount"`
-}
+	PriceInfo struct {
+		LeftAmount  int `json:"left_amount"`
+		TotalAmount int `json:"total_amount"`
+	}
 
-// 結果の構造体
+	Response struct {
+		PriceInfo PriceInfo `json:"result"`
+		Error     string    `json:"error,omitempty"`
+	}
 
-type Response struct {
-	PriceInfo PriceInfo `json:"result"`
-	Error     string    `json:"error,omitempty"`
+	apiPriceManagementFetcher struct{}
+)
+
+func NewPriceManagementFetcher() PriceManagementFetcher {
+	return &apiPriceManagementFetcher{}
 }
 
 // PriceCalc は月の収入、ボーナス、固定費、ローン、プライベートの値を使用して、
@@ -36,7 +45,7 @@ type Response struct {
 // 戻り値:
 //   - PriceInfo: 月と1年の貯金額の結果を表す構造体
 
-func PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
+func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
 
 	var priceinfo PriceInfo
 	priceinfo.LeftAmount = moneyReceived - fixedCost - loan - private
@@ -76,16 +85,18 @@ func PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
 //	  "message": "Invalid query parameters"
 //	}
 
-func GetPriceInfoApi(c *gin.Context) {
+func (af *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 	// CORSヘッダーを設定
 	c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
 	c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	c.Header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers")
 
+	var common common.CommonFetcher = common.NewCommonFetcher()
 	data, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private")
 
 	if err == nil {
-		res := PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"])
+		var price PriceManagementFetcher = NewPriceManagementFetcher()
+		res := price.PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"])
 
 		response := Response{PriceInfo: res}
 

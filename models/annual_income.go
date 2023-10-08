@@ -1,4 +1,4 @@
-// models/price_management_controllers.go
+// models/anuual_income.go
 package models
 
 import (
@@ -11,24 +11,39 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// IncomeDataの構造体
-type IncomeData struct {
-	IncomeForecastID uuid.UUID
-	PaymentDate      time.Time
-	Age              string
-	Industry         string
-	TotalAmount      int
-	DeductionAmount  int
-	TakeHomeAmount   int
-	Classification   string
-	UserID           int
-}
+type (
+	AnuualIncomeFetcher interface {
+		GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error)
+		GetStartDataAndEndDate(UserID string) ([]PaymentDate, error)
+	}
 
-// PaymentDateの構造体
-type PaymentDate struct {
-	UserID            int
-	StratPaymaentDate string
-	EndPaymaentDate   string
+	IncomeData struct {
+		IncomeForecastID uuid.UUID
+		PaymentDate      time.Time
+		Age              string
+		Industry         string
+		TotalAmount      int
+		DeductionAmount  int
+		TakeHomeAmount   int
+		Classification   string
+		UserID           int
+	}
+
+	PaymentDate struct {
+		UserID            int
+		StratPaymaentDate string
+		EndPaymaentDate   string
+	}
+
+	PostgreSQLDataFetcher struct{ db *sql.DB }
+)
+
+func NewPostgreSQLDataFetcher(dataSourceName string) *PostgreSQLDataFetcher {
+	db, err := sql.Open("postgres", dataSourceName)
+	if err != nil {
+		log.Printf("sql.Open error %s", err)
+	}
+	return &PostgreSQLDataFetcher{db: db}
 }
 
 // GetIncomeDataInRange はDBに登録された給料及び賞与の金額を指定期間で返す。
@@ -43,10 +58,8 @@ type PaymentDate struct {
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error) {
+func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error) {
 	var incomeData []IncomeData
-
-	dataSourceName := "user=postgres dbname=postgres password=pedev7007 host=localhost port=5432  sslmode=disable"
 
 	// startDate と endDate を日付型に変換
 	start, err := time.Parse("2006-01-02", startDate)
@@ -58,13 +71,9 @@ func GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error) {
 	if err != nil {
 		return nil, err
 	}
-	db, err := sql.Open("postgres", dataSourceName)
-	if err != nil {
-		log.Printf("sql.Open error %s", err)
-	}
 
 	// データベースクエリを実行
-	rows, err := db.Query(`
+	rows, err := pf.db.Query(`
         SELECT income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, classification, user_id
         FROM incomeforecast_incomeforecastdata
         WHERE payment_date BETWEEN $1 AND $2
@@ -114,18 +123,12 @@ func GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error) {
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func GetStartDataAndEndDate(UserId string) ([]PaymentDate, error) {
+func (pf *PostgreSQLDataFetcher) GetStartDataAndEndDate(UserId string) ([]PaymentDate, error) {
 	var paymentDate []PaymentDate
-
-	dataSourceName := "user=postgres dbname=postgres password=pedev7007 host=localhost port=5432  sslmode=disable"
-	db, err := sql.Open("postgres", dataSourceName)
-	if err != nil {
-		log.Printf("sql.Open error %s", err)
-	}
 
 	// データベースクエリを実行
 	// 集計関数で値を取得する際は、必ずカラム名を指定する
-	rows, err := db.Query(`
+	rows, err := pf.db.Query(`
 		SELECT user_id, MIN(payment_date) as "start_paymaent_date", MAX(payment_date) as "end_paymaent_date" from incomeforecast_incomeforecastdata
 		WHERE user_id = $1
 		GROUP BY user_id;
@@ -155,6 +158,7 @@ func GetStartDataAndEndDate(UserId string) ([]PaymentDate, error) {
 		}
 
 		// stratPaymaentDate および endPaymaentDate を文字列に変換
+		var common common.CommonFetcher = common.NewCommonFetcher()
 		startDateStr := common.TimeToStr(stratPaymaentDate)
 		endDateStr := common.TimeToStr(endPaymaentDate)
 

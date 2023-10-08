@@ -16,6 +16,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=42&param2=100", nil)
 
+		var common common.CommonFetcher = common.NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err != nil {
@@ -40,6 +41,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=42&param2=notanumber", nil)
 
+		var common common.CommonFetcher = common.NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err == nil {

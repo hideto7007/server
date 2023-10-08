@@ -17,7 +17,8 @@ func TestPriceCalc(t *testing.T) {
 	t.Run("success PriceCalc()", func(t *testing.T) {
 		// テストケース1: 正常な整数の計算
 
-		result := controllers.PriceCalc(300, 100, 50, 50, 50)
+		var price controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
+		result := price.PriceCalc(300, 100, 50, 50, 50)
 
 		assert.Equal(t, 150, result.LeftAmount)
 		assert.Equal(t, 1900, result.TotalAmount)
@@ -33,13 +34,15 @@ func TestGetPriceInfo(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?money_received=300&bouns=100&fixed_cost=50&loan=50&private=50", nil)
 
+		var common common.CommonFetcher = common.NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private")
 
 		// PriceCalc 関数をモック化
-		res := controllers.PriceCalc(paramMap["money_received"], paramMap["bouns"], paramMap["fixed_cost"], paramMap["loan"], paramMap["private"])
+		var price controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
+		res := price.PriceCalc(paramMap["money_received"], paramMap["bouns"], paramMap["fixed_cost"], paramMap["loan"], paramMap["private"])
 
 		// GetPriceInfoApi 関数を呼び出し
-		controllers.GetPriceInfoApi(c)
+		price.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusOK, c.Writer.Status())
@@ -66,10 +69,12 @@ func TestGetPriceInfo(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?money_received=300&bouns=100&fixed_cost=notanumber&loan=50&private=50", nil)
 
+		var common common.CommonFetcher = common.NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private")
 
 		// GetPriceInfoApi 関数を呼び出し
-		controllers.GetPriceInfoApi(c)
+		var price controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
+		price.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, c.Writer.Status())

@@ -17,12 +17,16 @@ func SetupRoutes(r *gin.Engine) {
 	// CORSミドルウェアをルーターに追加
 	r.Use(cors.New(config))
 
+	// APiインターフェイスのインスタンス定義
+	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
+	var incomeAPI controllers.IncomeDataFetcher = controllers.NewIncomeDataFetcher()
+
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.GET("/price", controllers.GetPriceInfoApi)
-		Routes.GET("/income_data", controllers.GetIncomeDataInRangeApi)
-		Routes.GET("/range_date", controllers.GetStartDataAndEndDateApi)
+		Routes.GET("/price", priceAPI.GetPriceInfoApi)
+		Routes.GET("/income_data", incomeAPI.GetIncomeDataInRangeApi)
+		Routes.GET("/range_date", incomeAPI.GetStartDataAndEndDateApi)
 		// 他のエンドポイントのルーティングもここで設定
 	}
 }
