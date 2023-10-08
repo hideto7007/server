@@ -139,8 +139,11 @@ func GetStartDataAndEndDate(UserId string) ([]PaymentDate, error) {
 	// ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
 	// rows.Scanがデータを変数に直接書き込むため
 	for rows.Next() {
-		var userId int
-		var stratPaymaentDate, endPaymaentDate time.Time
+		var (
+			userId            int
+			stratPaymaentDate time.Time
+			endPaymaentDate   time.Time
+		)
 		err := rows.Scan(
 			&userId,
 			&stratPaymaentDate,
