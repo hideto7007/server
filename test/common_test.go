@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"server/common"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -54,6 +55,39 @@ func TestIntgetPrameter(t *testing.T) {
 
 		t.Logf("paramMap[]: %v", paramMap)
 		t.Logf("err: %s", err)
+	})
+}
+
+func TestTimeToStr(t *testing.T) {
+	t.Run("success TimeToStr()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		dateTime := time.Date(2022, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0))
+		result := common.TimeToStr(dateTime)
+
+		assert.Equal(t, "2022-12-23", result)
+
+		t.Logf("dataTime repalce : '%s'", result)
+	})
+	t.Run("error case1 TimeToStr()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		dateTime := time.Date(2022, time.February, 30, 0, 0, 0, 0, time.FixedZone("", 0))
+		result := common.TimeToStr(dateTime)
+
+		assert.NotEqual(t, "2022-02-30", result)
+
+		t.Logf("non existing date → 2022-02-30 : '%s'", result)
+	})
+	t.Run("error case2 TimeToStr()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		var emptyTime time.Time
+		result := common.TimeToStr(emptyTime)
+
+		assert.Equal(t, "0001-01-01", result)
+
+		t.Logf("0001-01-01: %s", result)
 	})
 }
 
