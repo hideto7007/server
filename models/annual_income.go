@@ -15,6 +15,10 @@ type (
 	AnuualIncomeFetcher interface {
 		GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error)
 		GetStartDataAndEndDate(UserID string) ([]PaymentDate, error)
+		GetYearsIncomeAndDeduction(UserID string) ([]YearsIncomeData, error)
+		CreateIncomeData(UserID string) ([]IncomeData, error)
+		UpdateIncomeData(UserID string) ([]IncomeData, error)
+		DeleteIncomeData(UserID string) ([]IncomeData, error)
 	}
 
 	IncomeData struct {
@@ -33,6 +37,13 @@ type (
 		UserID            int
 		StratPaymaentDate string
 		EndPaymaentDate   string
+	}
+
+	YearsIncomeData struct {
+		Years           string
+		TotalAmount     int
+		DeductionAmount int
+		TakeHomeAmount  int
 	}
 
 	PostgreSQLDataFetcher struct{ db *sql.DB }
@@ -177,4 +188,236 @@ func (pf *PostgreSQLDataFetcher) GetStartDataAndEndDate(UserId string) ([]Paymen
 	}
 
 	return paymentDate, nil
+}
+
+// GetYearsIncomeAndDeduction は対象ユーザー情報の各年ごとの収入、差引額、手取を取得して返す。
+//
+// 引数:
+//   - UserId: ユーザーID
+//
+// 戻り値:
+//
+//	戻り値1: 取得したDBの構造体
+//	戻り値2: エラー内容(エラーがない場合はnil)
+//
+
+func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]YearsIncomeData, error) {
+	var yearsIncomeData []YearsIncomeData
+
+	// データベースクエリを実行
+	// 集計関数で値を取得する際は、必ずカラム名を指定する
+	rows, err := pf.db.Query(`
+		SELECT 
+			TO_CHAR(payment_date, 'YYYY') as "year" ,
+			SUM(total_amount) as "sum_total_amount", 
+			SUM(deduction_amount) as "sum_deduction_amount",  
+			SUM(take_home_amount) as "sum_take_home_amount"
+		FROM incomeforecast_incomeforecastdata
+		WHERE user_id = $1
+		GROUP BY TO_CHAR(payment_date, 'YYYY')
+		ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
+    `, UserId)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
+	// rows.Scanがデータを変数に直接書き込むため
+	for rows.Next() {
+		var data YearsIncomeData
+		err := rows.Scan(
+			&data.Years,
+			&data.TotalAmount,
+			&data.DeductionAmount,
+			&data.TakeHomeAmount,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		yearsIncomeData = append(yearsIncomeData, data)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return yearsIncomeData, nil
+}
+
+// CreateIncomeData は新規作成。
+//
+// 引数:
+//   - UserId: ユーザーID
+//
+// 戻り値:
+//
+//	戻り値1: 取得したDBの構造体
+//	戻り値2: エラー内容(エラーがない場合はnil)
+//
+
+func (pf *PostgreSQLDataFetcher) CreateIncomeData(UserId string) ([]IncomeData, error) {
+	var incomeData []IncomeData
+
+	// データベースクエリを実行
+	// 集計関数で値を取得する際は、必ずカラム名を指定する
+	// rows, err := pf.db.Query(`
+	// 	SELECT
+	// 		TO_CHAR(payment_date, 'YYYY') as "year" ,
+	// 		SUM(total_amount) as "sum_total_amount",
+	// 		SUM(deduction_amount) as "sum_deduction_amount",
+	// 		SUM(take_home_amount) as "sum_take_home_amount"
+	// 	FROM incomeforecast_incomeforecastdata
+	// 	WHERE user_id = $1
+	// 	GROUP BY TO_CHAR(payment_date, 'YYYY')
+	// 	ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
+	// `, UserId)
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+
+	// // ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
+	// // rows.Scanがデータを変数に直接書き込むため
+	// for rows.Next() {
+	// 	var data YearsIncomeData
+	// 	err := rows.Scan(
+	// 		&data.labels,
+	// 		&data.totalAmount,
+	// 		&data.deductionAmount,
+	// 		&data.takeHomeAmount,
+	// 	)
+
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	yearsIncomeData = append(yearsIncomeData, data)
+	// }
+
+	// if err := rows.Err(); err != nil {
+	// 	return nil, err
+	// }
+
+	return incomeData, nil
+}
+
+// UpdateIncomeData は更新。
+//
+// 引数:
+//   - UserId: ユーザーID
+//
+// 戻り値:
+//
+//	戻り値1: 取得したDBの構造体
+//	戻り値2: エラー内容(エラーがない場合はnil)
+//
+
+func (pf *PostgreSQLDataFetcher) UpdateIncomeData(UserId string) ([]IncomeData, error) {
+	var incomeData []IncomeData
+
+	// データベースクエリを実行
+	// 集計関数で値を取得する際は、必ずカラム名を指定する
+	// rows, err := pf.db.Query(`
+	// 	SELECT
+	// 		TO_CHAR(payment_date, 'YYYY') as "year" ,
+	// 		SUM(total_amount) as "sum_total_amount",
+	// 		SUM(deduction_amount) as "sum_deduction_amount",
+	// 		SUM(take_home_amount) as "sum_take_home_amount"
+	// 	FROM incomeforecast_incomeforecastdata
+	// 	WHERE user_id = $1
+	// 	GROUP BY TO_CHAR(payment_date, 'YYYY')
+	// 	ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
+	// `, UserId)
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+
+	// // ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
+	// // rows.Scanがデータを変数に直接書き込むため
+	// for rows.Next() {
+	// 	var data YearsIncomeData
+	// 	err := rows.Scan(
+	// 		&data.labels,
+	// 		&data.totalAmount,
+	// 		&data.deductionAmount,
+	// 		&data.takeHomeAmount,
+	// 	)
+
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	yearsIncomeData = append(yearsIncomeData, data)
+	// }
+
+	// if err := rows.Err(); err != nil {
+	// 	return nil, err
+	// }
+
+	return incomeData, nil
+}
+
+// DeleteIncomeData は削除。
+//
+// 引数:
+//   - UserId: ユーザーID
+//
+// 戻り値:
+//
+//	戻り値1: 取得したDBの構造体
+//	戻り値2: エラー内容(エラーがない場合はnil)
+//
+
+func (pf *PostgreSQLDataFetcher) DeleteIncomeData(UserId string) ([]IncomeData, error) {
+	var incomeData []IncomeData
+
+	// データベースクエリを実行
+	// 集計関数で値を取得する際は、必ずカラム名を指定する
+	// rows, err := pf.db.Query(`
+	// 	SELECT
+	// 		TO_CHAR(payment_date, 'YYYY') as "year" ,
+	// 		SUM(total_amount) as "sum_total_amount",
+	// 		SUM(deduction_amount) as "sum_deduction_amount",
+	// 		SUM(take_home_amount) as "sum_take_home_amount"
+	// 	FROM incomeforecast_incomeforecastdata
+	// 	WHERE user_id = $1
+	// 	GROUP BY TO_CHAR(payment_date, 'YYYY')
+	// 	ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
+	// `, UserId)
+
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+
+	// // ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
+	// // rows.Scanがデータを変数に直接書き込むため
+	// for rows.Next() {
+	// 	var data YearsIncomeData
+	// 	err := rows.Scan(
+	// 		&data.labels,
+	// 		&data.totalAmount,
+	// 		&data.deductionAmount,
+	// 		&data.takeHomeAmount,
+	// 	)
+
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	yearsIncomeData = append(yearsIncomeData, data)
+	// }
+
+	// if err := rows.Err(); err != nil {
+	// 	return nil, err
+	// }
+
+	return incomeData, nil
 }

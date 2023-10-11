@@ -13,6 +13,7 @@ type (
 	IncomeDataFetcher interface {
 		GetIncomeDataInRangeApi(c *gin.Context)
 		GetStartDataAndEndDateApi(c *gin.Context)
+		GetYearIncomeAndDeductionApi(c *gin.Context)
 	}
 
 	apiGetIncomeDataFetcher struct{}
@@ -66,4 +67,26 @@ func (af *apiGetIncomeDataFetcher) GetStartDataAndEndDateApi(c *gin.Context) {
 
 	// JSONレスポンスを返す
 	c.JSON(http.StatusOK, gin.H{"result": paymentDate})
+}
+
+// GetYearIncomeAndDeductionApi は各年ごとの収入、差引額、手取を取得するAPI
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
+	// パラメータからユーザー情報取得
+	userId := c.Query("user_id")
+
+	// データベースから指定範囲のデータを取得
+	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// JSONレスポンスを返す
+	c.JSON(http.StatusOK, gin.H{"result": yearIncomeData})
 }
