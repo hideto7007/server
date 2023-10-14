@@ -16,9 +16,9 @@ type (
 		GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error)
 		GetStartDataAndEndDate(UserID string) ([]PaymentDate, error)
 		GetYearsIncomeAndDeduction(UserID string) ([]YearsIncomeData, error)
-		CreateIncomeData(UserID string) ([]IncomeData, error)
-		UpdateIncomeData(UserID string) ([]IncomeData, error)
-		DeleteIncomeData(UserID string) ([]IncomeData, error)
+		InsertIncome(data []InsertIncomeData) error
+		UpdateIncome(data []UpdateIncomeData) error
+		DeleteIncome(UserID []DeleteIncomeData) error
 	}
 
 	IncomeData struct {
@@ -44,6 +44,33 @@ type (
 		TotalAmount     int
 		DeductionAmount int
 		TakeHomeAmount  int
+	}
+
+	InsertIncomeData struct {
+		PaymentDate     string `json:"payment_date"`
+		Age             string `json:"age"`
+		Industry        string `json:"industry"`
+		TotalAmount     string `json:"total_amount"`
+		DeductionAmount string `json:"deduction_amount"`
+		TakeHomeAmount  string `json:"take_home_amount"`
+		UpdateUser      string `json:"update_user"`
+		Classification  string `json:"classification"`
+		UserID          string `json:"user_id"`
+	}
+
+	UpdateIncomeData struct {
+		IncomeForecastID string `json:"income_forecast_id"`
+		PaymentDate      string `json:"payment_date"`
+		Age              string `json:"age"`
+		Industry         string `json:"industry"`
+		TotalAmount      string `json:"total_amount"`
+		DeductionAmount  string `json:"deduction_amount"`
+		TakeHomeAmount   string `json:"take_home_amount"`
+		Classification   string `json:"classification"`
+	}
+
+	DeleteIncomeData struct {
+		IncomeForecastID string `json:"income_forecast_id"`
 	}
 
 	PostgreSQLDataFetcher struct{ db *sql.DB }
@@ -248,7 +275,7 @@ func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]Ye
 	return yearsIncomeData, nil
 }
 
-// CreateIncomeData は新規作成。
+// InsertIncome は新規登録
 //
 // 引数:
 //   - UserId: ユーザーID
@@ -259,54 +286,73 @@ func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]Ye
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) CreateIncomeData(UserId string) ([]IncomeData, error) {
-	var incomeData []IncomeData
+func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 
-	// データベースクエリを実行
-	// 集計関数で値を取得する際は、必ずカラム名を指定する
-	// rows, err := pf.db.Query(`
-	// 	SELECT
-	// 		TO_CHAR(payment_date, 'YYYY') as "year" ,
-	// 		SUM(total_amount) as "sum_total_amount",
-	// 		SUM(deduction_amount) as "sum_deduction_amount",
-	// 		SUM(take_home_amount) as "sum_take_home_amount"
-	// 	FROM incomeforecast_incomeforecastdata
-	// 	WHERE user_id = $1
-	// 	GROUP BY TO_CHAR(payment_date, 'YYYY')
-	// 	ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
-	// `, UserId)
+	defer pf.db.Close()
+	var err error
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	deleteFlag := 0
+	createdAt := time.Now()
 
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	// トランザクションを開始
+	tx, err := pf.db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// // ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
-	// // rows.Scanがデータを変数に直接書き込むため
-	// for rows.Next() {
-	// 	var data YearsIncomeData
-	// 	err := rows.Scan(
-	// 		&data.labels,
-	// 		&data.totalAmount,
-	// 		&data.deductionAmount,
-	// 		&data.takeHomeAmount,
-	// 	)
+	insertStatement := `
+        INSERT INTO public.incomeforecast_incomeforecastdata
+        (income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, delete_flag, update_user, created_at, classification, user_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    `
 
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	for _, insertData := range data {
+		data := InsertIncomeData{
+			PaymentDate:     insertData.PaymentDate,
+			Age:             insertData.Age,
+			Industry:        insertData.Industry,
+			TotalAmount:     insertData.TotalAmount,
+			DeductionAmount: insertData.DeductionAmount,
+			TakeHomeAmount:  insertData.TakeHomeAmount,
+			UpdateUser:      insertData.UpdateUser,
+			Classification:  insertData.Classification,
+			UserID:          insertData.UserID,
+		}
+		uuid := uuid.New().String()
+		ageToInt, _ := common.StrToInt(data.Age)
+		totalAmountToInt, _ := common.StrToInt(data.TotalAmount)
+		deductionAmountToInt, _ := common.StrToInt(data.DeductionAmount)
+		takeHomeAmountToInt, _ := common.StrToInt(data.TakeHomeAmount)
+		userIdToInt, _ := common.StrToInt(data.UserID)
+		if _, err = tx.Exec(insertStatement,
+			uuid,
+			data.PaymentDate,
+			ageToInt,
+			data.Industry,
+			totalAmountToInt,
+			deductionAmountToInt,
+			takeHomeAmountToInt,
+			deleteFlag,
+			data.UpdateUser,
+			createdAt,
+			data.Classification,
+			userIdToInt); err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		}
+	}
 
-	// 	yearsIncomeData = append(yearsIncomeData, data)
-	// }
+	// トランザクションをコミット
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// if err := rows.Err(); err != nil {
-	// 	return nil, err
-	// }
+	return nil
 
-	return incomeData, nil
 }
 
-// UpdateIncomeData は更新。
+// UpdateIncome は更新
 //
 // 引数:
 //   - UserId: ユーザーID
@@ -317,54 +363,73 @@ func (pf *PostgreSQLDataFetcher) CreateIncomeData(UserId string) ([]IncomeData, 
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) UpdateIncomeData(UserId string) ([]IncomeData, error) {
-	var incomeData []IncomeData
+func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 
-	// データベースクエリを実行
-	// 集計関数で値を取得する際は、必ずカラム名を指定する
-	// rows, err := pf.db.Query(`
-	// 	SELECT
-	// 		TO_CHAR(payment_date, 'YYYY') as "year" ,
-	// 		SUM(total_amount) as "sum_total_amount",
-	// 		SUM(deduction_amount) as "sum_deduction_amount",
-	// 		SUM(take_home_amount) as "sum_take_home_amount"
-	// 	FROM incomeforecast_incomeforecastdata
-	// 	WHERE user_id = $1
-	// 	GROUP BY TO_CHAR(payment_date, 'YYYY')
-	// 	ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
-	// `, UserId)
+	defer pf.db.Close()
+	var err error
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	createdAt := time.Now()
 
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	// トランザクションを開始
+	tx, err := pf.db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// // ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
-	// // rows.Scanがデータを変数に直接書き込むため
-	// for rows.Next() {
-	// 	var data YearsIncomeData
-	// 	err := rows.Scan(
-	// 		&data.labels,
-	// 		&data.totalAmount,
-	// 		&data.deductionAmount,
-	// 		&data.takeHomeAmount,
-	// 	)
+	updateStatement := `
+        UPDATE public.incomeforecast_incomeforecastdata
+        SET 
+			payment_date = $1, 
+			age = $2, 
+			industry = $3, 
+			total_amount = $4, 
+			deduction_amount = $5, 
+			take_home_amount = $6, 
+			created_at = $7, 
+			classification = $8
+        WHERE income_forecast_id = $9;
+    `
 
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	for _, insertData := range data {
+		data := UpdateIncomeData{
+			IncomeForecastID: insertData.IncomeForecastID,
+			PaymentDate:      insertData.PaymentDate,
+			Age:              insertData.Age,
+			Industry:         insertData.Industry,
+			TotalAmount:      insertData.TotalAmount,
+			DeductionAmount:  insertData.DeductionAmount,
+			TakeHomeAmount:   insertData.TakeHomeAmount,
+			Classification:   insertData.Classification,
+		}
+		ageToInt, _ := common.StrToInt(data.Age)
+		totalAmountToInt, _ := common.StrToInt(data.TotalAmount)
+		deductionAmountToInt, _ := common.StrToInt(data.DeductionAmount)
+		takeHomeAmountToInt, _ := common.StrToInt(data.TakeHomeAmount)
+		if _, err = tx.Exec(updateStatement,
+			data.PaymentDate,
+			ageToInt,
+			data.Industry,
+			totalAmountToInt,
+			deductionAmountToInt,
+			takeHomeAmountToInt,
+			createdAt,
+			data.Classification,
+			data.IncomeForecastID); err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		}
+	}
 
-	// 	yearsIncomeData = append(yearsIncomeData, data)
-	// }
+	// トランザクションをコミット
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// if err := rows.Err(); err != nil {
-	// 	return nil, err
-	// }
-
-	return incomeData, nil
+	return nil
 }
 
-// DeleteIncomeData は削除。
+// DeleteIncome は削除
 //
 // 引数:
 //   - UserId: ユーザーID
@@ -375,49 +440,33 @@ func (pf *PostgreSQLDataFetcher) UpdateIncomeData(UserId string) ([]IncomeData, 
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) DeleteIncomeData(UserId string) ([]IncomeData, error) {
-	var incomeData []IncomeData
+func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 
-	// データベースクエリを実行
-	// 集計関数で値を取得する際は、必ずカラム名を指定する
-	// rows, err := pf.db.Query(`
-	// 	SELECT
-	// 		TO_CHAR(payment_date, 'YYYY') as "year" ,
-	// 		SUM(total_amount) as "sum_total_amount",
-	// 		SUM(deduction_amount) as "sum_deduction_amount",
-	// 		SUM(take_home_amount) as "sum_take_home_amount"
-	// 	FROM incomeforecast_incomeforecastdata
-	// 	WHERE user_id = $1
-	// 	GROUP BY TO_CHAR(payment_date, 'YYYY')
-	// 	ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
-	// `, UserId)
+	defer pf.db.Close()
+	var err error
 
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	// トランザクションを開始
+	tx, err := pf.db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// // ユーザーidと日付は別々の型で受け取り、各変数のポインターに渡す
-	// // rows.Scanがデータを変数に直接書き込むため
-	// for rows.Next() {
-	// 	var data YearsIncomeData
-	// 	err := rows.Scan(
-	// 		&data.labels,
-	// 		&data.totalAmount,
-	// 		&data.deductionAmount,
-	// 		&data.takeHomeAmount,
-	// 	)
+	deleteStatement := `
+        DELETE FROM public.incomeforecast_incomeforecastdata
+        WHERE income_forecast_id = $1;
+    `
 
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	for _, deleteData := range data {
+		if _, err = tx.Exec(deleteStatement, deleteData.IncomeForecastID); err != nil {
+			tx.Rollback()
+			log.Fatal(err)
+		}
+	}
 
-	// 	yearsIncomeData = append(yearsIncomeData, data)
-	// }
-
-	// if err := rows.Err(); err != nil {
-	// 	return nil, err
-	// }
-
-	return incomeData, nil
+	// トランザクションをコミット
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
 }

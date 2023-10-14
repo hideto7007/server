@@ -3,6 +3,7 @@ package common
 
 import (
 	// "fmt"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -14,6 +15,8 @@ type (
 	CommonFetcher interface {
 		IntgetPrameter(c *gin.Context, prams ...string) (map[string]int, error)
 		TimeToStr(t time.Time) string
+		StrToTime(dateStr string) (time.Time, error)
+		StrToInt(str string) (int, error)
 	}
 	commonFetcherImpl struct{}
 )
@@ -60,6 +63,45 @@ func (cf *commonFetcherImpl) IntgetPrameter(c *gin.Context, prams ...string) (ma
 
 func (cf *commonFetcherImpl) TimeToStr(t time.Time) string {
 	return t.Format("2006-01-02")
+}
+
+// 文字列日付を日付に変換
+//
+// 引数:
+//
+//	param1: string
+//
+// 戻り値:
+//
+//	戻り値1: 文字列を日付に変換
+
+func (cf *commonFetcherImpl) StrToTime(dateStr string) (time.Time, error) {
+	parsedTime, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		fmt.Println("変換エラー:", err)
+		return time.Time{}, err
+	}
+	return parsedTime, nil
+}
+
+// 整数値型に変換
+//
+// 引数:
+//
+//	param1: string
+//
+// 戻り値:
+//
+//	戻り値1: 文字列を整数値型に変換して返す
+
+func (cf *commonFetcherImpl) StrToInt(str string) (int, error) {
+	var replaceInt int
+	replaceInt, err := strconv.Atoi(str)
+	if err != nil {
+		fmt.Println("変換エラー:", err)
+		return replaceInt, err
+	}
+	return replaceInt, nil
 }
 
 // クエリーパラメータを整数値でまとめたマップで返す。

@@ -14,6 +14,9 @@ type (
 		GetIncomeDataInRangeApi(c *gin.Context)
 		GetStartDataAndEndDateApi(c *gin.Context)
 		GetYearIncomeAndDeductionApi(c *gin.Context)
+		InsertIncomeDataApi(c *gin.Context)
+		UpdateIncomeDataApi(c *gin.Context)
+		DeleteIncomeDataApi(c *gin.Context)
 	}
 
 	apiGetIncomeDataFetcher struct{}
@@ -89,4 +92,82 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 
 	// JSONレスポンスを返す
 	c.JSON(http.StatusOK, gin.H{"result": yearIncomeData})
+}
+
+// InsertIncomeDataApi は新規登録
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
+	// JSONデータを受け取るための構造体を定義
+	var requestData struct {
+		Data []models.InsertIncomeData `json:"data"`
+	}
+
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 収入データベースへ新しいデータ登録
+	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	if err := dbFetcher.InsertIncome(requestData.Data); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースへの挿入中にエラーが発生しました"})
+		return
+	}
+
+	// JSONレスポンスを返す
+	c.JSON(http.StatusOK, gin.H{"message": "登録成功"})
+}
+
+// UpdateIncomeDataApi は更新
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
+	var requestData struct {
+		Data []models.UpdateIncomeData `json:"data"`
+	}
+
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 収入データベースの更新
+	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	if err := dbFetcher.UpdateIncome(requestData.Data); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースへの挿入中にエラーが発生しました"})
+		return
+	}
+
+	// JSONレスポンスを返す
+	c.JSON(http.StatusOK, gin.H{"message": "更新成功"})
+}
+
+// DeleteIncomeDataApi は削除
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
+	var requestData struct {
+		Data []models.DeleteIncomeData `json:"data"`
+	}
+
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 収入データベースの指定されたIDの削除
+	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	if err := dbFetcher.DeleteIncome(requestData.Data); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースからの削除中にエラーが発生しました"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "削除データ成功"})
 }
