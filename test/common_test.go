@@ -91,6 +91,90 @@ func TestTimeToStr(t *testing.T) {
 	})
 }
 
+func TestStrToTime(t *testing.T) {
+	t.Run("success StrToTime()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		strDate := "2023-10-14"
+		result, err := common.StrToTime(strDate)
+
+		assert.NoError(t, err)
+
+		t.Log(result)
+
+		assert.Equal(t, time.Time(time.Date(2023, time.October, 14, 0, 0, 0, 0, time.UTC)), result)
+
+		t.Logf("str to time repalce : '%s'", result)
+	})
+	t.Run("error case1 StrToTime()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		strDate := "hoge"
+		_, err := common.StrToTime(strDate)
+
+		assert.Error(t, err)
+
+		expectedErrorMessage := `parsing time "hoge" as "2006-01-02": cannot parse "hoge" as "2006"`
+		assert.EqualError(t, err, expectedErrorMessage)
+
+		t.Logf("no replace time 1 : '%s'", err)
+	})
+	t.Run("error case2 StrToTime()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		strDate := "3456"
+		_, err := common.StrToTime(strDate)
+
+		assert.Error(t, err)
+
+		expectedErrorMessage := `parsing time "3456" as "2006-01-02": cannot parse "" as "-"`
+		assert.EqualError(t, err, expectedErrorMessage)
+
+		t.Logf("no replace time 2 : '%s'", err)
+	})
+}
+
+func TestStrToInt(t *testing.T) {
+	t.Run("success StrToInt()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		strDate := "6543"
+		result, err := common.StrToInt(strDate)
+
+		assert.NoError(t, err)
+
+		assert.Equal(t, 6543, result)
+
+		t.Logf("string to int replace : '%d'", result)
+	})
+	t.Run("error case1 StrToInt()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		strDate := "hoge"
+		_, err := common.StrToInt(strDate)
+
+		assert.Error(t, err)
+
+		expectedErrorMessage := `strconv.Atoi: parsing "hoge": invalid syntax`
+		assert.EqualError(t, err, expectedErrorMessage)
+
+		t.Logf("no replace int 1 : '%s'", err)
+	})
+	t.Run("error case2 StrToInt()", func(t *testing.T) {
+
+		var common common.CommonFetcher = common.NewCommonFetcher()
+		strDate := "34hoge56"
+		_, err := common.StrToInt(strDate)
+
+		assert.Error(t, err)
+
+		expectedErrorMessage := `strconv.Atoi: parsing "34hoge56": invalid syntax`
+		assert.EqualError(t, err, expectedErrorMessage)
+
+		t.Logf("no replace int 2 : '%s'", err)
+	})
+}
+
 // func TestIntgetPrameter(t *testing.T) {
 // 	t.Run("success IntgetPrameter()", func(t *testing.T) {
 // 		// テストケース1: 正常な整数のクエリーパラメータ
