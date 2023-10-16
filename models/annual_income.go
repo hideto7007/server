@@ -3,6 +3,7 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"server/common"
 	"time"
@@ -297,7 +298,7 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	insertStatement := `
@@ -338,14 +339,15 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 			data.Classification,
 			userIdToInt); err != nil {
 			tx.Rollback()
-			log.Fatal(err)
+			fmt.Println(err)
 		}
 	}
 
 	// トランザクションをコミット
 	err = tx.Commit()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return err
 	}
 
 	return nil
@@ -373,7 +375,7 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	updateStatement := `
@@ -416,14 +418,15 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 			data.Classification,
 			data.IncomeForecastID); err != nil {
 			tx.Rollback()
-			log.Fatal(err)
+			fmt.Println(err)
 		}
 	}
 
 	// トランザクションをコミット
 	err = tx.Commit()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return err
 	}
 
 	return nil
@@ -448,7 +451,7 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	deleteStatement := `
@@ -459,14 +462,15 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 	for _, deleteData := range data {
 		if _, err = tx.Exec(deleteStatement, deleteData.IncomeForecastID); err != nil {
 			tx.Rollback()
-			log.Fatal(err)
+			fmt.Println(err)
 		}
 	}
 
 	// トランザクションをコミット
 	err = tx.Commit()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		return err
 	}
 	return nil
 }
