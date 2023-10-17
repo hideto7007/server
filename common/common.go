@@ -113,7 +113,7 @@ func TestDataDelete() error {
 	if err != nil {
 		log.Printf("sql.Open error %s", err)
 	}
-	db.Close()
+	defer db.Close()
 
 	// トランザクションを開始
 	tx, err := db.Begin()

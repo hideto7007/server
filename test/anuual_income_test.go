@@ -532,9 +532,11 @@ func TestDeleteIncome(t *testing.T) {
 		assert.Error(t, err)
 
 		t.Log("error", err)
-
-		err = common.TestDataDelete()
-
-		t.Log("検知", err)
 	})
+}
+
+// テストデータを削除するための関数
+func TestTestDataDelete(t *testing.T) {
+	err := common.TestDataDelete()
+	t.Log(err)
 }
