@@ -3,19 +3,22 @@ module server
 go 1.21.1
 
 require (
-	github.com/gin-gonic/gin v1.8.1
+	github.com/gin-gonic/gin v1.7.4
 	github.com/stretchr/testify v1.8.4
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
-	github.com/gin-contrib/cors v1.4.0
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
