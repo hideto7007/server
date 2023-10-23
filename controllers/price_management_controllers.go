@@ -86,10 +86,6 @@ func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, 
 //	}
 
 func (af *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
-	// CORSヘッダーを設定
-	c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
-	c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	c.Header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers")
 
 	var common common.CommonFetcher = common.NewCommonFetcher()
 	data, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private")
