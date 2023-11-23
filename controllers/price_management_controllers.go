@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"server/common"
 
@@ -11,7 +10,7 @@ import (
 
 type (
 	PriceManagementFetcher interface {
-		PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo
+		PriceCalc(moneyReceived, bouns, fixedCost, loan, private, insurance int) PriceInfo
 		GetPriceInfoApi(c *gin.Context)
 	}
 
@@ -45,11 +44,11 @@ func NewPriceManagementFetcher() PriceManagementFetcher {
 // 戻り値:
 //   - PriceInfo: 月と1年の貯金額の結果を表す構造体
 
-func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, loan, private int) PriceInfo {
+func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, loan, private, insurance int) PriceInfo {
 
 	var priceinfo PriceInfo
 	priceinfo.LeftAmount = moneyReceived - fixedCost - loan - private
-	priceinfo.TotalAmount = (priceinfo.LeftAmount * 12) + bouns
+	priceinfo.TotalAmount = ((priceinfo.LeftAmount * 12) + bouns) - insurance
 
 	return priceinfo
 }
@@ -88,15 +87,13 @@ func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, 
 func (af *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 
 	var common common.CommonFetcher = common.NewCommonFetcher()
-	data, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private")
+	data, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
 
 	if err == nil {
 		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		res := price.PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"])
+		res := price.PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"], data["insurance"])
 
 		response := Response{PriceInfo: res}
-
-		fmt.Println("debug", response)
 
 		c.JSON(http.StatusOK, gin.H{"message": response})
 	} else {
