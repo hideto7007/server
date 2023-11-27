@@ -14,8 +14,8 @@ import (
 
 type (
 	AnuualIncomeFetcher interface {
-		GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error)
-		GetStartDataAndEndDate(UserID string) ([]PaymentDate, error)
+		GetIncomeDataInRange(StartDate, EndDate, UserId string) ([]IncomeData, error)
+		GetDateRange(UserID string) ([]PaymentDate, error)
 		GetYearsIncomeAndDeduction(UserID string) ([]YearsIncomeData, error)
 		InsertIncome(data []InsertIncomeData) error
 		UpdateIncome(data []UpdateIncomeData) error
@@ -49,24 +49,24 @@ type (
 
 	InsertIncomeData struct {
 		PaymentDate     string `json:"payment_date"`
-		Age             string `json:"age"`
+		Age             int    `json:"age"`
 		Industry        string `json:"industry"`
-		TotalAmount     string `json:"total_amount"`
-		DeductionAmount string `json:"deduction_amount"`
-		TakeHomeAmount  string `json:"take_home_amount"`
+		TotalAmount     int    `json:"total_amount"`
+		DeductionAmount int    `json:"deduction_amount"`
+		TakeHomeAmount  int    `json:"take_home_amount"`
 		UpdateUser      string `json:"update_user"`
 		Classification  string `json:"classification"`
-		UserID          string `json:"user_id"`
+		UserID          int    `json:"user_id"`
 	}
 
 	UpdateIncomeData struct {
 		IncomeForecastID string `json:"income_forecast_id"`
 		PaymentDate      string `json:"payment_date"`
-		Age              string `json:"age"`
+		Age              int    `json:"age"`
 		Industry         string `json:"industry"`
-		TotalAmount      string `json:"total_amount"`
-		DeductionAmount  string `json:"deduction_amount"`
-		TakeHomeAmount   string `json:"take_home_amount"`
+		TotalAmount      int    `json:"total_amount"`
+		DeductionAmount  int    `json:"deduction_amount"`
+		TakeHomeAmount   int    `json:"take_home_amount"`
 		Classification   string `json:"classification"`
 	}
 
@@ -97,16 +97,16 @@ func NewPostgreSQLDataFetcher(dataSourceName string) *PostgreSQLDataFetcher {
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(startDate, endDate string) ([]IncomeData, error) {
+func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate, EndDate, UserId string) ([]IncomeData, error) {
 	var incomeData []IncomeData
 
 	// startDate と endDate を日付型に変換
-	start, err := time.Parse("2006-01-02", startDate)
+	start, err := time.Parse("2006-01-02", StartDate)
 	if err != nil {
 		return nil, err
 	}
 
-	end, err := time.Parse("2006-01-02", endDate)
+	end, err := time.Parse("2006-01-02", EndDate)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +115,9 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(startDate, endDate string)
 	rows, err := pf.db.Query(`
         SELECT income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, classification, user_id
         FROM incomeforecast_incomeforecastdata
-        WHERE payment_date BETWEEN $1 AND $2
-    `, start, end)
+        WHERE payment_date BETWEEN $1 AND $2 AND user_id = $3
+		ORDER BY payment_date DESC
+    `, start, end, UserId)
 
 	if err != nil {
 		return nil, err
@@ -151,7 +152,7 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(startDate, endDate string)
 	return incomeData, nil
 }
 
-// GetStartDataAndEndDate は対象ユーザーの情報で最も古い日付と最も新しい日付を取得して返す。
+// GetDateRange は対象ユーザーの情報で最も古い日付と最も新しい日付を取得して返す。
 //
 // 引数:
 //   - UserId: ユーザーID
@@ -162,7 +163,7 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(startDate, endDate string)
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetStartDataAndEndDate(UserId string) ([]PaymentDate, error) {
+func (pf *PostgreSQLDataFetcher) GetDateRange(UserId string) ([]PaymentDate, error) {
 	var paymentDate []PaymentDate
 
 	// データベースクエリを実行
@@ -291,7 +292,6 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 
 	defer pf.db.Close()
 	var err error
-	var common common.CommonFetcher = common.NewCommonFetcher()
 	deleteFlag := 0
 	createdAt := time.Now()
 
@@ -320,24 +320,19 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 			UserID:          insertData.UserID,
 		}
 		uuid := uuid.New().String()
-		ageToInt, _ := common.StrToInt(data.Age)
-		totalAmountToInt, _ := common.StrToInt(data.TotalAmount)
-		deductionAmountToInt, _ := common.StrToInt(data.DeductionAmount)
-		takeHomeAmountToInt, _ := common.StrToInt(data.TakeHomeAmount)
-		userIdToInt, _ := common.StrToInt(data.UserID)
 		if _, err = tx.Exec(insertStatement,
 			uuid,
 			data.PaymentDate,
-			ageToInt,
+			data.Age,
 			data.Industry,
-			totalAmountToInt,
-			deductionAmountToInt,
-			takeHomeAmountToInt,
+			data.TotalAmount,
+			data.DeductionAmount,
+			data.TakeHomeAmount,
 			deleteFlag,
 			data.UpdateUser,
 			createdAt,
 			data.Classification,
-			userIdToInt); err != nil {
+			data.UserID); err != nil {
 			tx.Rollback()
 			fmt.Println(err)
 		}
@@ -369,7 +364,6 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 
 	defer pf.db.Close()
 	var err error
-	var common common.CommonFetcher = common.NewCommonFetcher()
 	createdAt := time.Now()
 
 	// トランザクションを開始
@@ -403,17 +397,13 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 			TakeHomeAmount:   insertData.TakeHomeAmount,
 			Classification:   insertData.Classification,
 		}
-		ageToInt, _ := common.StrToInt(data.Age)
-		totalAmountToInt, _ := common.StrToInt(data.TotalAmount)
-		deductionAmountToInt, _ := common.StrToInt(data.DeductionAmount)
-		takeHomeAmountToInt, _ := common.StrToInt(data.TakeHomeAmount)
 		if _, err = tx.Exec(updateStatement,
 			data.PaymentDate,
-			ageToInt,
+			data.Age,
 			data.Industry,
-			totalAmountToInt,
-			deductionAmountToInt,
-			takeHomeAmountToInt,
+			data.TotalAmount,
+			data.DeductionAmount,
+			data.TakeHomeAmount,
 			createdAt,
 			data.Classification,
 			data.IncomeForecastID); err != nil {
