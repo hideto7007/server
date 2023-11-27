@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"server/common"
 	"server/config"
 	"server/models"
@@ -46,8 +47,8 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		UserId := "1"
 		expectedData := []models.IncomeData{
 			{
-				IncomeForecastID: uuid.MustParse("92fa978b-876a-4693-b5af-a8d4010b4bfe"),
-				PaymentDate:      time.Date(2022, time.November, 25, 0, 0, 0, 0, time.FixedZone("", 0)),
+				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+				PaymentDate:      time.Date(2022, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
 				Age:              "28",
 				Industry:         "システム開発",
 				TotalAmount:      250000,
@@ -57,8 +58,8 @@ func TestGetIncomeDataInRange(t *testing.T) {
 				UserID:           1,
 			},
 			{
-				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-				PaymentDate:      time.Date(2022, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
+				IncomeForecastID: uuid.MustParse("92fa978b-876a-4693-b5af-a8d4010b4bfe"),
+				PaymentDate:      time.Date(2022, time.November, 25, 0, 0, 0, 0, time.FixedZone("", 0)),
 				Age:              "28",
 				Industry:         "システム開発",
 				TotalAmount:      250000,
@@ -102,6 +103,10 @@ func TestGetIncomeDataInRange(t *testing.T) {
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
+
+		fmt.Print("result", result)
+		fmt.Print("=====================")
+		fmt.Print("expectedData", expectedData)
 
 		// 取得したデータが期待値と一致することを検証
 		assert.Equal(t, expectedData, result)
