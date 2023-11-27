@@ -17,7 +17,7 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		Routes.GET("/price", priceAPI.GetPriceInfoApi)
 		Routes.GET("/income_data", incomeAPI.GetIncomeDataInRangeApi)
-		Routes.GET("/range_date", incomeAPI.GetStartDataAndEndDateApi)
+		Routes.GET("/range_date", incomeAPI.GetDateRangeApi)
 		Routes.GET("/years_income_date", incomeAPI.GetYearIncomeAndDeductionApi)
 		Routes.POST("/income_create", incomeAPI.InsertIncomeDataApi)
 		Routes.PUT("/income_update", incomeAPI.UpdateIncomeDataApi)
