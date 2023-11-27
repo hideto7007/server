@@ -12,7 +12,7 @@ import (
 type (
 	IncomeDataFetcher interface {
 		GetIncomeDataInRangeApi(c *gin.Context)
-		GetStartDataAndEndDateApi(c *gin.Context)
+		GetDateRangeApi(c *gin.Context)
 		GetYearIncomeAndDeductionApi(c *gin.Context)
 		InsertIncomeDataApi(c *gin.Context)
 		UpdateIncomeDataApi(c *gin.Context)
@@ -36,10 +36,11 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	// パラメータから日付の始まりと終わりを取得
 	startDate := c.Query("start_date")
 	endDate := c.Query("end_date")
+	userId := c.Query("user_id")
 
 	// データベースから指定範囲のデータを取得
 	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate)
+	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -50,18 +51,18 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": incomeData})
 }
 
-// GetStartDataAndEndDateApi は登録されている最も古い日付と最も新しい日付を取得するAPI
+// GetDateRangeApi は登録されている最も古い日付と最も新しい日付を取得するAPI
 // 引数:
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) GetStartDataAndEndDateApi(c *gin.Context) {
+func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
 	userId := c.Query("user_id")
 
 	// データベースから指定範囲のデータを取得
 	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	paymentDate, err := dbFetcher.GetStartDataAndEndDate(userId)
+	paymentDate, err := dbFetcher.GetDateRange(userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
