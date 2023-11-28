@@ -154,18 +154,12 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 //
 
 func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
-	var requestData struct {
-		Data []models.DeleteIncomeData `json:"data"`
-	}
 
-	if err := c.ShouldBindJSON(&requestData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	incomeForecastId := c.Query("income_forecast_id")
 
 	// 収入データベースの指定されたIDの削除
 	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	if err := dbFetcher.DeleteIncome(requestData.Data); err != nil {
+	if err := dbFetcher.DeleteIncome([]models.DeleteIncomeData{{IncomeForecastID: incomeForecastId}}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースからの削除中にエラーが発生しました"})
 		return
 	}
