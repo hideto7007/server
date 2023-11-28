@@ -119,7 +119,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"message": "登録成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "新規給料情報を登録致しました。"})
 }
 
 // UpdateIncomeDataApi は更新
@@ -145,7 +145,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"message": "更新成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "給料情報の更新が問題なく成功しました。"})
 }
 
 // DeleteIncomeDataApi は削除
@@ -164,5 +164,5 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "削除データ成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "給料情報の削除が問題なく成功しました。"})
 }
