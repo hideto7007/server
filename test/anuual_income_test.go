@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"server/common"
 	"server/config"
 	"server/models"
@@ -41,12 +42,13 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		defer db.Close()
 
 		// テスト対象のデータ
-		startDate := "2022-11-01"
-		endDate := "2022-12-30"
+		StartDate := "2022-11-01"
+		EndDate := "2022-12-30"
+		UserId := "1"
 		expectedData := []models.IncomeData{
 			{
-				IncomeForecastID: uuid.MustParse("92fa978b-876a-4693-b5af-a8d4010b4bfe"),
-				PaymentDate:      time.Date(2022, time.November, 25, 0, 0, 0, 0, time.FixedZone("", 0)),
+				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+				PaymentDate:      time.Date(2022, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
 				Age:              "28",
 				Industry:         "システム開発",
 				TotalAmount:      250000,
@@ -56,8 +58,8 @@ func TestGetIncomeDataInRange(t *testing.T) {
 				UserID:           1,
 			},
 			{
-				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-				PaymentDate:      time.Date(2022, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
+				IncomeForecastID: uuid.MustParse("92fa978b-876a-4693-b5af-a8d4010b4bfe"),
+				PaymentDate:      time.Date(2022, time.November, 25, 0, 0, 0, 0, time.FixedZone("", 0)),
 				Age:              "28",
 				Industry:         "システム開発",
 				TotalAmount:      250000,
@@ -88,18 +90,23 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		mock.ExpectQuery(`
 			SELECT income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, classification, user_id 
 			FROM incomeforecast_incomeforecastdata 
-			WHERE payment_date BETWEEN $1 AND $2`).
-			WithArgs(startDate, endDate).
+			WHERE payment_date BETWEEN $1 AND $2 AND user_id = $3
+			ORDER BY payment_date DESC`).
+			WithArgs(StartDate, EndDate, UserId).
 			WillReturnRows(rows)
 
 		// テスト対象のPostgreSQLDataFetcherを作成
 		dataFetcher := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 
 		// テストを実行
-		result, err := dataFetcher.GetIncomeDataInRange(startDate, endDate)
+		result, err := dataFetcher.GetIncomeDataInRange(StartDate, EndDate, UserId)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
+
+		fmt.Print("result", result)
+		fmt.Print("=====================")
+		fmt.Print("expectedData", expectedData)
 
 		// 取得したデータが期待値と一致することを検証
 		assert.Equal(t, expectedData, result)
@@ -123,7 +130,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		dataFetcher := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 
 		// エラーケースをテスト
-		_, err = dataFetcher.GetIncomeDataInRange("invalidStartDate", "invalidEndDate")
+		_, err = dataFetcher.GetIncomeDataInRange("invalidStartDate", "invalidEndDate", "invalid")
 
 		// エラーが期待通りに発生することを検証
 		assert.Error(t, err)
@@ -132,8 +139,8 @@ func TestGetIncomeDataInRange(t *testing.T) {
 	})
 }
 
-func TestGetStartDataAndEndDate(t *testing.T) {
-	t.Run("success GetStartDataAndEndDate", func(t *testing.T) {
+func TestGetDateRange(t *testing.T) {
+	t.Run("success GetDateRange", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		db, mock, err := sqlmock.New()
 		if err != nil {
@@ -172,7 +179,7 @@ func TestGetStartDataAndEndDate(t *testing.T) {
 		dataFetcher := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 
 		// テストを実行
-		result, err := dataFetcher.GetStartDataAndEndDate(UserId)
+		result, err := dataFetcher.GetDateRange(UserId)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -182,7 +189,7 @@ func TestGetStartDataAndEndDate(t *testing.T) {
 		assert.NotEmpty(t, result[0].StratPaymaentDate)
 		assert.NotEmpty(t, result[0].EndPaymaentDate)
 	})
-	t.Run("error GetStartDataAndEndDate", func(t *testing.T) {
+	t.Run("error GetDateRange", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		db, mock, err := sqlmock.New()
 		if err != nil {
@@ -203,7 +210,7 @@ func TestGetStartDataAndEndDate(t *testing.T) {
 		dataFetcher := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 
 		// エラーケースをテスト
-		_, err = dataFetcher.GetStartDataAndEndDate(UserId)
+		_, err = dataFetcher.GetDateRange(UserId)
 
 		// エラーが期待通りに発生することを検証
 		assert.Error(t, err)
@@ -310,14 +317,14 @@ func TestInsertIncome(t *testing.T) {
 		testData := []models.InsertIncomeData{
 			{
 				PaymentDate:     "9999-01-01",
-				Age:             "30",
+				Age:             30,
 				Industry:        "IT",
-				TotalAmount:     "1000",
-				DeductionAmount: "200",
-				TakeHomeAmount:  "800",
+				TotalAmount:     1000,
+				DeductionAmount: 200,
+				TakeHomeAmount:  800,
 				UpdateUser:      "user123",
 				Classification:  "A",
-				UserID:          "1",
+				UserID:          1,
 			},
 		}
 		// テスト用のPostgreSQLDataFetcherを作成
@@ -350,14 +357,14 @@ func TestInsertIncome(t *testing.T) {
 		testData := []models.InsertIncomeData{
 			{
 				PaymentDate:     "9999-01-01",
-				Age:             "30",
+				Age:             30,
 				Industry:        "IT",
-				TotalAmount:     "3333",
-				DeductionAmount: "2222",
-				TakeHomeAmount:  "1111",
+				TotalAmount:     3333,
+				DeductionAmount: 2222,
+				TakeHomeAmount:  1111,
 				UpdateUser:      "user123",
 				Classification:  "A",
-				UserID:          "999", // pkの値を違反させてエラー確認する
+				UserID:          999, // pkの値を違反させてエラー確認する
 			},
 		}
 		// テスト用のPostgreSQLDataFetcherを作成
@@ -395,11 +402,11 @@ func TestUpdateIncome(t *testing.T) {
 			{
 				IncomeForecastID: "ecdb3762-9417-419d-c458-42d90a63bfd0", // 既存のレコードの ID
 				PaymentDate:      "9999-01-01",
-				Age:              "30",
+				Age:              30,
 				Industry:         "IT",
-				TotalAmount:      "1200",
-				DeductionAmount:  "250",
-				TakeHomeAmount:   "950",
+				TotalAmount:      1200,
+				DeductionAmount:  250,
+				TakeHomeAmount:   950,
 				Classification:   "B",
 			},
 		}
@@ -433,11 +440,11 @@ func TestUpdateIncome(t *testing.T) {
 			{
 				IncomeForecastID: "ecdb3762-9417-419d-c458-42d90a63bfrr656gtgtgtfd0", // エラー用のuuid
 				PaymentDate:      "9999-01-01",
-				Age:              "30",
+				Age:              30,
 				Industry:         "IT",
-				TotalAmount:      "1200",
-				DeductionAmount:  "250",
-				TakeHomeAmount:   "950",
+				TotalAmount:      1200,
+				DeductionAmount:  250,
+				TakeHomeAmount:   950,
 				Classification:   "B",
 			},
 		}

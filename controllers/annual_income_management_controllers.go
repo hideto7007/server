@@ -12,7 +12,7 @@ import (
 type (
 	IncomeDataFetcher interface {
 		GetIncomeDataInRangeApi(c *gin.Context)
-		GetStartDataAndEndDateApi(c *gin.Context)
+		GetDateRangeApi(c *gin.Context)
 		GetYearIncomeAndDeductionApi(c *gin.Context)
 		InsertIncomeDataApi(c *gin.Context)
 		UpdateIncomeDataApi(c *gin.Context)
@@ -36,10 +36,11 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	// パラメータから日付の始まりと終わりを取得
 	startDate := c.Query("start_date")
 	endDate := c.Query("end_date")
+	userId := c.Query("user_id")
 
 	// データベースから指定範囲のデータを取得
 	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate)
+	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -50,18 +51,18 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": incomeData})
 }
 
-// GetStartDataAndEndDateApi は登録されている最も古い日付と最も新しい日付を取得するAPI
+// GetDateRangeApi は登録されている最も古い日付と最も新しい日付を取得するAPI
 // 引数:
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) GetStartDataAndEndDateApi(c *gin.Context) {
+func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
 	userId := c.Query("user_id")
 
 	// データベースから指定範囲のデータを取得
 	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	paymentDate, err := dbFetcher.GetStartDataAndEndDate(userId)
+	paymentDate, err := dbFetcher.GetDateRange(userId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -118,7 +119,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"message": "登録成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "新規給料情報を登録致しました。"})
 }
 
 // UpdateIncomeDataApi は更新
@@ -144,7 +145,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"message": "更新成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "給料情報の更新が問題なく成功しました。"})
 }
 
 // DeleteIncomeDataApi は削除
@@ -153,21 +154,15 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 //
 
 func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
-	var requestData struct {
-		Data []models.DeleteIncomeData `json:"data"`
-	}
 
-	if err := c.ShouldBindJSON(&requestData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	incomeForecastId := c.Query("income_forecast_id")
 
 	// 収入データベースの指定されたIDの削除
 	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	if err := dbFetcher.DeleteIncome(requestData.Data); err != nil {
+	if err := dbFetcher.DeleteIncome([]models.DeleteIncomeData{{IncomeForecastID: incomeForecastId}}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースからの削除中にエラーが発生しました"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "削除データ成功"})
+	c.JSON(http.StatusOK, gin.H{"message": "給料情報の削除が問題なく成功しました。"})
 }
