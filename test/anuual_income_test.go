@@ -142,7 +142,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 func TestGetDateRange(t *testing.T) {
 	t.Run("success GetDateRange", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		db, mock, err := sqlmock.New()
+		db, _, err := sqlmock.New()
 		if err != nil {
 			t.Fatalf("error creating DB mock: %v", err)
 		}
@@ -150,30 +150,30 @@ func TestGetDateRange(t *testing.T) {
 
 		// テスト対象のデータ
 		UserId := "1"
-		expectedData := []models.PaymentDate{
-			{
-				UserID:            1,
-				StratPaymaentDate: "2018-04-27",
-				EndPaymaentDate:   "2023-10-10",
-			},
-		}
+		// expectedData := []models.PaymentDate{
+		// 	{
+		// 		UserID:            1,
+		// 		StratPaymaentDate: "2018-04-27",
+		// 		EndPaymaentDate:   "2023-10-10",
+		// 	},
+		// }
 
 		// テスト用の行データを設定
-		rows := sqlmock.NewRows([]string{
-			"user_id", "start_paymaent_date", "end_paymaent_date",
-		}).AddRow(
-			expectedData[0].UserID,
-			expectedData[0].StratPaymaentDate,
-			expectedData[0].EndPaymaentDate,
-		)
+		// rows := sqlmock.NewRows([]string{
+		// 	"user_id", "start_paymaent_date", "end_paymaent_date",
+		// }).AddRow(
+		// 	expectedData[0].UserID,
+		// 	expectedData[0].StratPaymaentDate,
+		// 	expectedData[0].EndPaymaentDate,
+		// )
 
-		// モックに行データを設定
-		mock.ExpectQuery(`
-			SELECT user_id, MIN(payment_date) as "start_paymaent_date", MAX(payment_date) as "end_paymaent_date" from incomeforecast_incomeforecastdata
-			WHERE user_id = $1
-			GROUP BY user_id;`).
-			WithArgs(UserId).
-			WillReturnRows(rows)
+		// // モックに行データを設定
+		// mock.ExpectQuery(`
+		// 	SELECT user_id, MIN(payment_date) as "start_paymaent_date", MAX(payment_date) as "end_paymaent_date" from incomeforecast_incomeforecastdata
+		// 	WHERE user_id = $1
+		// 	GROUP BY user_id;`).
+		// 	WithArgs(UserId).
+		// 	WillReturnRows(rows)
 
 		// テスト対象のPostgreSQLDataFetcherを作成
 		dataFetcher := models.NewPostgreSQLDataFetcher(config.DataSourceName)
@@ -188,6 +188,28 @@ func TestGetDateRange(t *testing.T) {
 		assert.NotEmpty(t, result[0].UserID)
 		assert.NotEmpty(t, result[0].StratPaymaentDate)
 		assert.NotEmpty(t, result[0].EndPaymaentDate)
+	})
+	t.Run("success GetDateRange data empty", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		db, _, err := sqlmock.New()
+		if err != nil {
+			t.Fatalf("error creating DB mock: %v", err)
+		}
+		defer db.Close()
+
+		// テスト対象のデータ
+		UserId := "999"
+
+		// テスト対象のPostgreSQLDataFetcherを作成
+		dataFetcher := models.NewPostgreSQLDataFetcher(config.DataSourceName)
+
+		// テストを実行
+		result, err := dataFetcher.GetDateRange(UserId)
+
+		// エラーが期待通りに発生することを検証
+		assert.Empty(t, result)
+
+		// t.Log(err)
 	})
 	t.Run("error GetDateRange", func(t *testing.T) {
 		// テスト用のDBモックを作成
@@ -272,6 +294,29 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 
 		// 取得したデータが期待値と一致することを検証
 		assert.Equal(t, expectedData, result[0])
+	})
+	t.Run("success GetYearsIncomeAndDeduction data empty", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		db, _, err := sqlmock.New()
+		if err != nil {
+			t.Fatalf("error creating DB mock: %v", err)
+		}
+		defer db.Close()
+
+		// テスト対象のデータ
+		UserId := "999"
+
+		// テスト対象のPostgreSQLDataFetcherを作成
+		dataFetcher := models.NewPostgreSQLDataFetcher(config.DataSourceName)
+
+		// テストを実行
+		result, err := dataFetcher.GetYearsIncomeAndDeduction(UserId)
+
+		// エラーがないことを検証
+		assert.NoError(t, err)
+
+		// 取得したデータが期待値と一致することを検証
+		assert.Empty(t, result)
 	})
 	t.Run("error GetYearsIncomeAndDeduction", func(t *testing.T) {
 		// テスト用のDBモックを作成
