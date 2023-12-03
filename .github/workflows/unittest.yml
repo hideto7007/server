@@ -9,6 +9,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: go_unit
       run: |
-        go -v
-        cd server/test
+        go version
+        cd test
         go test .
