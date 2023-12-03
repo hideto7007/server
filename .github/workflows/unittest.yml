@@ -10,5 +10,5 @@ jobs:
     - name: go_unit
       run: |
         go -v
-        cd test
+        cd server/test
         go test .
