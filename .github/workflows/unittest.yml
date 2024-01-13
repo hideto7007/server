@@ -4,11 +4,11 @@ on:
   push:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: bash
     steps:
     - uses: actions/checkout@v1
     - name: go_unit
       run: |
         go version
         cd test
-        go test -tags=mock .
+        go test .
