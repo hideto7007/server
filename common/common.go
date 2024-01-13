@@ -20,6 +20,7 @@ type (
 		TimeToStr(t time.Time) string
 		StrToTime(dateStr string) (time.Time, error)
 		StrToInt(str string) (int, error)
+		IntToStr(str int) string
 	}
 	commonFetcherImpl struct{}
 )
@@ -105,6 +106,21 @@ func (cf *commonFetcherImpl) StrToInt(str string) (int, error) {
 		return replaceInt, err
 	}
 	return replaceInt, nil
+}
+
+// 文字列型に変換
+//
+// 引数:
+//
+//	param1: int
+//
+// 戻り値:
+//
+//	戻り値1: 整数値を文字列型に変換して返す
+
+func (cf *commonFetcherImpl) IntToStr(num int) string {
+	replaceString := strconv.Itoa(num)
+	return replaceString
 }
 
 // この関数はテストデータを削除するための独立関数
