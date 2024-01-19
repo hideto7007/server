@@ -39,7 +39,7 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	userId := c.Query("user_id")
 
 	// データベースから指定範囲のデータを取得
-	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userId)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	userId := c.Query("user_id")
 
 	// データベースから指定範囲のデータを取得
-	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	paymentDate, err := dbFetcher.GetDateRange(userId)
 
 	if err != nil {
@@ -83,7 +83,7 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 	userId := c.Query("user_id")
 
 	// データベースから指定範囲のデータを取得
-	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userId)
 
 	if err != nil {
@@ -112,7 +112,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	}
 
 	// 収入データベースへ新しいデータ登録
-	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	if err := dbFetcher.InsertIncome(requestData.Data); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースへの挿入中にエラーが発生しました"})
 		return
@@ -138,7 +138,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	}
 
 	// 収入データベースの更新
-	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	if err := dbFetcher.UpdateIncome(requestData.Data); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースへの挿入中にエラーが発生しました"})
 		return
@@ -158,7 +158,7 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	incomeForecastId := c.Query("income_forecast_id")
 
 	// 収入データベースの指定されたIDの削除
-	var dbFetcher models.AnuualIncomeFetcher = models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	if err := dbFetcher.DeleteIncome([]models.DeleteIncomeData{{IncomeForecastID: incomeForecastId}}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースからの削除中にエラーが発生しました"})
 		return

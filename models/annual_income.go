@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"server/DB"
 	"server/common"
 	"time"
 
@@ -112,12 +113,7 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate, EndDate, UserId
 	}
 
 	// データベースクエリを実行
-	rows, err := pf.db.Query(`
-        SELECT income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, classification, user_id
-        FROM incomeforecast_incomeforecastdata
-        WHERE payment_date BETWEEN $1 AND $2 AND user_id = $3
-		ORDER BY payment_date DESC
-    `, start, end, UserId)
+	rows, err := pf.db.Query(DB.GetIncomeDataInRangeSyntax, start, end, UserId)
 
 	if err != nil {
 		return nil, err
@@ -168,11 +164,7 @@ func (pf *PostgreSQLDataFetcher) GetDateRange(UserId string) ([]PaymentDate, err
 
 	// データベースクエリを実行
 	// 集計関数で値を取得する際は、必ずカラム名を指定する
-	rows, err := pf.db.Query(`
-		SELECT user_id, MIN(payment_date) as "start_paymaent_date", MAX(payment_date) as "end_paymaent_date" from incomeforecast_incomeforecastdata
-		WHERE user_id = $1
-		GROUP BY user_id;
-    `, UserId)
+	rows, err := pf.db.Query(DB.GetDateRangeSyntax, UserId)
 
 	if err != nil {
 		return nil, err
@@ -235,17 +227,7 @@ func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]Ye
 
 	// データベースクエリを実行
 	// 集計関数で値を取得する際は、必ずカラム名を指定する
-	rows, err := pf.db.Query(`
-		SELECT 
-			TO_CHAR(payment_date, 'YYYY') as "year" ,
-			SUM(total_amount) as "sum_total_amount", 
-			SUM(deduction_amount) as "sum_deduction_amount",  
-			SUM(take_home_amount) as "sum_take_home_amount"
-		FROM incomeforecast_incomeforecastdata
-		WHERE user_id = $1
-		GROUP BY TO_CHAR(payment_date, 'YYYY')
-		ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
-    `, UserId)
+	rows, err := pf.db.Query(DB.GetYearsIncomeAndDeductionSyntax, UserId)
 
 	if err != nil {
 		return nil, err
@@ -301,11 +283,7 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 		fmt.Println(err)
 	}
 
-	insertStatement := `
-        INSERT INTO public.incomeforecast_incomeforecastdata
-        (income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, delete_flag, update_user, created_at, classification, user_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-    `
+	insertStatement := DB.InsertIncomeSyntax
 
 	for _, insertData := range data {
 		data := InsertIncomeData{
@@ -372,19 +350,7 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 		fmt.Println(err)
 	}
 
-	updateStatement := `
-        UPDATE public.incomeforecast_incomeforecastdata
-        SET 
-			payment_date = $1, 
-			age = $2, 
-			industry = $3, 
-			total_amount = $4, 
-			deduction_amount = $5, 
-			take_home_amount = $6, 
-			created_at = $7, 
-			classification = $8
-        WHERE income_forecast_id = $9;
-    `
+	updateStatement := DB.UpdateIncomeSyntax
 
 	for _, insertData := range data {
 		data := UpdateIncomeData{
@@ -444,10 +410,7 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 		fmt.Println(err)
 	}
 
-	deleteStatement := `
-        DELETE FROM public.incomeforecast_incomeforecastdata
-        WHERE income_forecast_id = $1;
-    `
+	deleteStatement := DB.DeleteIncomeSyntax
 
 	for _, deleteData := range data {
 		if _, err = tx.Exec(deleteStatement, deleteData.IncomeForecastID); err != nil {

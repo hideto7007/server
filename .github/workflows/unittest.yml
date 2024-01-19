@@ -1,0 +1,14 @@
+name: UnitTest
+
+on:
+  push:
+jobs:
+  build:
+    runs-on: bash
+    steps:
+    - uses: actions/checkout@v1
+    - name: go_unit
+      run: |
+        go version
+        cd test
+        go test .
