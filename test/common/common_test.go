@@ -1,4 +1,3 @@
-// test/common_test.go
 package common
 
 import (

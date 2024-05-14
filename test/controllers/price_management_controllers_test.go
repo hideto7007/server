@@ -1,5 +1,4 @@
-// test/price_management_controllers_test.go
-package common
+package controllers
 
 import (
 	"net/http"
