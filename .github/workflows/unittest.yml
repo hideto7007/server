@@ -21,7 +21,8 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}:/server --name unittest unittest /bin/bash -c "\
             ls -la && \
-            pwd && \
+            cd ./src && \
+            ls -la && \
             cd ./server && \
             go mod download && \
             go mod init server && \
