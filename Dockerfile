@@ -8,8 +8,6 @@ RUN apt-get update && apt-get install -y \
     wget \
     && apt-get clean
 
-RUN cd ./server
-
 # 依存関係をダウンロード
 RUN go mod download
 
