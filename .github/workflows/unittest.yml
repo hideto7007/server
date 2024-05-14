@@ -22,10 +22,8 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/server --name unittest unittest /bin/bash -c "\
             echo 'Listing /server directory:' && \
             ls -la /server && \
-            echo 'Attempting to change directory to /server/src:' && \
-            cd /server/src && \
+            cd /server && \
             ls -la && \
-            echo 'Attempting to run Go commands:' && \
             go mod download && \
             go mod init server && \
             cd test && \
