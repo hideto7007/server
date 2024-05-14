@@ -21,10 +21,10 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}:/server --name unittest unittest /bin/bash -c "\
             echo 'Listing /server directory:' && \
-            ls -la /server && \
             cd /server && \
-            ls -la && \
+            echo 'debug1' && \
             go mod download && \
             go mod init server && \
+            echo 'debug2' && \
             cd test && \
             go test ."
