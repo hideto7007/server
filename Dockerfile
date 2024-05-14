@@ -7,9 +7,3 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     && apt-get clean
-
-# 依存関係をダウンロード
-RUN go mod download
-
-# 依存関係初期化
-RUN go mod init server
