@@ -23,5 +23,6 @@ jobs:
             echo 'Listing /server directory:' && \
             cd /server && \
             echo 'debug1' && \
+            ls -la && \
             cd test && \
             go test ."
