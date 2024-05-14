@@ -20,6 +20,8 @@ jobs:
       - name: Run tests inside Docker container and Unittest
         run: |
           docker run --rm -v ${{ github.workspace }}:/server --name unittest unittest /bin/bash -c "\
+            ls -la && \
+            pwd && \
             cd ./server && \
             go mod download && \
             go mod init server && \
