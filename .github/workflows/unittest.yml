@@ -23,8 +23,5 @@ jobs:
             echo 'Listing /server directory:' && \
             cd /server && \
             echo 'debug1' && \
-            go mod download && \
-            go mod init server && \
-            echo 'debug2' && \
             cd test && \
             go test ."
