@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"server/DB"
 	"server/common"
-	"server/models"
 	"sort"
 	"testing"
 	"time"
@@ -57,7 +56,7 @@ type (
 func TestGetIncomeDataInRange(t *testing.T) {
 	t.Run("success TestGetIncomeDataInRange", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -67,7 +66,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		EndDate := "2022-12-30"
 		UserId := "1"
 
-		expectedData := []models.IncomeData{
+		expectedData := []IncomeData{
 			{
 				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
 				PaymentDate:      time.Date(2022, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
@@ -92,7 +91,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 			},
 		}
 
-		mockData := []models.IncomeData{
+		mockData := []IncomeData{
 			{
 				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
 				PaymentDate:      time.Date(2021, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
@@ -217,7 +216,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 	})
 	t.Run("error TestGetIncomeDataInRange1", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
@@ -240,7 +239,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 	})
 	t.Run("error TestGetIncomeDataInRange2", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
@@ -263,7 +262,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 	})
 	t.Run("error TestGetIncomeDataInRange3", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
@@ -286,7 +285,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 	})
 	t.Run("error TestGetIncomeDataInRange4", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
@@ -315,14 +314,14 @@ func TestGetDateRange(t *testing.T) {
 		var EndPaymaentDate time.Time
 		var UserId int = 0
 		var common common.CommonFetcher = common.NewCommonFetcher()
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テスト対象のデータ
 		UserID := "1"
-		expectedData := []models.PaymentDate{
+		expectedData := []PaymentDate{
 			{
 				UserID:            1,
 				StratPaymaentDate: "2018-04-27",
@@ -425,7 +424,7 @@ func TestGetDateRange(t *testing.T) {
 	})
 	t.Run("success GetDateRange data empty", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -447,7 +446,7 @@ func TestGetDateRange(t *testing.T) {
 	})
 	t.Run("error GetDateRange", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -471,7 +470,7 @@ func TestGetDateRange(t *testing.T) {
 func TestGetYearsIncomeAndDeduction(t *testing.T) {
 	t.Run("success GetYearsIncomeAndDeduction", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -483,7 +482,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 
 		// テスト対象のデータ
 		UserId := "1"
-		expectedData := []models.YearsIncomeData{
+		expectedData := []YearsIncomeData{
 			{
 				Years:           "2017",
 				TotalAmount:     250000,
@@ -504,7 +503,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 			},
 		}
 
-		mockData := []models.IncomeData{
+		mockData := []IncomeData{
 			{
 				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
 				PaymentDate:      time.Date(2018, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
@@ -578,7 +577,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 		})
 
 		// グループ化するためのデータ構造
-		groupedData := make(map[int][]models.IncomeData)
+		groupedData := make(map[int][]IncomeData)
 
 		// データをグループ化
 		for _, record := range mockData {
@@ -644,7 +643,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 	})
 	t.Run("success GetYearsIncomeAndDeduction data empty", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -658,7 +657,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 		var TakeHomeAmount int
 		var common common.CommonFetcher = common.NewCommonFetcher()
 
-		expectedData := []models.YearsIncomeData{
+		expectedData := []YearsIncomeData{
 			{
 				Years:           "",
 				TotalAmount:     0,
@@ -679,7 +678,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 			},
 		}
 
-		mockData := []models.IncomeData{
+		mockData := []IncomeData{
 			{
 				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
 				PaymentDate:      time.Date(2018, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0)),
@@ -753,7 +752,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 		})
 
 		// グループ化するためのデータ構造
-		groupedData := make(map[int][]models.IncomeData)
+		groupedData := make(map[int][]IncomeData)
 
 		// データをグループ化
 		for _, record := range mockData {
@@ -817,7 +816,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 	})
 	t.Run("error GetYearsIncomeAndDeduction", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -841,12 +840,12 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 func TestInsertIncome(t *testing.T) {
 	t.Run("success TestInsertIncome", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
-		testData := []models.InsertIncomeData{
+		testData := []InsertIncomeData{
 			{
 				PaymentDate:     "9999-01-01",
 				Age:             30,
@@ -877,13 +876,13 @@ func TestInsertIncome(t *testing.T) {
 	})
 	t.Run("error TestInsertIncome", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テストデータを作成
-		testData := []models.InsertIncomeData{
+		testData := []InsertIncomeData{
 			{
 				PaymentDate:     "9999-01-01",
 				Age:             30,
@@ -918,13 +917,13 @@ func TestInsertIncome(t *testing.T) {
 func TestUpdateIncome(t *testing.T) {
 	t.Run("success TestUpdateIncome", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テストデータを作成
-		testData := []models.UpdateIncomeData{
+		testData := []UpdateIncomeData{
 			{
 				IncomeForecastID: "ecdb3762-9417-419d-c458-42d90a63bfd0", // 既存のレコードの ID
 				PaymentDate:      "9999-01-01",
@@ -953,13 +952,13 @@ func TestUpdateIncome(t *testing.T) {
 
 	t.Run("error TestUpdateIncome", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テストデータを作成
-		testData := []models.UpdateIncomeData{
+		testData := []UpdateIncomeData{
 			{
 				IncomeForecastID: "ecdb3762-9417-419d-c458-42d90a63bfrr656gtgtgtfd0", // エラー用のuuid
 				PaymentDate:      "9999-01-01",
@@ -993,13 +992,13 @@ func TestUpdateIncome(t *testing.T) {
 func TestDeleteIncome(t *testing.T) {
 	t.Run("success TestDeleteIncome", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テストデータを作成
-		testData := []models.DeleteIncomeData{
+		testData := []DeleteIncomeData{
 			{
 				IncomeForecastID: "57cbdd21-3cce-42f2-ad3c-2f727d7edae7", // 既存のレコードの ID
 			},
@@ -1020,13 +1019,13 @@ func TestDeleteIncome(t *testing.T) {
 	})
 	t.Run("error TestDeleteIncome", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := models.NewPostgreSQLDataFetcher("test")
+		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テストデータを作成
-		testData := []models.DeleteIncomeData{
+		testData := []DeleteIncomeData{
 			{
 				IncomeForecastID: "ecdb3762-9417-419d-c458-42d9frfrde450a63bfd0", // エラー用のuuid
 			},

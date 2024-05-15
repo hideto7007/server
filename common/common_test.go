@@ -2,7 +2,6 @@ package common
 
 import (
 	"net/http/httptest"
-	"server/common"
 	"testing"
 	"time"
 
@@ -16,7 +15,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=42&param2=100", nil)
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err != nil {
@@ -40,7 +39,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=042&param2=00100", nil)
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err != nil {
@@ -64,7 +63,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=42&param2=100", nil)
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2", "param3")
 
 		if err != nil {
@@ -91,7 +90,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=42&param2=notanumber", nil)
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err == nil {
@@ -110,7 +109,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=hoge&param2=43", nil)
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err == nil {
@@ -129,7 +128,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=2.1&param2=43", nil)
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err == nil {
@@ -148,7 +147,7 @@ func TestIntgetPrameter(t *testing.T) {
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?param1=21&param2=4.3", nil)
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		paramMap, err := common.IntgetPrameter(c, "param1", "param2")
 
 		if err == nil {
@@ -167,7 +166,7 @@ func TestIntgetPrameter(t *testing.T) {
 func TestTimeToStr(t *testing.T) {
 	t.Run("success TimeToStr()", func(t *testing.T) {
 		// テストケース1: 日付を文字列に変換
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		dateTime := time.Date(2022, time.December, 23, 0, 0, 0, 0, time.FixedZone("", 0))
 		result := common.TimeToStr(dateTime)
 
@@ -177,7 +176,7 @@ func TestTimeToStr(t *testing.T) {
 	})
 	t.Run("success TimeToStr()", func(t *testing.T) {
 		// テストケース2: 存在しない年月日の場合、適切な日付の文字列にして変換できること
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		dateTime := time.Date(2022, time.February, 30, 0, 0, 0, 0, time.FixedZone("", 0))
 		result := common.TimeToStr(dateTime)
 
@@ -187,7 +186,7 @@ func TestTimeToStr(t *testing.T) {
 	})
 	t.Run("error case TimeToStr()", func(t *testing.T) {
 		// テストケース3: 空の場合は0001-01-01になること
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		var emptyTime time.Time
 		result := common.TimeToStr(emptyTime)
 
@@ -200,7 +199,7 @@ func TestTimeToStr(t *testing.T) {
 func TestStrToTime(t *testing.T) {
 	t.Run("success StrToTime()", func(t *testing.T) {
 		// テストケース1: 文字列を日付に変換する
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		strDate := "2023-10-14"
 		result, err := common.StrToTime(strDate)
 
@@ -214,7 +213,7 @@ func TestStrToTime(t *testing.T) {
 	})
 	t.Run("error case1 StrToTime()", func(t *testing.T) {
 		// テストケース2: 文字列"hoge"は日付変換出来ないこと
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		strDate := "hoge"
 		_, err := common.StrToTime(strDate)
 
@@ -227,7 +226,7 @@ func TestStrToTime(t *testing.T) {
 	})
 	t.Run("error case2 StrToTime()", func(t *testing.T) {
 		// テストケース3: 文字列"3456"は日付変換出来ないこと
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		strDate := "3456"
 		_, err := common.StrToTime(strDate)
 
@@ -243,7 +242,7 @@ func TestStrToTime(t *testing.T) {
 func TestStrToInt(t *testing.T) {
 	t.Run("success StrToInt()", func(t *testing.T) {
 		// テストケース1: 文字列"6543"は整数値に変換する
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		strDate := "6543"
 		result, err := common.StrToInt(strDate)
 
@@ -255,7 +254,7 @@ func TestStrToInt(t *testing.T) {
 	})
 	t.Run("error case1 StrToInt()", func(t *testing.T) {
 		// テストケース2: 文字列"hoge"は整数値に変換出来ないこと
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		strDate := "hoge"
 		_, err := common.StrToInt(strDate)
 
@@ -268,7 +267,7 @@ func TestStrToInt(t *testing.T) {
 	})
 	t.Run("error case2 StrToInt()", func(t *testing.T) {
 		// テストケース3: 文字列"34hoge56"は整数値に変換出来ないこと
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		strDate := "34hoge56"
 		_, err := common.StrToInt(strDate)
 
@@ -284,7 +283,7 @@ func TestStrToInt(t *testing.T) {
 func TestIntToStr(t *testing.T) {
 	t.Run("success IntToStr()", func(t *testing.T) {
 		// テストケース1: 整数値6543は文字列に変換する
-		var common common.CommonFetcher = common.NewCommonFetcher()
+		var common CommonFetcher = NewCommonFetcher()
 		intDate := 6543
 		result := common.IntToStr(intDate)
 
