@@ -25,7 +25,7 @@ else
         go test . -coverprofile="${coverage_path}${out}"
         go tool cover -html="${coverage_path}${out}" -o "${coverage_path}${html}"
     else
-        echo "ディレクトリが存在しません: $path"
+        echo "そのようなディレクトリは存在しません: $path"
     fi
 fi
 
