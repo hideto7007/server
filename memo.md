@@ -141,13 +141,20 @@ func GetPriceInfoApi(Response_Writer http.ResponseWriter, req *http.Request) {
 
 ```
 
-- DB取得時のエラーについて
- - 構造体とdb出力カラムが一致してないと以下のエラーが発生
- ```
- expected 9 destination arguments in Scan, not 12
+- DB 取得時のエラーについて
+- 構造体と db 出力カラムが一致してないと以下のエラーが発生
 
- ```
+```
+expected 9 destination arguments in Scan, not 12
 
+```
 
- - 定数や関数定義する際
-  - 初めのイニシャルは大文字にする
+- 定数や関数定義する際
+- 初めのイニシャルは大文字にする
+
+- テストコマンド
+
+```bash
+go test -coverprofile="../coverage/coverage.out"
+go tool cover -html=../coverage/coverage.out -o ../coverage/coverage.html
+```

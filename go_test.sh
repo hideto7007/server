@@ -23,7 +23,7 @@ for file in coverage/*.out; do
     fi
 done
 
-# カバレッジレポートを生成
-go tool cover -html=coverage/coverage.out -o coverage/coverage.html
+# # カバレッジレポートを生成
+# go tool cover -html=coverage/coverage.out -o coverage/coverage.html
 
 echo "Coverage report generated at coverage/coverage.html"
