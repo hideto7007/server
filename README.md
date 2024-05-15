@@ -15,7 +15,7 @@ go run main.go
    ```bash
    # new docker images command
    docker build -t server .
-   docker container run -it -v ${home directory}/money_management/server/:/server --name server server
+   docker container run -it -v ${home directory}/money_management/server:/server --name server server
 
    # windows
    docker container run -it -v ${home directory}\\money_management\\server:/server --name server server
