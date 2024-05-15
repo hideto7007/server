@@ -23,4 +23,6 @@ jobs:
             echo 'Listing /server directory:' && \
             cd /server && \
             chmod +x ./go_test.sh && \
-            ./go_test.sh"
+            echo "================= test start ================= && \
+            ./go_test.sh && \
+            echo "================= test end ================="
