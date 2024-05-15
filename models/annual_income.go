@@ -9,6 +9,7 @@ import (
 	"server/common"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
@@ -78,12 +79,18 @@ type (
 	PostgreSQLDataFetcher struct{ db *sql.DB }
 )
 
-func NewPostgreSQLDataFetcher(dataSourceName string) *PostgreSQLDataFetcher {
-	db, err := sql.Open("postgres", dataSourceName)
-	if err != nil {
-		log.Printf("sql.Open error %s", err)
+func NewPostgreSQLDataFetcher(dataSourceName string) (*PostgreSQLDataFetcher, sqlmock.Sqlmock, error) {
+	if dataSourceName == "test" {
+		db, mock, err := sqlmock.New()
+		return &PostgreSQLDataFetcher{db: db}, mock, err
+	} else {
+		db, err := sql.Open("postgres", dataSourceName)
+		if err != nil {
+			log.Printf("sql.Open error %s", err)
+		}
+		return &PostgreSQLDataFetcher{db: db}, nil, nil
 	}
-	return &PostgreSQLDataFetcher{db: db}
+
 }
 
 // GetIncomeDataInRange はDBに登録された給料及び賞与の金額を指定期間で返す。
@@ -272,7 +279,6 @@ func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]Ye
 
 func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 
-	defer pf.db.Close()
 	var err error
 	deleteFlag := 0
 	createdAt := time.Now()
@@ -282,6 +288,19 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	if err != nil {
 		fmt.Println(err)
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			// パニックが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+			panic(r) // パニックを再スロー
+		} else if err != nil {
+			// エラーが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+		} else {
+			// エラーが発生しなかった場合、トランザクションをコミット
+			err = tx.Commit()
+		}
+	}()
 
 	insertStatement := DB.InsertIncomeSyntax
 
@@ -323,6 +342,8 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 		return err
 	}
 
+	defer pf.db.Close()
+
 	return nil
 
 }
@@ -340,7 +361,6 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 
 func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 
-	defer pf.db.Close()
 	var err error
 	createdAt := time.Now()
 
@@ -349,6 +369,19 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 	if err != nil {
 		fmt.Println(err)
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			// パニックが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+			panic(r) // パニックを再スロー
+		} else if err != nil {
+			// エラーが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+		} else {
+			// エラーが発生しなかった場合、トランザクションをコミット
+			err = tx.Commit()
+		}
+	}()
 
 	updateStatement := DB.UpdateIncomeSyntax
 
@@ -385,6 +418,8 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 		return err
 	}
 
+	defer pf.db.Close()
+
 	return nil
 }
 
@@ -401,7 +436,6 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 
 func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 
-	defer pf.db.Close()
 	var err error
 
 	// トランザクションを開始
@@ -409,6 +443,19 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 	if err != nil {
 		fmt.Println(err)
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			// パニックが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+			panic(r) // パニックを再スロー
+		} else if err != nil {
+			// エラーが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+		} else {
+			// エラーが発生しなかった場合、トランザクションをコミット
+			err = tx.Commit()
+		}
+	}()
 
 	deleteStatement := DB.DeleteIncomeSyntax
 
@@ -425,5 +472,8 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 		fmt.Println(err)
 		return err
 	}
+
+	defer pf.db.Close()
+
 	return nil
 }

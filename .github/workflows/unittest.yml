@@ -4,11 +4,23 @@ on:
   push:
 jobs:
   build:
-    runs-on: bash
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: go_unit
-      run: |
-        go version
-        cd test
-        go test .
+      - name: Set up Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.20"
+
+      - name: Build Docker image
+        run: docker build -t unittest .
+
+      - name: Run tests inside Docker container and Unittest
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/server --name unittest unittest /bin/bash -c "\
+            echo 'Listing /server directory:' && \
+            cd /server && \
+            cd test && \
+            go test ./..."
