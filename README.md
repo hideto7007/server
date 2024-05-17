@@ -26,4 +26,11 @@ go run main.go
 
    ```
 
+- test exec command
+  ```bash
+  cd <test dir>
+  go test -coverprofile="../coverage/coverage.out"
+  go tool cover -html=../coverage/coverage.out -o ../coverage/coverage.html
+  ```
+
 
