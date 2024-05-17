@@ -84,13 +84,13 @@ func NewPostgreSQLDataFetcher(dataSourceName string) (*PostgreSQLDataFetcher, sq
 		db, mock, err := sqlmock.New()
 		return &PostgreSQLDataFetcher{db: db}, mock, err
 	} else {
+		// test実行時に以下のカバレッジは無視する
 		db, err := sql.Open("postgres", dataSourceName)
 		if err != nil {
 			log.Printf("sql.Open error %s", err)
 		}
 		return &PostgreSQLDataFetcher{db: db}, nil, nil
 	}
-
 }
 
 // GetIncomeDataInRange はDBに登録された給料及び賞与の金額を指定期間で返す。
@@ -287,13 +287,10 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
 	defer func() {
-		if r := recover(); r != nil {
-			// パニックが発生した場合、トランザクションをロールバック
-			tx.Rollback()
-			panic(r) // パニックを再スロー
-		} else if err != nil {
+		if err != nil {
 			// エラーが発生した場合、トランザクションをロールバック
 			tx.Rollback()
 		} else {
@@ -345,7 +342,6 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	defer pf.db.Close()
 
 	return nil
-
 }
 
 // UpdateIncome は更新
@@ -368,13 +364,10 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
 	defer func() {
-		if r := recover(); r != nil {
-			// パニックが発生した場合、トランザクションをロールバック
-			tx.Rollback()
-			panic(r) // パニックを再スロー
-		} else if err != nil {
+		if err != nil {
 			// エラーが発生した場合、トランザクションをロールバック
 			tx.Rollback()
 		} else {
@@ -442,13 +435,10 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
 	defer func() {
-		if r := recover(); r != nil {
-			// パニックが発生した場合、トランザクションをロールバック
-			tx.Rollback()
-			panic(r) // パニックを再スロー
-		} else if err != nil {
+		if err != nil {
 			// エラーが発生した場合、トランザクションをロールバック
 			tx.Rollback()
 		} else {

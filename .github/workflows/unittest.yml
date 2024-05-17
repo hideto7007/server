@@ -22,5 +22,7 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/server --name unittest unittest /bin/bash -c "\
             echo 'Listing /server directory:' && \
             cd /server && \
-            cd test && \
-            go test ./..."
+            chmod +x ./go_test.sh && \
+            echo "================= test start ================= && \
+            ./go_test.sh && \
+            echo "================= test end ================="

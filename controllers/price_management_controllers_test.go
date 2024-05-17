@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 
 	"server/common"
-	"server/controllers"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,7 @@ func TestPriceCalc(t *testing.T) {
 	t.Run("success PriceCalc()", func(t *testing.T) {
 		// テストケース1: 正常な整数の計算
 
-		var price controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
+		var price PriceManagementFetcher = NewPriceManagementFetcher()
 		result := price.PriceCalc(300, 100, 50, 50, 50, 30)
 
 		assert.Equal(t, 150, result.LeftAmount)
@@ -37,7 +36,7 @@ func TestGetPriceInfo(t *testing.T) {
 		paramMap, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
 
 		// PriceCalc 関数をモック化
-		var price controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
+		var price PriceManagementFetcher = NewPriceManagementFetcher()
 		res := price.PriceCalc(paramMap["money_received"], paramMap["bouns"], paramMap["fixed_cost"], paramMap["loan"], paramMap["private"], paramMap["insurance"])
 
 		// GetPriceInfoApi 関数を呼び出し
@@ -47,8 +46,8 @@ func TestGetPriceInfo(t *testing.T) {
 		assert.Equal(t, http.StatusOK, c.Writer.Status())
 
 		// レスポンスの JSON データを取得
-		response := controllers.Response{
-			PriceInfo: controllers.PriceInfo{
+		response := Response{
+			PriceInfo: PriceInfo{
 				LeftAmount:  res.LeftAmount,
 				TotalAmount: res.TotalAmount,
 			},
@@ -72,7 +71,7 @@ func TestGetPriceInfo(t *testing.T) {
 		paramMap, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
 
 		// GetPriceInfoApi 関数を呼び出し
-		var price controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
+		var price PriceManagementFetcher = NewPriceManagementFetcher()
 		price.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認

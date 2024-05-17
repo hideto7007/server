@@ -3,10 +3,8 @@ package common
 
 import (
 	// "fmt"
-	"database/sql"
+
 	"fmt"
-	"log"
-	"server/config"
 	"strconv"
 	"time"
 
@@ -123,37 +121,37 @@ func (cf *commonFetcherImpl) IntToStr(num int) string {
 	return replaceString
 }
 
-// この関数はテストデータを削除するための独立関数
-func TestDataDelete() error {
-	db, err := sql.Open("postgres", config.DataSourceName)
-	if err != nil {
-		log.Printf("sql.Open error %s", err)
-	}
-	defer db.Close()
+// // この関数はテストデータを削除するための独立関数
+// func TestDataDelete() error {
+// 	db, err := sql.Open("postgres", config.DataSourceName)
+// 	if err != nil {
+// 		log.Printf("sql.Open error %s", err)
+// 	}
+// 	defer db.Close()
 
-	// トランザクションを開始
-	tx, err := db.Begin()
-	if err != nil {
-		fmt.Println(err)
-	}
+// 	// トランザクションを開始
+// 	tx, err := db.Begin()
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	deleteStatement := `
-		DELETE FROM public.incomeforecast_incomeforecastdata
-		WHERE update_user = 'user123';
-	`
+// 	deleteStatement := `
+// 		DELETE FROM public.incomeforecast_incomeforecastdata
+// 		WHERE update_user = 'user123';
+// 	`
 
-	if _, err = tx.Exec(deleteStatement); err != nil {
-		tx.Rollback()
-		fmt.Println(err)
-	}
+// 	if _, err = tx.Exec(deleteStatement); err != nil {
+// 		tx.Rollback()
+// 		fmt.Println(err)
+// 	}
 
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	return nil
-}
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // クエリーパラメータを整数値でまとめたマップで返す。
 //
