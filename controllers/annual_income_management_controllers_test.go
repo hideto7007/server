@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -300,6 +301,26 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
 	})
+	t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// Invalid JSON
+		invalidJSON := `{"data": [`
+
+		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBufferString(invalidJSON))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := NewIncomeDataFetcher()
+		fetcher.InsertIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		fmt.Print(response["error"])
+		assert.Contains(t, response["error"], "unexpected EOF")
+	})
 }
 
 func TestUpdateIncomeDataApi(t *testing.T) {
@@ -382,6 +403,26 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 		assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
+	})
+	t.Run("invalid JSON UpdateIncomeDataApi", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// Invalid JSON
+		invalidJSON := `{"data": [`
+
+		c.Request = httptest.NewRequest("POST", "/api/income_update", bytes.NewBufferString(invalidJSON))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := NewIncomeDataFetcher()
+		fetcher.UpdateIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		fmt.Print(response["error"])
+		assert.Contains(t, response["error"], "unexpected EOF")
 	})
 }
 
