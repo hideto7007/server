@@ -7,3 +7,6 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     && apt-get clean
+
+# open port 8080
+EXPOSE 8080
