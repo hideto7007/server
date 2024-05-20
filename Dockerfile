@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Go言語のインストール
-RUN wget https://go.dev/dl/go1.20.linux-amd64.tar.gz \
-    && tar -xvf go1.20.linux-amd64.tar.gz \
+RUN wwget https://go.dev/dl/go1.20.linux-arm64.tar.gz \
+    && tar -xvf go1.20.linux-arm64.tar.gz \
     && mv go /usr/local
 
 # 環境変数の設定
