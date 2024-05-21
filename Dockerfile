@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     wget \
+    iproute2 \
     && apt-get clean
 
 # Go言語のインストール
