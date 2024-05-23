@@ -9,6 +9,4 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # 必要なパッケージをインストールし、依存関係を取得
-RUN apk add --no-cache git && \
-    go get github.com/agiledragon/gomonkey/v2
-    
+RUN go get github.com/agiledragon/gomonkey/v2
