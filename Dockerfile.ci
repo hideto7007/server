@@ -7,6 +7,3 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     && apt-get clean
-
-# 必要なパッケージをインストールし、依存関係を取得
-RUN go get github.com/agiledragon/gomonkey/v2
