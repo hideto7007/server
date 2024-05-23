@@ -25,8 +25,8 @@ const GetYearsIncomeAndDeductionSyntax = `
 			`
 const InsertIncomeSyntax = `
 			INSERT INTO public.income_forecast_data
-			(income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, delete_flag, update_user, created_at, classification, user_id)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
+			(income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, created_at, classification, user_id)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
 			`
 const UpdateIncomeSyntax = `
 			UPDATE public.income_forecast_data
@@ -38,8 +38,9 @@ const UpdateIncomeSyntax = `
 				deduction_amount = $5, 
 				take_home_amount = $6, 
 				created_at = $7, 
-				classification = $8
-			WHERE income_forecast_id = $9;
+				update_user = $8,
+				classification = $9
+			WHERE income_forecast_id = $10;
 			`
 const DeleteIncomeSyntax = `
 			DELETE FROM public.income_forecast_data
