@@ -56,7 +56,6 @@ type (
 		TotalAmount     int    `json:"total_amount"`
 		DeductionAmount int    `json:"deduction_amount"`
 		TakeHomeAmount  int    `json:"take_home_amount"`
-		UpdateUser      string `json:"update_user"`
 		Classification  string `json:"classification"`
 		UserID          int    `json:"user_id"`
 	}
@@ -69,6 +68,7 @@ type (
 		TotalAmount      int    `json:"total_amount"`
 		DeductionAmount  int    `json:"deduction_amount"`
 		TakeHomeAmount   int    `json:"take_home_amount"`
+		UpdateUser       string `json:"update_user"`
 		Classification   string `json:"classification"`
 	}
 
@@ -280,7 +280,6 @@ func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]Ye
 func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 
 	var err error
-	deleteFlag := 0
 	createdAt := time.Now()
 
 	// トランザクションを開始
@@ -309,7 +308,6 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 			TotalAmount:     insertData.TotalAmount,
 			DeductionAmount: insertData.DeductionAmount,
 			TakeHomeAmount:  insertData.TakeHomeAmount,
-			UpdateUser:      insertData.UpdateUser,
 			Classification:  insertData.Classification,
 			UserID:          insertData.UserID,
 		}
@@ -322,8 +320,6 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 			data.TotalAmount,
 			data.DeductionAmount,
 			data.TakeHomeAmount,
-			deleteFlag,
-			data.UpdateUser,
 			createdAt,
 			data.Classification,
 			data.UserID); err != nil {
@@ -378,16 +374,17 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 
 	updateStatement := DB.UpdateIncomeSyntax
 
-	for _, insertData := range data {
+	for _, updateData := range data {
 		data := UpdateIncomeData{
-			IncomeForecastID: insertData.IncomeForecastID,
-			PaymentDate:      insertData.PaymentDate,
-			Age:              insertData.Age,
-			Industry:         insertData.Industry,
-			TotalAmount:      insertData.TotalAmount,
-			DeductionAmount:  insertData.DeductionAmount,
-			TakeHomeAmount:   insertData.TakeHomeAmount,
-			Classification:   insertData.Classification,
+			IncomeForecastID: updateData.IncomeForecastID,
+			PaymentDate:      updateData.PaymentDate,
+			Age:              updateData.Age,
+			Industry:         updateData.Industry,
+			TotalAmount:      updateData.TotalAmount,
+			DeductionAmount:  updateData.DeductionAmount,
+			TakeHomeAmount:   updateData.TakeHomeAmount,
+			UpdateUser:       updateData.UpdateUser,
+			Classification:   updateData.Classification,
 		}
 		if _, err = tx.Exec(updateStatement,
 			data.PaymentDate,
@@ -397,6 +394,7 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 			data.DeductionAmount,
 			data.TakeHomeAmount,
 			createdAt,
+			data.UpdateUser,
 			data.Classification,
 			data.IncomeForecastID); err != nil {
 			tx.Rollback()
