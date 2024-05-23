@@ -44,12 +44,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetIncomeDataInRangeApi(t *testing.T) {
-	config.Setup()
-	defer config.Teardown()
 
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success GetIncomeDataInRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=1", nil)
@@ -101,6 +102,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 	})
 
 	t.Run("error GetIncomeDataInRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=1", nil)
@@ -121,12 +125,13 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 }
 
 func TestGetDateRangeApi(t *testing.T) {
-	config.Setup()
-	defer config.Teardown()
 
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success GetDateRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -164,6 +169,9 @@ func TestGetDateRangeApi(t *testing.T) {
 	})
 
 	t.Run("error GetDateRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -187,12 +195,13 @@ func TestGetDateRangeApi(t *testing.T) {
 }
 
 func TestGetYearIncomeAndDeductionApi(t *testing.T) {
-	config.Setup()
-	defer config.Teardown()
 
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success GetYearIncomeAndDeductionApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -228,6 +237,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 	})
 
 	t.Run("error GetYearIncomeAndDeductionApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -252,12 +264,13 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 }
 
 func TestInsertIncomeDataApi(t *testing.T) {
-	config.Setup()
-	defer config.Teardown()
 
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -272,7 +285,6 @@ func TestInsertIncomeDataApi(t *testing.T) {
 					TotalAmount:     320524,
 					DeductionAmount: 93480,
 					TakeHomeAmount:  227044,
-					UpdateUser:      "user123",
 					Classification:  "給料",
 					UserID:          1,
 				},
@@ -299,6 +311,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 	})
 
 	t.Run("error InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -313,7 +328,6 @@ func TestInsertIncomeDataApi(t *testing.T) {
 					TotalAmount:     320524,
 					DeductionAmount: 93480,
 					TakeHomeAmount:  227044,
-					UpdateUser:      "user123",
 					Classification:  "給料",
 					UserID:          1,
 				},
@@ -338,7 +352,11 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
 	})
+
 	t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -360,12 +378,13 @@ func TestInsertIncomeDataApi(t *testing.T) {
 }
 
 func TestUpdateIncomeDataApi(t *testing.T) {
-	config.Setup()
-	defer config.Teardown()
 
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -378,6 +397,7 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 				TotalAmount:      320524,
 				DeductionAmount:  93480,
 				TakeHomeAmount:   227044,
+				UpdateUser:       "test_user",
 				Classification:   "給料",
 			},
 		}
@@ -406,6 +426,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 	})
 
 	t.Run("error UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -418,6 +441,7 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 				TotalAmount:      320524,
 				DeductionAmount:  93480,
 				TakeHomeAmount:   227044,
+				UpdateUser:       "test_user",
 				Classification:   "給料",
 			},
 		}
@@ -444,7 +468,11 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
 	})
+
 	t.Run("invalid JSON UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -466,12 +494,13 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 }
 
 func TestDeleteIncomeDataApi(t *testing.T) {
-	config.Setup()
-	defer config.Teardown()
 
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success DeleteIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
@@ -492,6 +521,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 	})
 
 	t.Run("error DeleteIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
