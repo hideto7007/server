@@ -21,7 +21,6 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}:/server --name unittest unittest /bin/bash -c "\
             echo 'Listing /server directory:' && \
-            go get github.com/agiledragon/gomonkey/v2 && \
             cd /server && \
             chmod +x ./go_test.sh && \
             echo "================= test start ================= && \
