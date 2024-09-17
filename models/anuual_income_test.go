@@ -1360,7 +1360,6 @@ func TestInsertIncome(t *testing.T) {
 				TotalAmount:     1000,
 				DeductionAmount: 200,
 				TakeHomeAmount:  800,
-				UpdateUser:      "user123",
 				Classification:  "A",
 				UserID:          1,
 			},
@@ -1369,7 +1368,7 @@ func TestInsertIncome(t *testing.T) {
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.InsertIncomeSyntax)).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -1395,7 +1394,6 @@ func TestInsertIncome(t *testing.T) {
 				TotalAmount:     3333,
 				DeductionAmount: 2222,
 				TakeHomeAmount:  1111,
-				UpdateUser:      "user123",
 				Classification:  "A",
 				UserID:          999, // pkの値を違反させてエラー確認する
 			},
@@ -1404,7 +1402,7 @@ func TestInsertIncome(t *testing.T) {
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.InsertIncomeSyntax)).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewErrorResult(errors.New("ERROR"))).
 			WillReturnError(errors.New("INSERT FAILED"))
 		mock.ExpectCommit()
@@ -1436,7 +1434,6 @@ func TestInsertIncome(t *testing.T) {
 				TotalAmount:     1000,
 				DeductionAmount: 200,
 				TakeHomeAmount:  800,
-				UpdateUser:      "user123",
 				Classification:  "A",
 				UserID:          1,
 			},
@@ -1470,6 +1467,7 @@ func TestUpdateIncome(t *testing.T) {
 				TotalAmount:      1200,
 				DeductionAmount:  250,
 				TakeHomeAmount:   950,
+				UpdateUser:       "test_user",
 				Classification:   "B",
 			},
 		}
@@ -1477,7 +1475,7 @@ func TestUpdateIncome(t *testing.T) {
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.UpdateIncomeSyntax)).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -1505,6 +1503,7 @@ func TestUpdateIncome(t *testing.T) {
 				TotalAmount:      1200,
 				DeductionAmount:  250,
 				TakeHomeAmount:   950,
+				UpdateUser:       "test_user",
 				Classification:   "B",
 			},
 		}
@@ -1512,7 +1511,7 @@ func TestUpdateIncome(t *testing.T) {
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.UpdateIncomeSyntax)).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
 			WillReturnResult(sqlmock.NewErrorResult(errors.New("ERROR"))).
 			WillReturnError(errors.New("UPDATE FAILED"))
 		mock.ExpectCommit()
@@ -1545,6 +1544,7 @@ func TestUpdateIncome(t *testing.T) {
 				TotalAmount:      1200,
 				DeductionAmount:  250,
 				TakeHomeAmount:   950,
+				UpdateUser:       "test_user",
 				Classification:   "B",
 			},
 		}

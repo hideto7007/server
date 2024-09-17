@@ -4,24 +4,53 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
+	"server/config"
 	"server/models"
 	"testing"
 	"time"
 
-	"bou.ke/monkey"
+	. "github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
+// func TestMain(m *testing.M) {
+// 	config.Setup()
+// 	code := m.Run()
+// 	config.Teardown()
+// 	os.Exit(code)
+// }
+
+// func TestMain(m *testing.M) {
+// 	config.Setup()
+// 	config.SetupTestDatabase()
+// 	code := m.Run()
+// 	config.TeardownTestDatabase()
+// 	config.Teardown()
+// 	os.Exit(code)
+// }
+
+func TestMain(m *testing.M) {
+	config.Setup()
+	defer config.Teardown()
+
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestGetIncomeDataInRangeApi(t *testing.T) {
+
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success GetIncomeDataInRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=1", nil)
@@ -51,10 +80,10 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			},
 		}
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetIncomeDataInRange", func(_ *models.PostgreSQLDataFetcher, startDate, endDate, userId string) ([]models.IncomeData, error) {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetIncomeDataInRange", func(_ *models.PostgreSQLDataFetcher, startDate, endDate, userId string) ([]models.IncomeData, error) {
 			return mockData, nil
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.GetIncomeDataInRangeApi(c)
@@ -73,14 +102,17 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 	})
 
 	t.Run("error GetIncomeDataInRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=1", nil)
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetIncomeDataInRange", func(_ *models.PostgreSQLDataFetcher, startDate, endDate, userId string) ([]models.IncomeData, error) {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetIncomeDataInRange", func(_ *models.PostgreSQLDataFetcher, startDate, endDate, userId string) ([]models.IncomeData, error) {
 			return nil, errors.New("database error")
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.GetIncomeDataInRangeApi(c)
@@ -93,9 +125,13 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 }
 
 func TestGetDateRangeApi(t *testing.T) {
+
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success GetDateRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -110,10 +146,10 @@ func TestGetDateRangeApi(t *testing.T) {
 			},
 		}
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetDateRange", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.PaymentDate, error) {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetDateRange", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.PaymentDate, error) {
 			return mockData, nil
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
 		fetcher := NewIncomeDataFetcher()
@@ -133,15 +169,18 @@ func TestGetDateRangeApi(t *testing.T) {
 	})
 
 	t.Run("error GetDateRangeApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?user_id=1", nil)
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetDateRange", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.PaymentDate, error) {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetDateRange", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.PaymentDate, error) {
 			return nil, errors.New("database error")
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
 		fetcher := NewIncomeDataFetcher()
@@ -156,9 +195,13 @@ func TestGetDateRangeApi(t *testing.T) {
 }
 
 func TestGetYearIncomeAndDeductionApi(t *testing.T) {
+
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success GetYearIncomeAndDeductionApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -174,10 +217,10 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 			},
 		}
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetYearsIncomeAndDeduction", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.YearsIncomeData, error) {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetYearsIncomeAndDeduction", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.YearsIncomeData, error) {
 			return mockData, nil
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
 		fetcher := NewIncomeDataFetcher()
@@ -194,15 +237,18 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 	})
 
 	t.Run("error GetYearIncomeAndDeductionApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		// テスト用のGinコンテキストを作成
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?user_id=1", nil)
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetYearsIncomeAndDeduction", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.YearsIncomeData, error) {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetYearsIncomeAndDeduction", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.YearsIncomeData, error) {
 			return nil, errors.New("database error")
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
 		fetcher := NewIncomeDataFetcher()
@@ -218,9 +264,13 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 }
 
 func TestInsertIncomeDataApi(t *testing.T) {
+
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -235,7 +285,6 @@ func TestInsertIncomeDataApi(t *testing.T) {
 					TotalAmount:     320524,
 					DeductionAmount: 93480,
 					TakeHomeAmount:  227044,
-					UpdateUser:      "user123",
 					Classification:  "給料",
 					UserID:          1,
 				},
@@ -246,10 +295,10 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "InsertIncome", func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "InsertIncome", func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
 			return nil
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.InsertIncomeDataApi(c)
@@ -262,6 +311,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 	})
 
 	t.Run("error InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -276,7 +328,6 @@ func TestInsertIncomeDataApi(t *testing.T) {
 					TotalAmount:     320524,
 					DeductionAmount: 93480,
 					TakeHomeAmount:  227044,
-					UpdateUser:      "user123",
 					Classification:  "給料",
 					UserID:          1,
 				},
@@ -287,10 +338,10 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "InsertIncome", func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "InsertIncome", func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
 			return errors.New("database error")
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.InsertIncomeDataApi(c)
@@ -301,7 +352,11 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
 	})
+
 	t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -318,15 +373,18 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		fmt.Print(response["error"])
 		assert.Contains(t, response["error"], "unexpected EOF")
 	})
 }
 
 func TestUpdateIncomeDataApi(t *testing.T) {
+
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -339,6 +397,7 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 				TotalAmount:      320524,
 				DeductionAmount:  93480,
 				TakeHomeAmount:   227044,
+				UpdateUser:       "test_user",
 				Classification:   "給料",
 			},
 		}
@@ -351,10 +410,10 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		c.Request = httptest.NewRequest("PUT", "/api/income_update", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "UpdateIncome", func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "UpdateIncome", func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
 			return nil
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.UpdateIncomeDataApi(c)
@@ -367,6 +426,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 	})
 
 	t.Run("error UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -379,6 +441,7 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 				TotalAmount:      320524,
 				DeductionAmount:  93480,
 				TakeHomeAmount:   227044,
+				UpdateUser:       "test_user",
 				Classification:   "給料",
 			},
 		}
@@ -389,11 +452,12 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 
 		body, _ := json.Marshal(Body)
 		c.Request = httptest.NewRequest("PUT", "/api/income_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "UpdateIncome", func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "UpdateIncome", func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
 			return errors.New("database error")
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.UpdateIncomeDataApi(c)
@@ -404,7 +468,11 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
 	})
+
 	t.Run("invalid JSON UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -421,23 +489,26 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		fmt.Print(response["error"])
 		assert.Contains(t, response["error"], "unexpected EOF")
 	})
 }
 
 func TestDeleteIncomeDataApi(t *testing.T) {
+
 	gin.SetMode(gin.TestMode)
 
 	t.Run("success DeleteIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "DeleteIncome", func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "DeleteIncome", func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
 			return nil
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.DeleteIncomeDataApi(c)
@@ -450,14 +521,17 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 	})
 
 	t.Run("error DeleteIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
 
-		monkey.PatchInstanceMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "DeleteIncome", func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "DeleteIncome", func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
 			return errors.New("database error")
 		})
-		defer monkey.UnpatchAll()
+		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
 		fetcher.DeleteIncomeDataApi(c)
@@ -468,9 +542,4 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "データベースからの削除中にエラーが発生しました", response["error"])
 	})
-}
-
-func jsonReader(data interface{}) *bytes.Reader {
-	body, _ := json.Marshal(data)
-	return bytes.NewReader(body)
 }

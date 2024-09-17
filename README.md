@@ -8,6 +8,7 @@ mkdir server
 cd ./server
 go mod init server
 go run main.go
+go build -o server main.go
 ```
 
 - git clone 後の環境構築
