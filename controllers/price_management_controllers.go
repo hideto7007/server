@@ -73,8 +73,8 @@ func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, 
 //	{
 //	  "message": {
 //	    "PriceInfo": {
-//	      "LeftAmount": 70,
-//	      "TotalAmount": 110
+//	      "left_amount": 70,
+//	      "total_amount": 110
 //	    }
 //	  }
 //	}
