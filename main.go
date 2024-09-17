@@ -16,7 +16,7 @@ func CORSMiddleware() gin.HandlerFunc {
 		// err := godotenv.Load()
 		// if err != nil {
 		// 	log.Fatalf("Error loading .env file")
-		// }s
+		// }
 		// 許可したいアクセス元
 		AllowOrigins: []string{
 			os.Getenv("REACT_CLIENT"),
@@ -47,6 +47,10 @@ func CORSMiddleware() gin.HandlerFunc {
 func main() {
 	r := gin.Default()
 	log.Println("start server...")
+
+	log.Println("REACT_CLIENT : " + os.Getenv("REACT_CLIENT"))
+	log.Println("VUE_CLIENT : ", os.Getenv("VUE_CLIENT"))
+	log.Println("DOCKER_CLIENT : ", os.Getenv("DOCKER_CLIENT"))
 
 	// CORSミドルウェアを設定
 	r.Use(CORSMiddleware())

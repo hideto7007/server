@@ -2,20 +2,24 @@
 package config
 
 import (
-	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 var DataSourceName string = getDataBaseSource()
 
 func getDataBaseSource() string {
 	// .env ファイルを読み込む
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
+	// 環境変数ファイルを動的に選択
+	// envFile := ".env"
+	// if os.Getenv("ENV") == "test" {
+	// 	envFile = ".env.test"
+	// 	fmt.Print(envFile)
+	// }
+
+	// err := godotenv.Load(envFile)
+	// if err != nil {
+	// 	log.Fatalf("Error loading %s file", envFile)
+	// }
 
 	globalDbSouce := os.Getenv("GLOBALDBSOURCE")
 	localDbSouce := os.Getenv("LOCALDBSOURCE")
