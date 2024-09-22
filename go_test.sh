@@ -2,28 +2,34 @@
 
 echo "Starting tests with coverage"
 
-go clean -testcache
-
 mkdir -p coverage
 
+go clean -testcache
+
 # すべてのテストファイルを含むディレクトリを検索し、リストに保存
-test_dirs=$(find . -type f -name '*_test.go' -exec dirname {} \; | sort -u)
+TEST_DIRS=$(find . -type f -name '*_test.go' -exec dirname {} \; | sort -u)
+
+echo "mode: set" > coverage/coverage.out
 
 # 各ディレクトリでテストを実行し、カバレッジプロファイルを生成
-for dir in $test_dirs; do
+for dir in $TEST_DIRS; do
     echo "Running tests in $dir"
-    go test -coverprofile=coverage/$(echo $dir | tr '/' '_').out ./$dir
-done
+    ENV=test go test -coverprofile=coverage/$(echo $dir | tr '/' '_').out ./$dir -count=1
 
-# すべてのカバレッジプロファイルを結合
-echo "mode: set" > coverage/coverage.out
-for file in coverage/*.out; do
-    if [ $file != "coverage/coverage.out" ]; then
-        tail -n +2 $file >> coverage/coverage.out
+    # カバレッジファイルの結合
+    OUT_FILE="coverage/$(echo $dir | tr '/' '_').out"
+    if [ -f "$OUT_FILE" ]; then
+        tail -n +2 "$OUT_FILE" >> coverage/coverage.out
+        rm -f "$OUT_FILE" # ファイルを削除
+    else
+        echo "$OUT_FILE not found."
     fi
 done
 
-# # カバレッジレポートを生成
-# go tool cover -html=coverage/coverage.out -o coverage/coverage.html
+# カバレッジレポートを生成
+go tool cover -html=coverage/coverage.out -o coverage/coverage.html
+
+# coverage.outを削除する場合
+rm -f coverage/coverage.out
 
 echo "Coverage report generated at coverage/coverage.html"

@@ -2,32 +2,37 @@
 package config
 
 import (
+	"fmt"
+	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 var DataSourceName string = getDataBaseSource()
 
 func getDataBaseSource() string {
 	// .env ファイルを読み込む
-	// 環境変数ファイルを動的に選択
-	// envFile := ".env"
-	// if os.Getenv("ENV") == "test" {
-	// 	envFile = ".env.test"
-	// 	fmt.Print(envFile)
-	// }
+	// 環境変数 ENV が "test" の場合は .env ファイルの読み込みをスキップ
 
-	// err := godotenv.Load(envFile)
-	// if err != nil {
-	// 	log.Fatalf("Error loading %s file", envFile)
-	// }
-
-	globalDbSouce := os.Getenv("GLOBALDBSOURCE")
-	localDbSouce := os.Getenv("LOCALDBSOURCE")
-
-	if globalDbSouce != "" {
-		return globalDbSouce
+	if os.Getenv("ENV") != "test" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatalf("Error loading .env file")
+		}
 	}
-	return localDbSouce
+
+	dsn := fmt.Sprintf(
+		"user=%s dbname=%s password=%s host=%s port=%s sslmode=%s TimeZone=Asia/Tokyo",
+		os.Getenv("PSQL_USER"),
+		os.Getenv("PSQL_DBNAME"),
+		os.Getenv("PSQL_PASSWORD"),
+		os.Getenv("PSQL_HOST"),
+		os.Getenv("PSQL_PORT"),
+		os.Getenv("PSQL_SSLMODEL"),
+	)
+
+	return dsn
 
 	// TODO
 	// 上記の設定はローカルのみ接続するようになっている。グローバルにするには、ssh接続を追加する必要がある

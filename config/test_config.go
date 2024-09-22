@@ -3,6 +3,7 @@ package config
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -24,15 +25,23 @@ var testDB *sql.DB
 
 func SetupTestDatabase() {
 	var err error
-	testDB, err = sql.Open("postgres", "user=postgres dbname=testdb sslmode=disable")
+	// 環境変数から値を取得して接続文字列を作成
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s",
+		os.Getenv("PSQL_USER"),        // ユーザー名
+		os.Getenv("PSQL_PASSWORD"),    // パスワード
+		os.Getenv("PSQL_TEST_DBNAME"), // テストDB名
+		os.Getenv("PSQL_SSLMODEL"),    // SSLモード
+	)
+
+	testDB, err = sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to test database: %v", err)
 	}
 
 	// テーブルのリセットなどを行う
-	_, err = testDB.Exec(`TRUNCATE TABLE income_data, payment_dates, other_tables RESTART IDENTITY CASCADE`)
+	_, err = testDB.Exec(`TRUNCATE TABLE auth, users, income_forecast_data RESTART IDENTITY CASCADE`)
 	if err != nil {
-		log.Fatalf("Failed to reset test database: %v", err)
+		log.Fatalf("Failed to reset test database: %v", dsn)
 	}
 }
 

@@ -9,12 +9,14 @@ import (
 func SetupRoutes(r *gin.Engine) {
 
 	// APiインターフェイスのインスタンス定義
+	var singInAPI controllers.SingInDataFetcher = controllers.NewSingInDataFetcher()
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
 	var incomeAPI controllers.IncomeDataFetcher = controllers.NewIncomeDataFetcher()
 
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
+		Routes.GET("/singin", singInAPI.GetSingInApi)
 		Routes.GET("/price", priceAPI.GetPriceInfoApi)
 		Routes.GET("/income_data", incomeAPI.GetIncomeDataInRangeApi)
 		Routes.GET("/range_date", incomeAPI.GetDateRangeApi)
