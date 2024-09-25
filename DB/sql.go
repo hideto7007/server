@@ -48,8 +48,8 @@ const DeleteIncomeSyntax = `
 			`
 
 const GetSingInSyntax = `
-			SELECT users_id, users_name, users_password
+			SELECT user_id, user_name, user_password
 			FROM public.users
-			WHERE users_name = $1
-			AND users_password = $2;
+			WHERE user_name = $1
+			AND user_password = $2;
 			`

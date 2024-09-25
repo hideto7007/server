@@ -10,7 +10,7 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-const usersPassword = "users_password"
+const UserPassword = "user_password"
 
 // type (
 // 	singInValidationFetcher interface {
@@ -30,15 +30,15 @@ const usersPassword = "users_password"
 // }
 
 type RequestSingInData struct {
-	UsersId       int    `json:"users_id" valid:"required~ユーザーIDは必須です"`
-	UsersName     string `json:"users_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
-	UsersPassword string `json:"users_password" valid:"required~パスワードは必須です"`
+	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
+	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
 }
 
 type RequestSingOutData struct {
-	UsersId       int    `json:"users_id" valid:"required~ユーザーIDは必須です,int~ユーザーIDは整数値のみです"`
-	UsersName     string `json:"users_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
-	UsersPassword string `json:"users_password" valid:"required~パスワードは必須です"`
+	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須です,int~ユーザーIDは整数値のみです"`
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
+	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
 }
 
 type errorMessages struct {
@@ -74,10 +74,10 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if password := validPassword(data.UsersPassword); !password && data.UsersPassword != "" {
+	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
 		var flag bool = true
 		for i := range errorMessagesList {
-			if errorMessagesList[i].Field == usersPassword {
+			if errorMessagesList[i].Field == UserPassword {
 				errorMessagesList[i].Message = "パスワードの形式が間違っています。"
 				flag = false
 			}
@@ -85,7 +85,7 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 
 		if flag {
 			errorMessagesList = append(errorMessagesList, errorMessages{
-				Field:   usersPassword,
+				Field:   UserPassword,
 				Message: "パスワードの形式が間違っています。",
 			})
 		}
@@ -105,17 +105,17 @@ func (data RequestSingOutData) Validate() (bool, error) {
 // 	//NOTE: 日本語のエラー文が不要で、デフォルトの英語のエラー文で必要十分である場合、`.Error("xxx")`は不要でOK
 // 	return validation.ValidateStruct(&data,
 // 		validation.Field(
-// 			&data.UsersId,
+// 			&data.UserId,
 // 			validation.Required.Error(fmt.Sprintf("%sは必須です。", userId)),
 // 			validation.By(intCheck),
 // 		),
 // 		// validation.Field(
-// 		// 	&data.UsersName,
+// 		// 	&data.UserName,
 // 		// 	validation.Required.Error("著者名は必須項目です。"),
 // 		// 	// validation.RuneLength(1, 50).Error("著者名は 1文字 以上 50文字 以内です。"),
 // 		// ),
 // 		// validation.Field(
-// 		// 	&data.UsersPassword,
+// 		// 	&data.UserPassword,
 // 		// 	validation.Required.Error("価格は必須項目です。"),
 // 		// 	// validation.Max(1000000.0).Error("価格は 1,000,000円 以下で指定してください。"),
 // 		// 	// validation.Min(1.0).Error("価格は 1円 以上で指定してください。"),
@@ -127,16 +127,16 @@ func (data RequestSingOutData) Validate() (bool, error) {
 
 // [
 //     {
-//         "field": "users_id",
+//         "field": "user_id",
 //         "message": "ユーザーIDは必須です"
 //     },
 //     {
-//         "field": "users_password",
+//         "field": "user_password",
 //         "message": "パスワードは必須です。"
 //     },
 // ]
 
 // {
-// 	"field": "users_password",
+// 	"field": "user_password",
 // 	"message": "パスワードの形式が間違っています。"
 // }

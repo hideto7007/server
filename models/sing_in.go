@@ -47,15 +47,15 @@ type (
 	// }
 
 	RequestSingInData struct {
-		UsersId       int    `json:"users_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UsersName     string `json:"users_name"`
-		UsersPassword string `json:"users_password"`
+		UserId       int    `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserName     string `json:"user_name"`
+		UserPassword string `json:"user_password"`
 	}
 
 	SingInData struct {
-		UsersId       int
-		UsersName     string
-		UsersPassword string
+		UserId       int
+		UserName     string
+		UserPassword string
 	}
 
 	// UpdateIncomeData struct {
@@ -94,7 +94,7 @@ func NewSingInDataFetcher(dataSourceName string) (*SingInDataFetcher, sqlmock.Sq
 // ExistsSingIn の存在チェック
 //
 // 引数:
-//   - data: { users_name: string, users_password: string }
+//   - data: { user_name: string, user_password: string }
 //
 // 戻り値:
 //
@@ -110,7 +110,7 @@ func (pf *SingInDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, er
 	// fmt.Printf("debug: %+v\n", data)  オブジェクト形式で確認するときのデバック
 
 	// データベースクエリを実行
-	rows, err := pf.db.Query(DB.GetSingInSyntax, data.UsersName, data.UsersPassword)
+	rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName, data.UserPassword)
 
 	if err != nil {
 		fmt.Printf("Query failed: %v\n", err)
@@ -121,9 +121,9 @@ func (pf *SingInDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, er
 	for rows.Next() {
 		var data SingInData
 		err := rows.Scan(
-			&data.UsersId,
-			&data.UsersName,
-			&data.UsersPassword,
+			&data.UserId,
+			&data.UserName,
+			&data.UserPassword,
 		)
 
 		if err != nil {

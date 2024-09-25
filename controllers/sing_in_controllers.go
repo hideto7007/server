@@ -4,7 +4,9 @@ package controllers
 import (
 	"net/http"
 	"server/config"
+	"server/enum"
 	"server/models" // モデルのインポート
+	"server/utils"
 	"server/validation"
 
 	"github.com/gin-gonic/gin"
@@ -26,12 +28,13 @@ type (
 	}
 
 	singInResult struct {
-		UsersId       int    `json:"users_id"`
-		UsersName     string `json:"users_name"`
-		UsersPassword string `json:"users_password"`
+		UserId       int    `json:"user_id"`
+		UserName     string `json:"user_name"`
+		UserPassword string `json:"user_password"`
 	}
 
 	singInResponse struct {
+		Token    string
 		Result   []singInResult `json:"result"`
 		ErrorMsg string         `json:"error,omitempty"`
 	}
@@ -51,18 +54,14 @@ func NewSingInDataFetcher() SingInDataFetcher {
 
 func (af *apiSingInDataFetcher) GetSingInApi(c *gin.Context) {
 	var requestData requestSingInData
-	// var errorArray []map[string]string
-	// var formatError string = "リクエストフォーマットの形式が正しくありません"
 	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
 	c.ShouldBindJSON(&requestData)
 
 	validator := validation.RequestSingInData{
-		UsersId:       requestData.Data[0].UsersId,
-		UsersName:     requestData.Data[0].UsersName,
-		UsersPassword: requestData.Data[0].UsersPassword,
+		UserId:       requestData.Data[0].UserId,
+		UserName:     requestData.Data[0].UserName,
+		UserPassword: requestData.Data[0].UserPassword,
 	}
-
-	// _, errMsgList := validator.Validate()
 
 	if valid, errMsgList := validator.Validate(); !valid {
 		c.JSON(http.StatusBadRequest, errMsgList)
@@ -71,35 +70,29 @@ func (af *apiSingInDataFetcher) GetSingInApi(c *gin.Context) {
 
 	dbFetcher, _, _ := models.NewSingInDataFetcher(config.DataSourceName)
 	result, err := dbFetcher.GetSingIn(requestData.Data[0])
-	if err != nil {
-		response := singInResponse{
-			ErrorMsg: err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, response)
+	if err != nil || len(result) == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "サインインに失敗しました"})
 		return
 	}
-	// fmt.Print(result)
 
-	// 結果の処理
-	if len(result) > 0 {
-		// サインイン成功のレスポンス
-		response := singInResponse{
-			Result: []singInResult{
-				{
-					UsersId:       result[0].UsersId,
-					UsersName:     result[0].UsersName,
-					UsersPassword: result[0].UsersPassword,
-				},
-			},
-		}
-		c.JSON(http.StatusOK, response)
-	} else {
-		// サインイン失敗のレスポンス
-		response := singInResponse{
-			ErrorMsg: "サインインに失敗しました",
-		}
-		c.JSON(http.StatusUnauthorized, response)
+	token, err := utils.GenerateJWT(requestData.Data[0].UserId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{enum.ERROR: "トークンの生成に失敗しました"})
+		return
 	}
+
+	// サインイン成功のレスポンス
+	response := singInResponse{
+		Token: token,
+		Result: []singInResult{
+			{
+				UserId:       result[0].UserId,
+				UserName:     result[0].UserName,
+				UserPassword: result[0].UserPassword,
+			},
+		},
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // // GetDateRangeApi は登録されている最も古い日付と最も新しい日付を取得するAPI
@@ -223,9 +216,9 @@ func (af *apiSingInDataFetcher) GetSingInApi(c *gin.Context) {
 //         "error": "リクエストのフォーマットが正しくありません。"
 //     },
 //     {
-//         "error": "users_id: ユーザーIDは必須です"
+//         "error": "user_id: ユーザーIDは必須です"
 //     },
 //     {
-//         "error": "users_name: 著者名は必須項目です。."
+//         "error": "user_name: 著者名は必須項目です。."
 //     }
 // ]
