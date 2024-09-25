@@ -32,6 +32,8 @@ func getDataBaseSource() string {
 		os.Getenv("PSQL_SSLMODEL"),
 	)
 
+	log.Println(dsn)
+
 	return dsn
 
 	// TODO
