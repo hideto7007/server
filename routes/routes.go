@@ -16,7 +16,7 @@ func SetupRoutes(r *gin.Engine) {
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.GET("/singin", singInAPI.GetSingInApi)
+		Routes.POST("/singin", singInAPI.GetSingInApi)
 		Routes.GET("/price", priceAPI.GetPriceInfoApi)
 		Routes.GET("/income_data", incomeAPI.GetIncomeDataInRangeApi)
 		Routes.GET("/range_date", incomeAPI.GetDateRangeApi)

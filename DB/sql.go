@@ -46,3 +46,10 @@ const DeleteIncomeSyntax = `
 			DELETE FROM public.income_forecast_data
 			WHERE income_forecast_id = $1;
 			`
+
+const GetSingInSyntax = `
+			SELECT users_id, users_name, users_password
+			FROM public.users
+			WHERE users_name = $1
+			AND users_password = $2;
+			`
