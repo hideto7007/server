@@ -2,7 +2,7 @@
 package middleware
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -19,9 +19,8 @@ import (
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-		fmt.Print("authHeader", authHeader)
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "トークンが必要です"})
+			c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "トークンが必要です。"})
 			c.Abort()
 			return
 		}
@@ -29,49 +28,67 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		tokenString := strings.Split(authHeader, "Bearer ")[1]
 
 		// トークンの検証
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		_, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return utils.JwtSecret, nil
 		})
 
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "無効なトークンです"})
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "トークンの有効期限が切れています"})
 			c.Abort()
 			return
 		}
+
+		// トークンのクレームを取得
+		// if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// 	if exp, ok := claims["exp"].(float64); ok {
+		// 		if time.Unix(int64(exp), 0).Before(time.Now()) {
+		// 			c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "トークンの有効期限が切れています"})
+		// 			c.Abort()
+		// 			return
+		// 		}
+		// 	}
+		// } else {
+		// 	c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "有効期限が切れて無効なトークンです"})
+		// 	c.Abort()
+		// 	return
+		// }
 		c.Next()
 	}
 }
 
 func CORSMiddleware() gin.HandlerFunc {
-	return cors.New(cors.Config{
-		// .env ファイルを読み込む（必要であれば）
-		// err := godotenv.Load()
-		// if err != nil {
-		// 	log.Fatalf("Error loading .env file")
-		// }
-		// 許可したいアクセス元
+	config := cors.Config{
 		AllowOrigins: []string{
 			os.Getenv("REACT_CLIENT"),
 			os.Getenv("VUE_CLIENT"),
 			os.Getenv("DOCKER_CLIENT"),
+			os.Getenv("SWAGGER_CLIENT1"),
+			os.Getenv("SWAGGER_CLIENT2"),
 		},
-		// 許可したいHTTPメソッド
 		AllowMethods: []string{
 			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
 			"OPTIONS",
 		},
-		// 許可したいHTTPリクエストヘッダ
 		AllowHeaders: []string{
-			"Access-Control-Allow-Credentials",
 			"Access-Control-Allow-Headers",
-			"Content-Type",
 			"Content-Length",
-			"Accept-Encoding",
+			"Content-Type",
 			"Authorization",
 		},
-		// cookieなどの情報の要否
 		AllowCredentials: true,
-		// preflightリクエストの結果をキャッシュする時間
-		MaxAge: 24 * time.Hour,
-	})
+		MaxAge:           24 * time.Hour,
+	}
+
+	// 設定内容をログに出力
+	log.Println("CORS Configuration:")
+	log.Printf("Allowed Origins: %v", config.AllowOrigins)
+	log.Printf("Allowed Methods: %v", config.AllowMethods)
+	log.Printf("Allowed Headers: %v", config.AllowHeaders)
+	log.Printf("Allow Credentials: %v", config.AllowCredentials)
+	log.Printf("MaxAge: %v", config.MaxAge)
+
+	return cors.New(config)
 }
