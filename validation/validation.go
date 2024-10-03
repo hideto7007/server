@@ -35,6 +35,10 @@ type RequestSingInData struct {
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
 }
 
+type RequestRefreshTokenData struct {
+	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須です"`
+}
+
 type RequestSingOutData struct {
 	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須です,int~ユーザーIDは整数値のみです"`
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
@@ -90,6 +94,24 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 			})
 		}
 		valid = false
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
+	var errorMessagesList []errorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
 	}
 
 	return valid, errorMessagesList

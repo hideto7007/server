@@ -3,8 +3,8 @@ package controllers
 
 import (
 	"net/http"
+	"server/common"
 	"server/config"
-	"server/enum"
 	"server/models" // モデルのインポート
 	"server/utils"
 	"server/validation"
@@ -15,6 +15,7 @@ import (
 type (
 	SingInDataFetcher interface {
 		GetSingInApi(c *gin.Context)
+		GetRefreshTokenApi(c *gin.Context)
 		// GetDateRangeApi(c *gin.Context)
 		// GetYearIncomeAndDeductionApi(c *gin.Context)
 		// InsertIncomeDataApi(c *gin.Context)
@@ -34,9 +35,18 @@ type (
 	}
 
 	singInResponse struct {
-		Token    string
-		Result   []singInResult `json:"result"`
-		ErrorMsg string         `json:"error,omitempty"`
+		Token    string         `json:"token,omitempty"`
+		Result   []singInResult `json:"result,omitempty"`
+		ErrorMsg string         `json:"error_msg,omitempty"`
+	}
+
+	RequestRefreshToken struct {
+		UserId int `json:"user_id"`
+	}
+
+	refreshTokenDataResponse struct {
+		Token    string `json:"token,omitempty"`
+		ErrorMsg string `json:"error_msg,omitempty"`
 	}
 
 	apiSingInDataFetcher struct{}
@@ -71,13 +81,19 @@ func (af *apiSingInDataFetcher) GetSingInApi(c *gin.Context) {
 	dbFetcher, _, _ := models.NewSingInDataFetcher(config.DataSourceName)
 	result, err := dbFetcher.GetSingIn(requestData.Data[0])
 	if err != nil || len(result) == 0 {
-		c.JSON(http.StatusUnauthorized, gin.H{enum.ERROR: "サインインに失敗しました"})
+		response := singInResponse{
+			ErrorMsg: "サインインに失敗しました。",
+		}
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
-	token, err := utils.GenerateJWT(requestData.Data[0].UserId)
+	token, err := utils.NewToken(requestData.Data[0].UserId, 5)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{enum.ERROR: "トークンの生成に失敗しました"})
+		response := singInResponse{
+			ErrorMsg: "ークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
@@ -91,6 +107,41 @@ func (af *apiSingInDataFetcher) GetSingInApi(c *gin.Context) {
 				UserPassword: result[0].UserPassword,
 			},
 		},
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// GetRefreshTokenApi はリフレッシュトークンを返すAPI
+//
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiSingInDataFetcher) GetRefreshTokenApi(c *gin.Context) {
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	// パラメータからユーザー情報取得
+	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+	validator := validation.RequestRefreshTokenData{
+		UserId: userIdPrams,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		c.JSON(http.StatusBadRequest, errMsgList)
+		return
+	}
+
+	token, err := utils.RefreshToken(userIdPrams, 1)
+	if err != nil {
+		response := singInResponse{
+			ErrorMsg: "ークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// リフレッシュトークン成功のレスポンス
+	response := refreshTokenDataResponse{
+		Token: token,
 	}
 	c.JSON(http.StatusOK, response)
 }

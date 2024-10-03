@@ -9,16 +9,22 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+type ErrorStruct struct {
+	Error string `json:"error"`
+	ErrorMsg string `json:"error_msg"` 
+}
+
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 // トークン生成関数
-func GenerateJWT(UserId int) (string, error) {
+func GenerateJWT(UserId int, ExpirationDate int) (string, error) {
 	// トークンの有効期限を設定
 
 	// トークンのクレーム（データペイロード）を作成
+	// 検証時はtime.Now().Add(time.Duration(ExpirationDate) * time.Minute).Unix()で確認する
 	claims := jwt.MapClaims{
 		"UserId": UserId,
-		"exp":    time.Now().Add(2 * time.Hour).Unix(),
+		"exp":    time.Now().Add(time.Duration(ExpirationDate) * time.Minute).Unix(),
 	}
 
 	// トークンを生成
@@ -35,4 +41,14 @@ func GenerateJWT(UserId int) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+// 新規有効期限付きのトークン発行
+func NewToken(UserId int, ExpirationDate int) (string, error) {
+	return GenerateJWT(UserId, ExpirationDate)
+}
+
+// 新規有効期限付きのリフレッシュトークン発行
+func RefreshToken(UserId int, ExpirationDate int) (string, error) {
+	return GenerateJWT(UserId, ExpirationDate)
 }
