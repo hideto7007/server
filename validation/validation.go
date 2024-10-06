@@ -35,8 +35,23 @@ type RequestSingInData struct {
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
 }
 
-type RequestRefreshTokenData struct {
+type RequestSingUpData struct {
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
+	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
+}
+
+type RequestSingInEditData struct {
 	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	UserName     string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります"`
+	UserPassword string `json:"user_password"`
+}
+
+type RequestSingInDeleteData struct {
+	UserId int `json:"user_id" valid:"required~ユーザーIDは必須です"`
+}
+
+type RequestRefreshTokenData struct {
+	UserId int `json:"user_id" valid:"required~ユーザーIDは必須です"`
 }
 
 type RequestSingOutData struct {
@@ -117,10 +132,94 @@ func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingOutData) Validate() (bool, error) {
+func (data RequestSingUpData) Validate() (bool, []errorMessages) {
+	var errorMessagesList []errorMessages
+
 	valid, err := govalidator.ValidateStruct(data)
 
-	return valid, err
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
+		var flag bool = true
+		for i := range errorMessagesList {
+			if errorMessagesList[i].Field == UserPassword {
+				errorMessagesList[i].Message = "パスワードの形式が間違っています。"
+				flag = false
+			}
+		}
+
+		if flag {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   UserPassword,
+				Message: "パスワードの形式が間違っています。",
+			})
+		}
+		valid = false
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
+	var errorMessagesList []errorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
+		var flag bool = true
+		for i := range errorMessagesList {
+			if errorMessagesList[i].Field == UserPassword {
+				errorMessagesList[i].Message = "パスワードの形式が間違っています。"
+				flag = false
+			}
+		}
+
+		if flag {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   UserPassword,
+				Message: "パスワードの形式が間違っています。",
+			})
+		}
+		valid = false
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
+	var errorMessagesList []errorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	return valid, errorMessagesList
 }
 
 // func (data SingInValidation) Validate() error {
