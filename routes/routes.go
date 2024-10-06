@@ -17,8 +17,11 @@ func SetupRoutes(r *gin.Engine) {
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.POST("/singin", singAPI.GetSingInApi)
+		Routes.POST("/singin", singAPI.PostSingInApi)
 		Routes.GET("/refresh_token", singAPI.GetRefreshTokenApi)
+		Routes.POST("/singup", singAPI.PostSingUpApi)
+		Routes.PUT("/singin_edit", singAPI.PutSingInEditApi)
+		Routes.DELETE("/singin_delete", singAPI.DeleteSingInApi)
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")

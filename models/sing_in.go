@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"server/DB"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
@@ -14,9 +15,9 @@ import (
 type (
 	SingInFetcher interface {
 		GetSingIn(data RequestSingInData) (SingInData, error)
-		PostSingUp(data RequestSingUpData) (SingUpData, error)
-		PutSingInEdit(data RequestSingInEditData) (SingInEditData, error)
-		DeleteSingInDelete(data RequestSingInDeleteData) (SingInDeleteData, error)
+		PostSingUp(data RequestSingUpData) error
+		PutSingInEdit(data RequestSingInEditData) error
+		DeleteSingIn(data RequestSingInDeleteData) error
 	}
 
 	RequestSingInData struct {
@@ -28,6 +29,7 @@ type (
 	RequestSingUpData struct {
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
+		NickName     string `json:"nick_name"`
 	}
 
 	RequestSingInEditData struct {
@@ -132,44 +134,54 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 //
 // 戻り値:
 //
-//	戻り値1: サインイン情報を返し、ない場合は空のリスト
-//	戻り値2: エラー内容(エラーがない場合はnil)
+//	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) (SingUpData, error) {
+func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 
-	var result SingUpData
-	// var err error
+	var err error
+	createdAt := time.Now()
 
-	// データベースクエリを実行
-	// rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName, data.UserPassword)
+	// トランザクションを開始
+	tx, err := pf.db.Begin()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer func() {
+		if err != nil {
+			// エラーが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+		} else {
+			// エラーが発生しなかった場合、トランザクションをコミット
+			err = tx.Commit()
+		}
+	}()
 
-	// if err != nil {
-	// 	fmt.Printf("Query failed: %v\n", err)
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	singUp := DB.PostSingUpSyntax
 
-	// for rows.Next() {
-	// 	var data SingUpData
-	// 	err := rows.Scan(
-	// 		&data.UserId,
-	// 		&data.UserName,
-	// 		&data.UserPassword,
-	// 	)
+	if _, err = tx.Exec(singUp,
+		data.UserName,
+		data.UserPassword,
+		data.NickName,
+		createdAt,
+		data.NickName,
+		createdAt,
+		1); err != nil {
+		tx.Rollback()
+		log.Println(err)
+	}
 
-	// 	if err != nil {
-	// 		return result, err
-	// 	}
+	// トランザクションをコミット
+	err = tx.Commit()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
-	// 	result = append(result, data)
-	// }
+	defer pf.db.Close()
 
-	// if err := rows.Err(); err != nil {
-	// 	return nil, err
-	// }
-
-	return result, nil
+	return nil
 }
 
 // SingUp サインイン情報を編集API
@@ -179,89 +191,110 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) (SingUpData, error
 //
 // 戻り値:
 //
-//	戻り値1: サインイン情報を返し、ない場合は空のリスト
-//	戻り値2: エラー内容(エラーがない場合はnil)
+//	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) (SingInEditData, error) {
+func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 
-	var result SingInEditData
-	// var err error
+	var err error
+	createdAt := time.Now()
+	// 初期値nullにするためポインター型で定義
+	var userName *string
+	var userPassword *string
 
-	// データベースクエリを実行
-	// rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName, data.UserPassword)
+	// トランザクションを開始
+	tx, err := pf.db.Begin()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer func() {
+		if err != nil {
+			// エラーが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+		} else {
+			// エラーが発生しなかった場合、トランザクションをコミット
+			err = tx.Commit()
+		}
+	}()
 
-	// if err != nil {
-	// 	fmt.Printf("Query failed: %v\n", err)
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	if data.UserName != "" {
+		userName = &data.UserName
+	}
 
-	// for rows.Next() {
-	// 	var data SingUpData
-	// 	err := rows.Scan(
-	// 		&data.UserId,
-	// 		&data.UserName,
-	// 		&data.UserPassword,
-	// 	)
+	if data.UserPassword != "" {
+		userPassword = &data.UserPassword
+	}
 
-	// 	if err != nil {
-	// 		return result, err
-	// 	}
+	singInEdit := DB.PutSingInEditSyntax
 
-	// 	result = append(result, data)
-	// }
+	if _, err = tx.Exec(singInEdit,
+		userName,
+		userPassword,
+		createdAt,
+		data.UserId); err != nil {
+		tx.Rollback()
+		log.Println(err)
+	}
 
-	// if err := rows.Err(); err != nil {
-	// 	return nil, err
-	// }
+	// トランザクションをコミット
+	err = tx.Commit()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
-	return result, nil
+	defer pf.db.Close()
+
+	return nil
 }
 
-// SingUp サインイン情報を削除API
+// DeleteSingIn サインイン情報を削除API
 //
 // 引数:
 //   - data: { user_id: int}
 //
 // 戻り値:
 //
-//	戻り値1: サインイン情報を返し、ない場合は空のリスト
-//	戻り値2: エラー内容(エラーがない場合はnil)
+//	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SingDataFetcher) DeleteSingInDelete(data RequestSingInDeleteData) (SingInDeleteData, error) {
+func (pf *SingDataFetcher) DeleteSingIn(data RequestSingInDeleteData) error {
 
-	var result SingInDeleteData
-	// var err error
+	var err error
 
-	// データベースクエリを実行
-	// rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName, data.UserPassword)
+	// トランザクションを開始
+	tx, err := pf.db.Begin()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer func() {
+		if err != nil {
+			// エラーが発生した場合、トランザクションをロールバック
+			tx.Rollback()
+		} else {
+			// エラーが発生しなかった場合、トランザクションをコミット
+			err = tx.Commit()
+		}
+	}()
 
-	// if err != nil {
-	// 	fmt.Printf("Query failed: %v\n", err)
-	// 	return nil, err
-	// }
-	// defer rows.Close()
+	singInDelete := DB.DeleteSingInSyntax
 
-	// for rows.Next() {
-	// 	var data SingUpData
-	// 	err := rows.Scan(
-	// 		&data.UserId,
-	// 		&data.UserName,
-	// 		&data.UserPassword,
-	// 	)
+	if _, err = tx.Exec(singInDelete,
+		data.UserId); err != nil {
+		tx.Rollback()
+		log.Println(err)
+	}
 
-	// 	if err != nil {
-	// 		return result, err
-	// 	}
+	// トランザクションをコミット
+	err = tx.Commit()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
 
-	// 	result = append(result, data)
-	// }
+	defer pf.db.Close()
 
-	// if err := rows.Err(); err != nil {
-	// 	return nil, err
-	// }
-
-	return result, nil
+	return nil
 }

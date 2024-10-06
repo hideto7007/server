@@ -24,12 +24,12 @@ const GetYearsIncomeAndDeductionSyntax = `
 			ORDER BY TO_CHAR(payment_date, 'YYYY') asc;
 			`
 const InsertIncomeSyntax = `
-			INSERT INTO public.income_forecast_data
+			INSERT INTO income_forecast_data
 			(income_forecast_id, payment_date, age, industry, total_amount, deduction_amount, take_home_amount, created_at, classification, user_id)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
 			`
 const UpdateIncomeSyntax = `
-			UPDATE public.income_forecast_data
+			UPDATE income_forecast_data
 			SET 
 				payment_date = $1, 
 				age = $2, 
@@ -42,14 +42,36 @@ const UpdateIncomeSyntax = `
 				classification = $9
 			WHERE income_forecast_id = $10;
 			`
+
 const DeleteIncomeSyntax = `
-			DELETE FROM public.income_forecast_data
+			DELETE FROM income_forecast_data
 			WHERE income_forecast_id = $1;
 			`
 
 const GetSingInSyntax = `
 			SELECT user_id, user_name, user_password
-			FROM public.users
+			FROM users
 			WHERE user_name = $1
 			AND user_password = $2;
+			`
+
+const PostSingUpSyntax = `
+			INSERT INTO users
+			(user_name, user_password, create_user, create_at, update_user, update_at, delete_flag)
+			VALUES ($1, $2, $3, $4, $5, $6, $7);
+			`
+
+const PutSingInEditSyntax = `
+			UPDATE users
+			SET
+				user_name = coalesce($1, user_name),
+				user_password = coalesce($2, user_password),
+				update_at  = $3
+			WHERE 
+				user_id = $4;
+			`
+
+const DeleteSingInSyntax = `
+			DELETE FROM users
+			WHERE user_id = $1;
 			`

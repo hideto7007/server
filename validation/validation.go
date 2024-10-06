@@ -38,6 +38,7 @@ type RequestSingInData struct {
 type RequestSingUpData struct {
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
+	NickName     string `json:"nick_name" valid:"required~ニックネームは必須です"`
 }
 
 type RequestSingInEditData struct {
