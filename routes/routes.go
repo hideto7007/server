@@ -10,15 +10,15 @@ import (
 func SetupRoutes(r *gin.Engine) {
 
 	// APiインターフェイスのインスタンス定義
-	var singInAPI controllers.SingInDataFetcher = controllers.NewSingInDataFetcher()
+	var singAPI controllers.SingDataFetcher = controllers.NewSingDataFetcher()
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
 	var incomeAPI controllers.IncomeDataFetcher = controllers.NewIncomeDataFetcher()
 
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.POST("/singin", singInAPI.GetSingInApi)
-		Routes.GET("/refresh_token", singInAPI.GetRefreshTokenApi)
+		Routes.POST("/singin", singAPI.GetSingInApi)
+		Routes.GET("/refresh_token", singAPI.GetRefreshTokenApi)
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")
