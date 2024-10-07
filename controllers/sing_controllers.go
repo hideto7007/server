@@ -113,7 +113,7 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.NewToken(requestData.Data[0].UserId, 5)
+	token, err := utils.NewToken(requestData.Data[0].UserId, 60)
 	if err != nil {
 		response := singInResponse{
 			ErrorMsg: "トークンの生成に失敗しました。",
@@ -155,7 +155,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.RefreshToken(userIdPrams, 1)
+	token, err := utils.RefreshToken(userIdPrams, 30)
 	if err != nil {
 		response := singInResponse{
 			ErrorMsg: "トークンの生成に失敗しました。",
