@@ -24,7 +24,7 @@ func GenerateJWT(UserId int, ExpirationDate int) (string, error) {
 	// 検証時はtime.Now().Add(time.Duration(ExpirationDate) * time.Minute).Unix()で確認する
 	claims := jwt.MapClaims{
 		"UserId": UserId,
-		"exp":    time.Now().Add(time.Duration(ExpirationDate) * time.Minute).Unix(),
+		"exp":    time.Now().Add(time.Duration(ExpirationDate) * time.Hour).Unix(),
 	}
 
 	// トークンを生成
