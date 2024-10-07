@@ -130,7 +130,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 // SingUp サインイン情報を新規登録API
 //
 // 引数:
-//   - data: { user_name: string, user_password: string }
+//   - data: { user_name: string, user_password: string, nick_name: string }
 //
 // 戻り値:
 //
@@ -218,6 +218,7 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 		}
 	}()
 
+	// ユーザー名及びユーザーパスワードが存在する場合、ポインターに変数代入
 	if data.UserName != "" {
 		userName = &data.UserName
 	}
