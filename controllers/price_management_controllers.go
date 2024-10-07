@@ -4,6 +4,7 @@ package controllers
 import (
 	"net/http"
 	"server/common"
+	"server/validation"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,8 +21,8 @@ type (
 	}
 
 	Response struct {
-		PriceInfo PriceInfo `json:"result"`
-		Error     string    `json:"error,omitempty"`
+		Result   []PriceInfo `json:"result,omitempty"`
+		ErrorMsg string      `json:"error_msg,omitempty"`
 	}
 
 	apiPriceManagementFetcher struct{}
@@ -86,6 +87,20 @@ func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, 
 
 func (af *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 
+	validator := validation.RequestPriceManagementData{
+		MoneyReceived: c.Query("money_received"),
+		Bouns:         c.Query("bouns"),
+		FixedCost:     c.Query("fixed_cost"),
+		Loan:          c.Query("loan"),
+		Private:       c.Query("private"),
+		Insurance:     c.Query("insurance"),
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		c.JSON(http.StatusBadRequest, errMsgList)
+		return
+	}
+
 	var common common.CommonFetcher = common.NewCommonFetcher()
 	data, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
 
@@ -93,11 +108,20 @@ func (af *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 		var price PriceManagementFetcher = NewPriceManagementFetcher()
 		res := price.PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"], data["insurance"])
 
-		response := Response{PriceInfo: res}
-
-		c.JSON(http.StatusOK, gin.H{"message": response})
+		response := Response{
+			Result: []PriceInfo{
+				{
+					LeftAmount:  res.LeftAmount,
+					TotalAmount: res.TotalAmount,
+				},
+			},
+		}
+		c.JSON(http.StatusOK, response)
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		response := Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
 	}
 
 }
