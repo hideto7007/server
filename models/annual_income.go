@@ -282,6 +282,8 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	var err error
 	createdAt := time.Now()
 
+	log.Println("dbに登録開始")
+
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
@@ -336,6 +338,8 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	}
 
 	defer pf.db.Close()
+
+	log.Println("dbに登録完了")
 
 	return nil
 }

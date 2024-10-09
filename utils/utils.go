@@ -9,6 +9,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+type Response struct {
+	Token    string      `json:"token,omitempty"`
+	Result   interface{} `json:"result,omitempty"`
+	ErrorMsg string      `json:"error_msg,omitempty"`
+}
+
 type ErrorStruct struct {
 	Error string `json:"error"`
 	ErrorMsg string `json:"error_msg"` 

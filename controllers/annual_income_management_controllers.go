@@ -7,6 +7,7 @@ import (
 	"server/common"
 	"server/config"
 	"server/models" // モデルのインポート
+	"server/utils"
 	"server/validation"
 
 	"github.com/gin-gonic/gin"
@@ -37,6 +38,10 @@ type (
 	yearIncomeAndDeductionResponse struct {
 		Result   []models.YearsIncomeData `json:"result,omitempty"`
 		ErrorMsg string                   `json:"error_msg,omitempty"`
+	}
+
+	requestInsertIncomeData struct {
+		Data []models.InsertIncomeData `json:"data"`
 	}
 )
 
@@ -172,24 +177,43 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 
 func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	// JSONデータを受け取るための構造体を定義
-	var requestData struct {
-		Data []models.InsertIncomeData `json:"data"`
-	}
+	var requestData requestInsertIncomeData
+	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
+	c.ShouldBindJSON(&requestData)
 
-	if err := c.ShouldBindJSON(&requestData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	for _, data := range requestData.Data {
+		validator := validation.RequestIncomeData{
+			PaymentDate:     data.PaymentDate,
+			Age:             data.Age,
+			Industry:        data.Industry,
+			TotalAmount:     data.TotalAmount,
+			DeductionAmount: data.DeductionAmount,
+			TakeHomeAmount:  data.TakeHomeAmount,
+			Classification:  data.Classification,
+			UserID:          data.UserID,
+		}
+
+		if valid, errMsgList := validator.Validate(); !valid {
+			c.JSON(http.StatusBadRequest, errMsgList)
+			return
+		}
 	}
 
 	// 収入データベースへ新しいデータ登録
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	if err := dbFetcher.InsertIncome(requestData.Data); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースへの挿入中にエラーが発生しました"})
+		response := utils.Response{
+			ErrorMsg: "データベースへの挿入中にエラーが発生しました",
+		}
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"message": "新規給料情報を登録致しました。"})
+	response := utils.Response{
+		ErrorMsg: "新規給料情報を登録致しました。",
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // UpdateIncomeDataApi は更新
