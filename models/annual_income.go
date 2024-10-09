@@ -105,7 +105,7 @@ func NewPostgreSQLDataFetcher(dataSourceName string) (*PostgreSQLDataFetcher, sq
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate, EndDate, UserId string) ([]IncomeData, error) {
+func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate string, EndDate string, UserId int) ([]IncomeData, error) {
 	var incomeData []IncomeData
 
 	// startDate と endDate を日付型に変換

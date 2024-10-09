@@ -64,6 +64,12 @@ type RequestPriceManagementData struct {
 	Insurance     string `json:"insurance" valid:"int~保険は整数値のみです"`
 }
 
+type RequestYearIncomeAndDeductiontData struct {
+	UserId    int    `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	StartDate string `json:"start_date" valid:"required~開始期間は必須です"`
+	EndDate   string `json:"end_date" valid:"required~終了期間は必須です"`
+}
+
 type errorMessages struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
@@ -80,6 +86,13 @@ func validPassword(password string) bool {
 
 	// すべての条件が満たされているかどうかを返す
 	return hasUpperCase && hasSpecialChar && isCorrectLength
+}
+
+func validDate(date string) bool {
+	dateCase := regexp.MustCompile(`^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$`).MatchString(date)
+
+	// すべての条件が満たされているかどうかを返す
+	return dateCase
 }
 
 func (data RequestSingInData) Validate() (bool, []errorMessages) {
@@ -238,6 +251,47 @@ func (data RequestPriceManagementData) Validate() (bool, []errorMessages) {
 				Field:   field,
 				Message: msg,
 			})
+		}
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages) {
+	var errorMessagesList []errorMessages
+	validArray := [2]bool{true, true}
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	if date := validDate(data.StartDate); !date && data.StartDate != "" {
+		validArray[0] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "start_date",
+			Message: "開始日の形式が間違っています。",
+		})
+	}
+
+	if date := validDate(data.EndDate); !date && data.EndDate != "" {
+		validArray[1] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "end_date",
+			Message: "終了日の形式が間違っています。",
+		})
+	}
+
+	for _, validCheck := range validArray {
+		if !validCheck {
+			valid = false
 		}
 	}
 

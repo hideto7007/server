@@ -2,9 +2,12 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
+	"server/common"
 	"server/config"
 	"server/models" // モデルのインポート
+	"server/validation"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +23,11 @@ type (
 	}
 
 	apiGetIncomeDataFetcher struct{}
+
+	incomeDataInRangeResponse struct {
+		Result   []models.IncomeData `json:"result,omitempty"`
+		ErrorMsg string              `json:"error_msg,omitempty"`
+	}
 )
 
 func NewIncomeDataFetcher() IncomeDataFetcher {
@@ -33,22 +41,41 @@ func NewIncomeDataFetcher() IncomeDataFetcher {
 //
 
 func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
+	var common common.CommonFetcher = common.NewCommonFetcher()
 	// パラメータから日付の始まりと終わりを取得
 	startDate := c.Query("start_date")
 	endDate := c.Query("end_date")
-	userId := c.Query("user_id")
+	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+
+	validator := validation.RequestYearIncomeAndDeductiontData{
+		UserId:    userIdPrams,
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		fmt.Println(errMsgList)
+		c.JSON(http.StatusBadRequest, errMsgList)
+		return
+	}
 
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userId)
+	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userIdPrams)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response := incomeDataInRangeResponse{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"result": incomeData})
+	response := incomeDataInRangeResponse{
+		Result: incomeData,
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // GetDateRangeApi は登録されている最も古い日付と最も新しい日付を取得するAPI
