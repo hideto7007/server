@@ -28,6 +28,16 @@ type (
 		Result   []models.IncomeData `json:"result,omitempty"`
 		ErrorMsg string              `json:"error_msg,omitempty"`
 	}
+
+	dateRangeResponse struct {
+		Result   []models.PaymentDate `json:"result,omitempty"`
+		ErrorMsg string               `json:"error_msg,omitempty"`
+	}
+
+	yearIncomeAndDeductionResponse struct {
+		Result   []models.YearsIncomeData `json:"result,omitempty"`
+		ErrorMsg string                   `json:"error_msg,omitempty"`
+	}
 )
 
 func NewIncomeDataFetcher() IncomeDataFetcher {
@@ -54,7 +64,6 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		fmt.Println(errMsgList)
 		c.JSON(http.StatusBadRequest, errMsgList)
 		return
 	}
@@ -85,19 +94,36 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 
 func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
-	userId := c.Query("user_id")
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+
+	validator := validation.RequestDateRangeData{
+		UserId: userIdPrams,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		fmt.Println(errMsgList)
+		c.JSON(http.StatusBadRequest, errMsgList)
+		return
+	}
 
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	paymentDate, err := dbFetcher.GetDateRange(userId)
+	paymentDate, err := dbFetcher.GetDateRange(userIdPrams)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response := incomeDataInRangeResponse{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"result": paymentDate})
+	response := dateRangeResponse{
+		Result: paymentDate,
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // GetYearIncomeAndDeductionApi は各年ごとの収入、差引額、手取を取得するAPI
@@ -107,19 +133,36 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 
 func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
-	userId := c.Query("user_id")
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+
+	validator := validation.RequestDateRangeData{
+		UserId: userIdPrams,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		fmt.Println(errMsgList)
+		c.JSON(http.StatusBadRequest, errMsgList)
+		return
+	}
 
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userId)
+	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userIdPrams)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response := incomeDataInRangeResponse{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// JSONレスポンスを返す
-	c.JSON(http.StatusOK, gin.H{"result": yearIncomeData})
+	response := yearIncomeAndDeductionResponse{
+		Result: yearIncomeData,
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // InsertIncomeDataApi は新規登録

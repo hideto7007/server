@@ -30,7 +30,7 @@ const UserPassword = "user_password"
 // }
 
 type RequestSingInData struct {
-	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	UserId       int    `json:"user_id" valid:"required~ユーザーID必須かつ整数値のみです"`
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
 }
@@ -42,17 +42,17 @@ type RequestSingUpData struct {
 }
 
 type RequestSingInEditData struct {
-	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	UserId       int    `json:"user_id" valid:"required~ユーザーID必須又は整数値のみです"`
 	UserName     string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります"`
 	UserPassword string `json:"user_password"`
 }
 
 type RequestSingInDeleteData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	UserId int `json:"user_id" valid:"required~ユーザーID必須又は整数値のみです"`
 }
 
 type RequestRefreshTokenData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	UserId int `json:"user_id" valid:"required~ユーザーID必須又は整数値のみです"`
 }
 
 type RequestPriceManagementData struct {
@@ -65,9 +65,17 @@ type RequestPriceManagementData struct {
 }
 
 type RequestYearIncomeAndDeductiontData struct {
-	UserId    int    `json:"user_id" valid:"required~ユーザーIDは必須です"`
+	UserId    int    `json:"user_id" valid:"required~ユーザーIDかつは必須です"`
 	StartDate string `json:"start_date" valid:"required~開始期間は必須です"`
 	EndDate   string `json:"end_date" valid:"required~終了期間は必須です"`
+}
+
+type RequestDateRangeData struct {
+	UserId int `json:"user_id" valid:"required~ユーザーIDかつ整数値は必須です"`
+}
+
+type RequestYearIncomeAndDeductionData struct {
+	UserId int `json:"user_id" valid:"required~ユーザーID必須かつ整数値は必須です"`
 }
 
 type errorMessages struct {
@@ -298,6 +306,42 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 	return valid, errorMessagesList
 }
 
+func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
+	var errorMessagesList []errorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages) {
+	var errorMessagesList []errorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, errorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	return valid, errorMessagesList
+}
+
 // func (data SingInValidation) Validate() error {
 // 	//NOTE: 日本語のエラー文が不要で、デフォルトの英語のエラー文で必要十分である場合、`.Error("xxx")`は不要でOK
 // 	return validation.ValidateStruct(&data,
@@ -325,7 +369,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 // [
 //     {
 //         "field": "user_id",
-//         "message": "ユーザーIDは必須です"
+//         "message": "ユーザーID必須かつ整数値は必須です"
 //     },
 //     {
 //         "field": "user_password",

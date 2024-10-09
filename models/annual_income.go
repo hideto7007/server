@@ -166,7 +166,7 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate string, EndDate 
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetDateRange(UserId string) ([]PaymentDate, error) {
+func (pf *PostgreSQLDataFetcher) GetDateRange(UserId int) ([]PaymentDate, error) {
 	var paymentDate []PaymentDate
 
 	// データベースクエリを実行
@@ -229,7 +229,7 @@ func (pf *PostgreSQLDataFetcher) GetDateRange(UserId string) ([]PaymentDate, err
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]YearsIncomeData, error) {
+func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId int) ([]YearsIncomeData, error) {
 	var yearsIncomeData []YearsIncomeData
 
 	// データベースクエリを実行
