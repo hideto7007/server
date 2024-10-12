@@ -181,33 +181,35 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
 	c.ShouldBindJSON(&requestData)
 
-	for _, data := range requestData.Data {
+	for idx, data := range requestData.Data {
 		validator := validation.RequestIncomeData{
 			PaymentDate:     data.PaymentDate,
 			Age:             data.Age,
 			Industry:        data.Industry,
-			TotalAmount:     data.TotalAmount,
-			DeductionAmount: data.DeductionAmount,
-			TakeHomeAmount:  data.TakeHomeAmount,
+			TotalAmount:     common.AnyToStr(data.TotalAmount),
+			DeductionAmount: common.AnyToStr(data.DeductionAmount),
+			TakeHomeAmount:  common.AnyToStr(data.TakeHomeAmount),
 			Classification:  data.Classification,
 			UserID:          data.UserID,
 		}
-
+		// TODO:エラーになったリクエストデータを全て出力するのか？
+		// それとも、エラーが発生したレコードだけ出力するのか、考える
 		if valid, errMsgList := validator.Validate(); !valid {
+			errMsgList[0].RecodeNumber = idx + 1
 			c.JSON(http.StatusBadRequest, errMsgList)
 			return
 		}
 	}
 
-	// 収入データベースへ新しいデータ登録
-	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	if err := dbFetcher.InsertIncome(requestData.Data); err != nil {
-		response := utils.Response{
-			ErrorMsg: "データベースへの挿入中にエラーが発生しました",
-		}
-		c.JSON(http.StatusInternalServerError, response)
-		return
-	}
+	// // 収入データベースへ新しいデータ登録
+	// dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
+	// if err := dbFetcher.InsertIncome(requestData.Data); err != nil {
+	// 	response := utils.Response{
+	// 		ErrorMsg: "データベースへの挿入中にエラーが発生しました",
+	// 	}
+	// 	c.JSON(http.StatusInternalServerError, response)
+	// 	return
+	// }
 
 	// JSONレスポンスを返す
 	response := utils.Response{

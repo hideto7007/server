@@ -280,12 +280,20 @@ func TestStrToInt(t *testing.T) {
 	})
 }
 
-func TestIntToStr(t *testing.T) {
-	t.Run("success IntToStr()", func(t *testing.T) {
+func TestAnyToStr(t *testing.T) {
+	t.Run("success AnyToStr() pattern1", func(t *testing.T) {
 		// テストケース1: 整数値6543は文字列に変換する
-		var common CommonFetcher = NewCommonFetcher()
 		intDate := 6543
-		result := common.IntToStr(intDate)
+		result := AnyToStr(intDate)
+
+		assert.Equal(t, "6543", result)
+
+		t.Logf("int to string replace : '%s'", result)
+	})
+	t.Run("success AnyToStr() pattern2", func(t *testing.T) {
+		// テストケース1: 整数値6543は文字列に変換する
+		intDate := "6543"
+		result := AnyToStr(intDate)
 
 		assert.Equal(t, "6543", result)
 

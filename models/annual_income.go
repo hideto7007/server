@@ -50,14 +50,14 @@ type (
 	}
 
 	InsertIncomeData struct {
-		PaymentDate     string `json:"payment_date"`
-		Age             int    `json:"age"`
-		Industry        string `json:"industry"`
-		TotalAmount     int    `json:"total_amount"`
-		DeductionAmount int    `json:"deduction_amount"`
-		TakeHomeAmount  int    `json:"take_home_amount"`
-		Classification  string `json:"classification"`
-		UserID          int    `json:"user_id"`
+		PaymentDate     string      `json:"payment_date"`
+		Age             int         `json:"age"`
+		Industry        string      `json:"industry"`
+		TotalAmount     interface{} `json:"total_amount"`
+		DeductionAmount interface{} `json:"deduction_amount"`
+		TakeHomeAmount  interface{} `json:"take_home_amount"`
+		Classification  string      `json:"classification"`
+		UserID          int         `json:"user_id"`
 	}
 
 	UpdateIncomeData struct {

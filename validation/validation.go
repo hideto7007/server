@@ -78,20 +78,22 @@ type RequestYearIncomeAndDeductionData struct {
 	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
 }
 
+// TotalAmount, DeductionAmount, TakeHomeAmountは0の値でも許容させるために
 type RequestIncomeData struct {
 	PaymentDate     string `json:"payment_date" valid:"required~報酬日付は必須です"`
 	Age             int    `json:"age" valid:"required~年齢は必須です"`
 	Industry        string `json:"industry" valid:"required~業種は必須です"`
-	TotalAmount     int    `json:"total_amount" valid:"required~総支給は必須です"`
-	DeductionAmount int    `json:"deduction_amount" valid:"required~差引額は必須です"`
-	TakeHomeAmount  int    `json:"take_home_amount" valid:"required~手取りは必須です"`
+	TotalAmount     string `json:"total_amount" valid:"required~総支給額は必須です"`
+	DeductionAmount string `json:"deduction_amount" valid:"required~差引額は必須です"`
+	TakeHomeAmount  string `json:"take_home_amount" valid:"required~手取額は必須です"`
 	Classification  string `json:"classification" valid:"required~分類は必須です"`
 	UserID          int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
 }
 
 type errorMessages struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+	RecodeNumber int    `json:"recode_number,omitempty"`
+	Field        string `json:"field"`
+	Message      string `json:"message"`
 }
 
 // パスワードのカスタムバリデーション関数
@@ -112,6 +114,13 @@ func validDate(date string) bool {
 
 	// すべての条件が満たされているかどうかを返す
 	return dateCase
+}
+
+func validAmount(val string) bool {
+	amountCase := regexp.MustCompile(`^\d+$`).MatchString(val)
+
+	// すべての条件が満たされているかどうかを返す
+	return amountCase
 }
 
 func (data RequestSingInData) Validate() (bool, []errorMessages) {
@@ -355,6 +364,7 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 
 func (data RequestIncomeData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
+	validArray := [3]bool{true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -365,6 +375,37 @@ func (data RequestIncomeData) Validate() (bool, []errorMessages) {
 				Field:   field,
 				Message: msg,
 			})
+		}
+	}
+	// TODO:報酬、差引額、手取りがが0の場合でもバリデーション通るようにする
+
+	if TotalAmount := validAmount(data.TotalAmount); !TotalAmount {
+		validArray[0] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "total_amount",
+			Message: "総支給額で数値文字列以外は無効です。",
+		})
+	}
+
+	if DeductionAmount := validAmount(data.DeductionAmount); !DeductionAmount {
+		validArray[1] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "deduction_amount",
+			Message: "差引額で数値文字列以外は無効です。",
+		})
+	}
+
+	if TakeHomeAmount := validAmount(data.TakeHomeAmount); !TakeHomeAmount {
+		validArray[2] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "take_home_amount",
+			Message: "手取額で数値文字列以外は無効です。",
+		})
+	}
+
+	for _, validCheck := range validArray {
+		if !validCheck {
+			valid = false
 		}
 	}
 

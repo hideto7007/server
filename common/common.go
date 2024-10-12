@@ -18,7 +18,6 @@ type (
 		TimeToStr(t time.Time) string
 		StrToTime(dateStr string) (time.Time, error)
 		StrToInt(str string) (int, error)
-		IntToStr(str int) string
 	}
 	commonFetcherImpl struct{}
 )
@@ -110,14 +109,25 @@ func (cf *commonFetcherImpl) StrToInt(str string) (int, error) {
 //
 // 引数:
 //
-//	param1: int
+//	param1: interface{}
 //
 // 戻り値:
 //
 //	戻り値1: 整数値を文字列型に変換して返す
 
-func (cf *commonFetcherImpl) IntToStr(num int) string {
-	replaceString := strconv.Itoa(num)
+func AnyToStr[T interface{}](num T) string {
+	// 型を直接判定する
+	var replaceString string
+	// デバッグ: 型と値を出力
+	// fmt.Printf("Type: %T, Value: %v\n", num, num)
+	switch v := any(num).(type) {
+	case int:
+		replaceString = strconv.Itoa(v)
+	case float64:
+		replaceString = strconv.FormatFloat(v, 'f', 0, 64)
+	case string:
+		replaceString = v
+	}
 	return replaceString
 }
 

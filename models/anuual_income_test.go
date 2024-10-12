@@ -77,7 +77,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		// テスト対象のデータ
 		StartDate := "2022-11-01"
 		EndDate := "2022-12-30"
-		UserId := "1"
+		UserId := 1
 
 		expectedData := []IncomeData{
 			{
@@ -242,7 +242,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 			WillReturnError(sql.ErrNoRows)
 
 		// エラーケースをテスト
-		_, err = dbFetcher.GetIncomeDataInRange(StartDate, EndDate, "invalid")
+		_, err = dbFetcher.GetIncomeDataInRange(StartDate, EndDate, 0)
 
 		// エラーが期待通りに発生することを検証
 		assert.Error(t, err)
@@ -257,7 +257,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		}
 
 		StartDate := "2022-11-01"
-		UserId := "1"
+		UserId := 1
 
 		// モックに行データを設定
 		mock.ExpectQuery(DB.GetIncomeDataInRangeSyntax).
@@ -279,7 +279,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 		}
 
 		EndDate := "2022-12-30"
-		UserId := "1"
+		UserId := 1
 
 		// モックに行データを設定
 		mock.ExpectQuery(DB.GetIncomeDataInRangeSyntax).
@@ -305,7 +305,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 			WillReturnError(sql.ErrNoRows)
 
 		// エラーケースをテスト
-		_, err = dbFetcher.GetIncomeDataInRange("invalidStartDate", "invalidEndDate", "invalid")
+		_, err = dbFetcher.GetIncomeDataInRange("invalidStartDate", "invalidEndDate", 0)
 
 		// エラーが期待通りに発生することを検証
 		assert.Error(t, err)
@@ -320,7 +320,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 
 		StartDate := "2022-11-01"
 		EndDate := "2022-12-30"
-		UserId := "1"
+		UserId := 1
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
@@ -356,7 +356,7 @@ func TestGetIncomeDataInRange(t *testing.T) {
 
 		StartDate := "2022-11-01"
 		EndDate := "2022-12-30"
-		UserId := "1"
+		UserId := 1
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
@@ -403,7 +403,7 @@ func TestGetDateRange(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserID := "1"
+		UserID := 1
 		expectedData := []PaymentDate{
 			{
 				UserID:            1,
@@ -513,7 +513,7 @@ func TestGetDateRange(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserId := "999"
+		UserId := 999
 
 		// モックに行データを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetDateRangeSyntax)).
@@ -534,7 +534,7 @@ func TestGetDateRange(t *testing.T) {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
-		UserId := "hoge"
+		UserId := 0
 
 		// モックに行データを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetDateRangeSyntax)).
@@ -562,7 +562,7 @@ func TestGetDateRange(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserID := "1"
+		UserID := 1
 
 		mockData := []MockPaymentData{
 			{
@@ -630,7 +630,7 @@ func TestGetDateRange(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		ParamUserId := "1"
+		ParamUserId := 1
 
 		mockData := []MockPaymentData{
 			{
@@ -699,10 +699,9 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 		var TotalAmount int
 		var DeductionAmount int
 		var TakeHomeAmount int
-		var common common.CommonFetcher = common.NewCommonFetcher()
 
 		// テスト対象のデータ
-		UserId := "1"
+		UserId := 1
 		expectedData := []YearsIncomeData{
 			{
 				Years:           "2017",
@@ -820,9 +819,9 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 			TotalAmount = 0
 			DeductionAmount = 0
 			TakeHomeAmount = 0
-			Years = common.IntToStr(key)
+			Years = common.AnyToStr(key)
 			for _, record := range records {
-				if common.IntToStr(record.UserID) == UserId {
+				if record.UserID == UserId {
 					TotalAmount += record.TotalAmount
 					DeductionAmount += record.DeductionAmount
 					TakeHomeAmount += record.TakeHomeAmount
@@ -870,13 +869,12 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserId := "999"
+		UserId := 999
 
 		var Years string
 		var TotalAmount int
 		var DeductionAmount int
 		var TakeHomeAmount int
-		var common common.CommonFetcher = common.NewCommonFetcher()
 
 		expectedData := []YearsIncomeData{
 			{
@@ -995,9 +993,9 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 			TotalAmount = 0
 			DeductionAmount = 0
 			TakeHomeAmount = 0
-			Years = common.IntToStr(key)
+			Years = common.AnyToStr(key)
 			for _, record := range records {
-				if common.IntToStr(record.UserID) == UserId {
+				if record.UserID == UserId {
 					TotalAmount += record.TotalAmount
 					DeductionAmount += record.DeductionAmount
 					TakeHomeAmount += record.TakeHomeAmount
@@ -1042,7 +1040,7 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
-		UserId := "hoge"
+		UserId := 0
 
 		// モックに行データを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetYearsIncomeAndDeductionSyntax)).
@@ -1066,10 +1064,9 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 		var TotalAmount int
 		var DeductionAmount int
 		var TakeHomeAmount int
-		var common common.CommonFetcher = common.NewCommonFetcher()
 
 		// テスト対象のデータ
-		UserId := "1"
+		UserId := 1
 
 		mockData := []IncomeData{
 			{
@@ -1167,9 +1164,9 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 			TotalAmount = 0
 			DeductionAmount = 0
 			TakeHomeAmount = 0
-			Years = common.IntToStr(key)
+			Years = common.AnyToStr(key)
 			for _, record := range records {
-				if common.IntToStr(record.UserID) == UserId {
+				if record.UserID == UserId {
 					TotalAmount += record.TotalAmount
 					DeductionAmount += record.DeductionAmount
 					TakeHomeAmount += record.TakeHomeAmount
@@ -1207,10 +1204,9 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 		var TotalAmount int
 		var DeductionAmount int
 		var TakeHomeAmount int
-		var common common.CommonFetcher = common.NewCommonFetcher()
 
 		// テスト対象のデータ
-		UserId := "1"
+		UserId := 1
 
 		mockData := []IncomeData{
 			{
@@ -1308,9 +1304,9 @@ func TestGetYearsIncomeAndDeduction(t *testing.T) {
 			TotalAmount = 0
 			DeductionAmount = 0
 			TakeHomeAmount = 0
-			Years = common.IntToStr(key)
+			Years = common.AnyToStr(key)
 			for _, record := range records {
-				if common.IntToStr(record.UserID) == UserId {
+				if record.UserID == UserId {
 					TotalAmount += record.TotalAmount
 					DeductionAmount += record.DeductionAmount
 					TakeHomeAmount += record.TakeHomeAmount
