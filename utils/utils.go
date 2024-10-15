@@ -15,9 +15,13 @@ type Response struct {
 	ErrorMsg string      `json:"error_msg,omitempty"`
 }
 
+type Request struct {
+	Data interface{} `json:"data"`
+}
+
 type ErrorStruct struct {
-	Error string `json:"error"`
-	ErrorMsg string `json:"error_msg"` 
+	Error    string `json:"error"`
+	ErrorMsg string `json:"error_msg"`
 }
 
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))

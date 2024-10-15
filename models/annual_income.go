@@ -61,15 +61,15 @@ type (
 	}
 
 	UpdateIncomeData struct {
-		IncomeForecastID string `json:"income_forecast_id"`
-		PaymentDate      string `json:"payment_date"`
-		Age              int    `json:"age"`
-		Industry         string `json:"industry"`
-		TotalAmount      int    `json:"total_amount"`
-		DeductionAmount  int    `json:"deduction_amount"`
-		TakeHomeAmount   int    `json:"take_home_amount"`
-		UpdateUser       string `json:"update_user"`
-		Classification   string `json:"classification"`
+		IncomeForecastID string      `json:"income_forecast_id"`
+		PaymentDate      string      `json:"payment_date"`
+		Age              int         `json:"age"`
+		Industry         string      `json:"industry"`
+		TotalAmount      interface{} `json:"total_amount"`
+		DeductionAmount  interface{} `json:"deduction_amount"`
+		TakeHomeAmount   interface{} `json:"take_home_amount"`
+		UpdateUser       string      `json:"update_user"`
+		Classification   string      `json:"classification"`
 	}
 
 	DeleteIncomeData struct {
