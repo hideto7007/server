@@ -73,7 +73,7 @@ type (
 	}
 
 	DeleteIncomeData struct {
-		IncomeForecastID string `form:"income_forecast_id" binding:"required"`
+		IncomeForecastID string `json:"income_forecast_id"`
 	}
 
 	PostgreSQLDataFetcher struct{ db *sql.DB }

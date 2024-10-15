@@ -33,7 +33,7 @@ func SetupRoutes(r *gin.Engine) {
 			authRoutes.GET("/years_income_date", incomeAPI.GetYearIncomeAndDeductionApi)
 			authRoutes.POST("/income_create", incomeAPI.InsertIncomeDataApi)
 			authRoutes.PUT("/income_update", incomeAPI.UpdateIncomeDataApi)
-			authRoutes.DELETE("/income_delete", incomeAPI.DeleteIncomeDataApi)
+			authRoutes.POST("/income_delete", incomeAPI.DeleteIncomeDataApi)
 			// 他のエンドポイントのルーティングもここで設定
 		}
 	}

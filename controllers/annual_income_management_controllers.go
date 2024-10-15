@@ -2,14 +2,12 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"server/common"
 	"server/config"
 	"server/models" // モデルのインポート
 	"server/utils"
 	"server/validation"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -205,7 +203,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 
 	// JSONレスポンスを返す
 	response := utils.Response{
-		ErrorMsg: "新規給料情報を登録致しました。",
+		Result: "新規給料情報を登録致しました。",
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -254,7 +252,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 
 	// JSONレスポンスを返す
 	response := utils.Response{
-		ErrorMsg: "給料情報の更新が問題なく成功しました。",
+		Result: "給料情報の更新が問題なく成功しました。",
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -265,33 +263,25 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 //
 
 func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
+	// JSONデータを受け取るための構造体を定義
+	var requestData requestDeleteIncomeData
+	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
+	c.ShouldBindJSON(&requestData)
 
-	var data []models.DeleteIncomeData
-
-	incomeForecastId := c.Query("income_forecast_id")
-
-	IdArray := strings.Split(incomeForecastId, ",")
-
-	fmt.Println(IdArray)
-
-	for idx, id := range IdArray {
+	for idx, data := range requestData.Data {
 		validator := validation.RequestDeleteIncomeData{
-			IncomeForecastID: id,
+			IncomeForecastID: data.IncomeForecastID,
 		}
 		if valid, errMsgList := validator.Validate(); !valid {
 			errMsgList[0].RecodeRows = idx + 1
 			c.JSON(http.StatusBadRequest, errMsgList)
 			return
 		}
-
-		data = append(data, models.DeleteIncomeData{
-			IncomeForecastID: id,
-		})
 	}
 
 	// 収入データベースの指定されたIDの削除
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	if err := dbFetcher.DeleteIncome(data); err != nil {
+	if err := dbFetcher.DeleteIncome(requestData.Data); err != nil {
 		response := utils.Response{
 			ErrorMsg: "削除中にエラーが発生しました",
 		}
@@ -301,7 +291,7 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 
 	// JSONレスポンスを返す
 	response := utils.Response{
-		ErrorMsg: "給料情報の削除が問題なく成功しました。",
+		Result: "給料情報の削除が問題なく成功しました。",
 	}
 	c.JSON(http.StatusOK, response)
 }
