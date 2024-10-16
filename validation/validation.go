@@ -30,81 +30,81 @@ const UserPassword = "user_password"
 // }
 
 type RequestSingInData struct {
-	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
-	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
-	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
+	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 }
 
 type RequestSingUpData struct {
-	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です,email~正しいメールアドレス形式である必要があります"`
-	UserPassword string `json:"user_password" valid:"required~パスワードは必須です"`
-	NickName     string `json:"nick_name" valid:"required~ニックネームは必須です"`
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
+	NickName     string `json:"nick_name" valid:"required~ニックネームは必須です。"`
 }
 
 type RequestSingInEditData struct {
-	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
-	UserName     string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります"`
+	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserName     string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password"`
 }
 
 type RequestSingInDeleteData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
+	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
 }
 
 type RequestRefreshTokenData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
+	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
 }
 
 type RequestPriceManagementData struct {
-	MoneyReceived string `json:"money_received" valid:"int~月の収入は整数値のみです"`
-	Bouns         string `json:"bouns" valid:"int~ボーナスは整数値のみです"`
-	FixedCost     string `json:"fixed_cost" valid:"int~月の収入は整数値のみです"`
-	Loan          string `json:"loan" valid:"int~ローンは整数値のみです"`
-	Private       string `json:"private" valid:"int~プライベートは整数値のみです"`
-	Insurance     string `json:"insurance" valid:"int~保険は整数値のみです"`
+	MoneyReceived string `json:"money_received" valid:"int~月の収入は整数値のみです。"`
+	Bouns         string `json:"bouns" valid:"int~ボーナスは整数値のみです。"`
+	FixedCost     string `json:"fixed_cost" valid:"int~月の収入は整数値のみです。"`
+	Loan          string `json:"loan" valid:"int~ローンは整数値のみです。"`
+	Private       string `json:"private" valid:"int~プライベートは整数値のみです。"`
+	Insurance     string `json:"insurance" valid:"int~保険は整数値のみです。"`
 }
 
 type RequestYearIncomeAndDeductiontData struct {
-	UserId    int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
-	StartDate string `json:"start_date" valid:"required~開始期間は必須です"`
-	EndDate   string `json:"end_date" valid:"required~終了期間は必須です"`
+	UserId    int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	StartDate string `json:"start_date" valid:"required~開始期間は必須です。"`
+	EndDate   string `json:"end_date" valid:"required~終了期間は必須です。"`
 }
 
 type RequestDateRangeData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
+	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
 }
 
 type RequestYearIncomeAndDeductionData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
+	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
 }
 
 // TotalAmount, DeductionAmount, TakeHomeAmountは0の値でも許容させるために
 type RequestInsertIncomeData struct {
-	PaymentDate     string `json:"payment_date" valid:"required~報酬日付は必須です"`
-	Age             int    `json:"age" valid:"required~年齢は必須又は整数値のみです"`
-	Industry        string `json:"industry" valid:"required~業種は必須です"`
-	TotalAmount     string `json:"total_amount" valid:"required~総支給額は必須です"`
-	DeductionAmount string `json:"deduction_amount" valid:"required~差引額は必須です"`
-	TakeHomeAmount  string `json:"take_home_amount" valid:"required~手取額は必須です"`
-	Classification  string `json:"classification" valid:"required~分類は必須です"`
-	UserID          int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです"`
+	PaymentDate     string `json:"payment_date" valid:"required~報酬日付は必須です。"`
+	Age             int    `json:"age" valid:"required~年齢は必須又は整数値のみです。"`
+	Industry        string `json:"industry" valid:"required~業種は必須です。"`
+	TotalAmount     string `json:"total_amount" valid:"required~総支給額は必須です。"`
+	DeductionAmount string `json:"deduction_amount" valid:"required~差引額は必須です。"`
+	TakeHomeAmount  string `json:"take_home_amount" valid:"required~手取額は必須です。"`
+	Classification  string `json:"classification" valid:"required~分類は必須です。"`
+	UserID          int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
 }
 
 // TotalAmount, DeductionAmount, TakeHomeAmountは0の値でも許容させるために
 type RequestUpdateIncomeData struct {
-	IncomeForecastID string `json:"income_forecast_id" valid:"required~年収推移IDは必須です"`
-	PaymentDate      string `json:"payment_date" valid:"required~報酬日付は必須です"`
-	Age              int    `json:"age" valid:"required~年齢は必須又は整数値のみです"`
-	Industry         string `json:"industry" valid:"required~業種は必須です"`
-	TotalAmount      string `json:"total_amount" valid:"required~総支給額は必須です"`
-	DeductionAmount  string `json:"deduction_amount" valid:"required~差引額は必須です"`
-	TakeHomeAmount   string `json:"take_home_amount" valid:"required~手取額は必須です"`
-	UpdateUser       string `json:"update_user" valid:"required~更新者は必須です"`
-	Classification   string `json:"classification" valid:"required~分類は必須です"`
+	IncomeForecastID string `json:"income_forecast_id" valid:"required~年収推移IDは必須です。"`
+	PaymentDate      string `json:"payment_date" valid:"required~報酬日付は必須です。"`
+	Age              int    `json:"age" valid:"required~年齢は必須又は整数値のみです。"`
+	Industry         string `json:"industry" valid:"required~業種は必須です。"`
+	TotalAmount      string `json:"total_amount" valid:"required~総支給額は必須です。"`
+	DeductionAmount  string `json:"deduction_amount" valid:"required~差引額は必須です。"`
+	TakeHomeAmount   string `json:"take_home_amount" valid:"required~手取額は必須です。"`
+	UpdateUser       string `json:"update_user" valid:"required~更新者は必須です。"`
+	Classification   string `json:"classification" valid:"required~分類は必須です。"`
 }
 
 type RequestDeleteIncomeData struct {
-	IncomeForecastID string `json:"income_forecast_id" valid:"required~年収推移IDは必須です"`
+	IncomeForecastID string `json:"income_forecast_id" valid:"required~年収推移IDは必須です。"`
 }
 
 type errorMessages struct {

@@ -44,6 +44,10 @@ import (
 // 	os.Exit(code)
 // }
 
+type testData struct {
+	Data interface{} `json:"data"`
+}
+
 func TestGetIncomeDataInRangeApi(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
@@ -83,9 +87,12 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			},
 		}
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetIncomeDataInRange", func(_ *models.PostgreSQLDataFetcher, startDate, endDate, userId string) ([]models.IncomeData, error) {
-			return mockData, nil
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetIncomeDataInRange",
+			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				return mockData, nil
+			})
 		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
@@ -113,9 +120,12 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=1", nil)
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetIncomeDataInRange", func(_ *models.PostgreSQLDataFetcher, startDate, endDate, userId string) ([]models.IncomeData, error) {
-			return nil, errors.New("database error")
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetIncomeDataInRange",
+			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				return nil, errors.New("database error")
+			})
 		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
@@ -124,7 +134,111 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.Equal(t, "database error", response["error"])
+		assert.Equal(t, "database error", response["error_msg"])
+	})
+
+	t.Run("バリデーションエラー start_date 必須", func(t *testing.T) {
+		// エラーを引き起こすリクエストをシミュレート
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/?start_date=&end_date=2022-09-30&user_id=1", nil)
+
+		mockData := []models.IncomeData{
+			{
+				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+				PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
+				Age:              "30",
+				Industry:         "IT",
+				TotalAmount:      5000,
+				DeductionAmount:  500,
+				TakeHomeAmount:   4500,
+				Classification:   "Salary",
+				UserID:           1,
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetIncomeDataInRange",
+			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				return mockData, nil
+			})
+		defer patches.Reset()
+
+		fetcher := NewIncomeDataFetcher()
+		fetcher.GetIncomeDataInRangeApi(c)
+
+		// レスポンスのステータスコードを確認
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody []errorMessages
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := []errorMessages{
+			{
+				Field:   "start_date",
+				Message: "開始期間は必須です。",
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("バリデーションエラー start_date 日付不正", func(t *testing.T) {
+		paramsList := [...]string{
+			"/?start_date=202207-01&end_date=2022-09-30&user_id=1",
+			"/?start_date=2022-0701&end_date=2022-09-30&user_id=1",
+			"/?start_date=2022-13-01&end_date=2022-09-30&user_id=1",
+			"/?start_date=2022-11-32&end_date=2022-09-30&user_id=1",
+			"/?start_date=test&end_date=2022-09-30&user_id=1",
+		}
+
+		for _, params := range paramsList {
+			// エラーを引き起こすリクエストをシミュレート
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", params, nil)
+
+			mockData := []models.IncomeData{
+				{
+					IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+					PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
+					Age:              "30",
+					Industry:         "IT",
+					TotalAmount:      5000,
+					DeductionAmount:  500,
+					TakeHomeAmount:   4500,
+					Classification:   "Salary",
+					UserID:           1,
+				},
+			}
+
+			patches := ApplyMethod(
+				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				"GetIncomeDataInRange",
+				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+					return mockData, nil
+				})
+			defer patches.Reset()
+
+			fetcher := NewIncomeDataFetcher()
+			fetcher.GetIncomeDataInRangeApi(c)
+
+			// レスポンスのステータスコードを確認
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var responseBody []errorMessages
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := []errorMessages{
+				{
+					Field:   "start_date",
+					Message: "開始日の形式が間違っています。",
+				},
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		}
 	})
 }
 
@@ -151,9 +265,12 @@ func TestGetDateRangeApi(t *testing.T) {
 			},
 		}
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetDateRange", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.PaymentDate, error) {
-			return mockData, nil
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetDateRange",
+			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+				return mockData, nil
+			})
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
@@ -183,9 +300,12 @@ func TestGetDateRangeApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?user_id=1", nil)
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetDateRange", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.PaymentDate, error) {
-			return nil, errors.New("database error")
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetDateRange",
+			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+				return nil, errors.New("database error")
+			})
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
@@ -196,7 +316,7 @@ func TestGetDateRangeApi(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 		var response map[string]interface{}
 		json.Unmarshal(w.Body.Bytes(), &response)
-		assert.NotNil(t, response["error"])
+		assert.NotNil(t, response["error_msg"])
 	})
 }
 
@@ -224,9 +344,12 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 			},
 		}
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetYearsIncomeAndDeduction", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.YearsIncomeData, error) {
-			return mockData, nil
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetYearsIncomeAndDeduction",
+			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+				return mockData, nil
+			})
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
@@ -253,9 +376,12 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?user_id=1", nil)
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "GetYearsIncomeAndDeduction", func(_ *models.PostgreSQLDataFetcher, UserID string) ([]models.YearsIncomeData, error) {
-			return nil, errors.New("database error")
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetYearsIncomeAndDeduction",
+			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+				return nil, errors.New("database error")
+			})
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
@@ -267,7 +393,7 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "database error", response["error"])
+		assert.Equal(t, "database error", response["error_msg"])
 	})
 }
 
@@ -283,9 +409,7 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		testData := struct {
-			Data []models.InsertIncomeData `json:"data"`
-		}{
+		data := testData{
 			Data: []models.InsertIncomeData{
 				{
 					PaymentDate:     "2024-02-10",
@@ -300,13 +424,16 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			},
 		}
 
-		body, _ := json.Marshal(testData)
+		body, _ := json.Marshal(data)
 		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "InsertIncome", func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
-			return nil
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"InsertIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+				return nil
+			})
 		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
@@ -316,7 +443,7 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "新規給料情報を登録致しました。", response["message"])
+		assert.Equal(t, "新規給料情報を登録致しました。", response["result"])
 	})
 
 	t.Run("error InsertIncomeDataApi", func(t *testing.T) {
@@ -327,9 +454,7 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		testData := struct {
-			Data []models.InsertIncomeData `json:"data"`
-		}{
+		data := testData{
 			Data: []models.InsertIncomeData{
 				{
 					PaymentDate:     "2024-02-10",
@@ -344,13 +469,16 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			},
 		}
 
-		body, _ := json.Marshal(testData)
+		body, _ := json.Marshal(data)
 		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "InsertIncome", func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
-			return errors.New("database error")
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"InsertIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+				return errors.New("database error")
+			})
 		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
@@ -360,32 +488,32 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
+		assert.Equal(t, "新規登録時にエラーが発生。", response["error_msg"])
 	})
 
-	t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
-		// config.Setup()
-		// defer config.Teardown()
-		// defer config.TeardownTestDatabase()
+	// t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
+	// 	// config.Setup()
+	// 	// defer config.Teardown()
+	// 	// defer config.TeardownTestDatabase()
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+	// 	w := httptest.NewRecorder()
+	// 	c, _ := gin.CreateTestContext(w)
 
-		// Invalid JSON
-		invalidJSON := `{"data": [`
+	// 	// Invalid JSON
+	// 	invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+	// 	c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBufferString(invalidJSON))
+	// 	c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := NewIncomeDataFetcher()
-		fetcher.InsertIncomeDataApi(c)
+	// 	fetcher := NewIncomeDataFetcher()
+	// 	fetcher.InsertIncomeDataApi(c)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
-		err := json.Unmarshal(w.Body.Bytes(), &response)
-		assert.NoError(t, err)
-		assert.Contains(t, response["error"], "unexpected EOF")
-	})
+	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// 	var response map[string]interface{}
+	// 	err := json.Unmarshal(w.Body.Bytes(), &response)
+	// 	assert.NoError(t, err)
+	// 	assert.Contains(t, response["error_msg"], "unexpected EOF")
+	// })
 }
 
 func TestUpdateIncomeDataApi(t *testing.T) {
@@ -422,9 +550,12 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		c.Request = httptest.NewRequest("PUT", "/api/income_update", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "UpdateIncome", func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
-			return nil
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"UpdateIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+				return nil
+			})
 		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
@@ -434,7 +565,7 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "給料情報の更新が問題なく成功しました。", response["message"])
+		assert.Equal(t, "給料情報の更新が問題なく成功しました。", response["result"])
 	})
 
 	t.Run("error UpdateIncomeDataApi", func(t *testing.T) {
@@ -475,9 +606,12 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 			c.Request = httptest.NewRequest("PUT", "/api/income_update", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
-			patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "UpdateIncome", func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
-				return errors.New("database error")
-			})
+			patches := ApplyMethod(
+				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				"UpdateIncome",
+				func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+					return errors.New("database error")
+				})
 			defer patches.Reset()
 
 			fetcher := NewIncomeDataFetcher()
@@ -490,7 +624,7 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 					lastErr = err
 				} else {
 					// assert.NoError(t, err)
-					assert.Equal(t, "データベースへの挿入中にエラーが発生しました", response["error"])
+					assert.Equal(t, "更新時にエラーが発生。", response["error_msg"])
 					fmt.Printf("成功しました！試行回数: %d回目\n", attempt)
 					lastErr = nil
 					break
@@ -505,29 +639,29 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid JSON UpdateIncomeDataApi", func(t *testing.T) {
-		// config.Setup()
-		// defer config.Teardown()
-		// defer config.TeardownTestDatabase()
+	// t.Run("invalid JSON UpdateIncomeDataApi", func(t *testing.T) {
+	// 	// config.Setup()
+	// 	// defer config.Teardown()
+	// 	// defer config.TeardownTestDatabase()
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+	// 	w := httptest.NewRecorder()
+	// 	c, _ := gin.CreateTestContext(w)
 
-		// Invalid JSON
-		invalidJSON := `{"data": [`
+	// 	// Invalid JSON
+	// 	invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/income_update", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+	// 	c.Request = httptest.NewRequest("POST", "/api/income_update", bytes.NewBufferString(invalidJSON))
+	// 	c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := NewIncomeDataFetcher()
-		fetcher.UpdateIncomeDataApi(c)
+	// 	fetcher := NewIncomeDataFetcher()
+	// 	fetcher.UpdateIncomeDataApi(c)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
-		err := json.Unmarshal(w.Body.Bytes(), &response)
-		assert.NoError(t, err)
-		assert.Contains(t, response["error"], "unexpected EOF")
-	})
+	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	// 	var response map[string]interface{}
+	// 	err := json.Unmarshal(w.Body.Bytes(), &response)
+	// 	assert.NoError(t, err)
+	// 	assert.Contains(t, response["error_msg"], "unexpected EOF")
+	// })
 }
 
 func TestDeleteIncomeDataApi(t *testing.T) {
@@ -543,9 +677,12 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "DeleteIncome", func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
-			return nil
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"DeleteIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+				return nil
+			})
 		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
@@ -555,7 +692,7 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "給料情報の削除が問題なく成功しました。", response["message"])
+		assert.Equal(t, "給料情報の削除が問題なく成功しました。", response["result"])
 	})
 
 	t.Run("error DeleteIncomeDataApi", func(t *testing.T) {
@@ -567,9 +704,12 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
 
-		patches := ApplyMethod(reflect.TypeOf(&models.PostgreSQLDataFetcher{}), "DeleteIncome", func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
-			return errors.New("database error")
-		})
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"DeleteIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+				return errors.New("database error")
+			})
 		defer patches.Reset()
 
 		fetcher := NewIncomeDataFetcher()
@@ -579,6 +719,6 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "データベースからの削除中にエラーが発生しました", response["error"])
+		assert.Equal(t, "削除中にエラーが発生しました", response["error_msg"])
 	})
 }

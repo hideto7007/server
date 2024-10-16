@@ -90,7 +90,7 @@ func TestGetPriceInfo(t *testing.T) {
 		expectedErrorMessage := []errorMessages{
 			{
 				Field:   "money_received",
-				Message: "月の収入は整数値のみです",
+				Message: "月の収入は整数値のみです。",
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -116,7 +116,7 @@ func TestGetPriceInfo(t *testing.T) {
 		expectedErrorMessage := []errorMessages{
 			{
 				Field:   "bouns",
-				Message: "ボーナスは整数値のみです",
+				Message: "ボーナスは整数値のみです。",
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -142,7 +142,7 @@ func TestGetPriceInfo(t *testing.T) {
 		expectedErrorMessage := []errorMessages{
 			{
 				Field:   "fixed_cost",
-				Message: "月の収入は整数値のみです",
+				Message: "月の収入は整数値のみです。",
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -168,7 +168,7 @@ func TestGetPriceInfo(t *testing.T) {
 		expectedErrorMessage := []errorMessages{
 			{
 				Field:   "loan",
-				Message: "ローンは整数値のみです",
+				Message: "ローンは整数値のみです。",
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -194,7 +194,7 @@ func TestGetPriceInfo(t *testing.T) {
 		expectedErrorMessage := []errorMessages{
 			{
 				Field:   "private",
-				Message: "プライベートは整数値のみです",
+				Message: "プライベートは整数値のみです。",
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -220,7 +220,7 @@ func TestGetPriceInfo(t *testing.T) {
 		expectedErrorMessage := []errorMessages{
 			{
 				Field:   "insurance",
-				Message: "保険は整数値のみです",
+				Message: "保険は整数値のみです。",
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)

@@ -17,8 +17,8 @@ import (
 type (
 	AnuualIncomeFetcher interface {
 		GetIncomeDataInRange(StartDate, EndDate, UserId string) ([]IncomeData, error)
-		GetDateRange(UserID string) ([]PaymentDate, error)
-		GetYearsIncomeAndDeduction(UserID string) ([]YearsIncomeData, error)
+		GetDateRange(UserId int) ([]PaymentDate, error)
+		GetYearsIncomeAndDeduction(UserID int) ([]YearsIncomeData, error)
 		InsertIncome(data []InsertIncomeData) error
 		UpdateIncome(data []UpdateIncomeData) error
 		DeleteIncome(UserID []DeleteIncomeData) error
