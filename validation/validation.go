@@ -30,7 +30,7 @@ const UserPassword = "user_password"
 // }
 
 type RequestSingInData struct {
-	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId       string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 }
@@ -42,17 +42,17 @@ type RequestSingUpData struct {
 }
 
 type RequestSingInEditData struct {
-	UserId       int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId       string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 	UserName     string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password"`
 }
 
 type RequestSingInDeleteData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 }
 
 type RequestRefreshTokenData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 }
 
 type RequestPriceManagementData struct {
@@ -65,17 +65,17 @@ type RequestPriceManagementData struct {
 }
 
 type RequestYearIncomeAndDeductiontData struct {
-	UserId    int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId    string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 	StartDate string `json:"start_date" valid:"required~開始期間は必須です。"`
 	EndDate   string `json:"end_date" valid:"required~終了期間は必須です。"`
 }
 
 type RequestDateRangeData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 }
 
 type RequestYearIncomeAndDeductionData struct {
-	UserId int `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 }
 
 // TotalAmount, DeductionAmount, TakeHomeAmountは0の値でも許容させるために
@@ -87,7 +87,7 @@ type RequestInsertIncomeData struct {
 	DeductionAmount string `json:"deduction_amount" valid:"required~差引額は必須です。"`
 	TakeHomeAmount  string `json:"take_home_amount" valid:"required~手取額は必須です。"`
 	Classification  string `json:"classification" valid:"required~分類は必須です。"`
-	UserID          int    `json:"user_id" valid:"required~ユーザーIDは必須又は整数値のみです。"`
+	UserId          string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 }
 
 // TotalAmount, DeductionAmount, TakeHomeAmountは0の値でも許容させるために
@@ -133,15 +133,16 @@ func validDate(date string) bool {
 	return dateCase
 }
 
-func validAmount(val string) bool {
-	amountCase := regexp.MustCompile(`^\d+$`).MatchString(val)
+func validInt(val string) bool {
+	intCase := regexp.MustCompile(`^\d+$`).MatchString(val)
 
 	// すべての条件が満たされているかどうかを返す
-	return amountCase
+	return intCase
 }
 
 func (data RequestSingInData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
+	validArray := [2]bool{true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -153,6 +154,14 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 				Message: msg,
 			})
 		}
+	}
+
+	if UserId := validInt(data.UserId); !UserId {
+		validArray[0] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
+		})
 	}
 
 	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
@@ -170,7 +179,13 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 				Message: "パスワードの形式が間違っています。",
 			})
 		}
-		valid = false
+		validArray[1] = valid
+	}
+
+	for _, validCheck := range validArray {
+		if !validCheck {
+			valid = false
+		}
 	}
 
 	return valid, errorMessagesList
@@ -178,6 +193,7 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 
 func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
+	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -189,6 +205,14 @@ func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
 				Message: msg,
 			})
 		}
+	}
+
+	if UserId := validInt(data.UserId); !UserId {
+		valid = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
+		})
 	}
 
 	return valid, errorMessagesList
@@ -232,6 +256,7 @@ func (data RequestSingUpData) Validate() (bool, []errorMessages) {
 
 func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
+	validArray := [2]bool{true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -243,6 +268,14 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 				Message: msg,
 			})
 		}
+	}
+
+	if UserId := validInt(data.UserId); !UserId {
+		validArray[0] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
+		})
 	}
 
 	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
@@ -260,7 +293,13 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 				Message: "パスワードの形式が間違っています。",
 			})
 		}
-		valid = false
+		validArray[1] = valid
+	}
+
+	for _, validCheck := range validArray {
+		if !validCheck {
+			valid = false
+		}
 	}
 
 	return valid, errorMessagesList
@@ -268,6 +307,7 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 
 func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
+	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -279,6 +319,14 @@ func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
 				Message: msg,
 			})
 		}
+	}
+
+	if UserId := validInt(data.UserId); !UserId {
+		valid = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
+		})
 	}
 
 	return valid, errorMessagesList
@@ -304,7 +352,7 @@ func (data RequestPriceManagementData) Validate() (bool, []errorMessages) {
 
 func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
-	validArray := [2]bool{true, true}
+	validArray := [3]bool{true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -318,8 +366,16 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 		}
 	}
 
-	if date := validDate(data.StartDate); !date && data.StartDate != "" {
+	if UserId := validInt(data.UserId); !UserId {
 		validArray[0] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
+		})
+	}
+
+	if date := validDate(data.StartDate); !date && data.StartDate != "" {
+		validArray[1] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "start_date",
 			Message: "開始日の形式が間違っています。",
@@ -327,7 +383,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 	}
 
 	if date := validDate(data.EndDate); !date && data.EndDate != "" {
-		validArray[1] = false
+		validArray[2] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "end_date",
 			Message: "終了日の形式が間違っています。",
@@ -345,6 +401,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 
 func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
+	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -356,6 +413,14 @@ func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
 				Message: msg,
 			})
 		}
+	}
+
+	if UserId := validInt(data.UserId); !UserId {
+		valid = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
+		})
 	}
 
 	return valid, errorMessagesList
@@ -363,6 +428,7 @@ func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
 
 func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
+	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -374,6 +440,14 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 				Message: msg,
 			})
 		}
+	}
+
+	if UserId := validInt(data.UserId); !UserId {
+		valid = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
+		})
 	}
 
 	return valid, errorMessagesList
@@ -381,7 +455,7 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 
 func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
-	validArray := [3]bool{true, true, true}
+	validArray := [4]bool{true, true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -395,7 +469,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if TotalAmount := validAmount(data.TotalAmount); !TotalAmount {
+	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
 		validArray[0] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "total_amount",
@@ -403,7 +477,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 		})
 	}
 
-	if DeductionAmount := validAmount(data.DeductionAmount); !DeductionAmount {
+	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
 		validArray[1] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "deduction_amount",
@@ -411,11 +485,19 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 		})
 	}
 
-	if TakeHomeAmount := validAmount(data.TakeHomeAmount); !TakeHomeAmount {
+	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
 		validArray[2] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "take_home_amount",
 			Message: "手取額で数値文字列以外は無効です。",
+		})
+	}
+
+	if UserId := validInt(data.UserId); !UserId {
+		validArray[3] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "user_id",
+			Message: "ユーザーIDは整数値のみです。",
 		})
 	}
 
@@ -444,7 +526,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if TotalAmount := validAmount(data.TotalAmount); !TotalAmount {
+	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
 		validArray[0] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "total_amount",
@@ -452,7 +534,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 		})
 	}
 
-	if DeductionAmount := validAmount(data.DeductionAmount); !DeductionAmount {
+	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
 		validArray[1] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "deduction_amount",
@@ -460,7 +542,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 		})
 	}
 
-	if TakeHomeAmount := validAmount(data.TakeHomeAmount); !TakeHomeAmount {
+	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
 		validArray[2] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "take_home_amount",

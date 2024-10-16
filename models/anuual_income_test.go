@@ -1357,7 +1357,7 @@ func TestInsertIncome(t *testing.T) {
 				DeductionAmount: 200,
 				TakeHomeAmount:  800,
 				Classification:  "A",
-				UserID:          1,
+				UserID:          "1",
 			},
 		}
 
@@ -1391,7 +1391,7 @@ func TestInsertIncome(t *testing.T) {
 				DeductionAmount: 2222,
 				TakeHomeAmount:  1111,
 				Classification:  "A",
-				UserID:          999, // pkの値を違反させてエラー確認する
+				UserID:          "999", // pkの値を違反させてエラー確認する
 			},
 		}
 
@@ -1431,7 +1431,7 @@ func TestInsertIncome(t *testing.T) {
 				DeductionAmount: 200,
 				TakeHomeAmount:  800,
 				Classification:  "A",
-				UserID:          1,
+				UserID:          "1",
 			},
 		}
 

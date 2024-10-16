@@ -298,10 +298,58 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		}
 	})
 
-	t.Run("バリデーションエラー user_id 必須又は整数値のみ", func(t *testing.T) {
+	t.Run("バリデーションエラー user_id 必須のみ", func(t *testing.T) {
+
+		// エラーを引き起こすリクエストをシミュレート
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=", nil)
+
+		mockData := []models.IncomeData{
+			{
+				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+				PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
+				Age:              "30",
+				Industry:         "IT",
+				TotalAmount:      5000,
+				DeductionAmount:  500,
+				TakeHomeAmount:   4500,
+				Classification:   "Salary",
+				UserID:           1,
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetIncomeDataInRange",
+			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				return mockData, nil
+			})
+		defer patches.Reset()
+
+		fetcher := NewIncomeDataFetcher()
+		fetcher.GetIncomeDataInRangeApi(c)
+
+		// レスポンスのステータスコードを確認
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody []errorMessages
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := []errorMessages{
+			{
+				Field:   "user_id",
+				Message: "ユーザーIDは必須です。",
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("バリデーションエラー user_id 整数値のみ", func(t *testing.T) {
 		paramsList := [...]string{
-			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=rr",
-			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=",
+			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=rere",
+			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=1.23",
 		}
 
 		for _, params := range paramsList {
@@ -345,7 +393,7 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			expectedErrorMessage := []errorMessages{
 				{
 					Field:   "user_id",
-					Message: "ユーザーIDは必須又は整数値のみです。",
+					Message: "ユーザーIDは整数値のみです。",
 				},
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
@@ -530,7 +578,7 @@ func TestInsertIncomeDataApi(t *testing.T) {
 					DeductionAmount: 93480,
 					TakeHomeAmount:  227044,
 					Classification:  "給料",
-					UserID:          1,
+					UserID:          "1",
 				},
 			},
 		}
@@ -575,7 +623,7 @@ func TestInsertIncomeDataApi(t *testing.T) {
 					DeductionAmount: 93480,
 					TakeHomeAmount:  227044,
 					Classification:  "給料",
-					UserID:          1,
+					UserID:          "1",
 				},
 			},
 		}

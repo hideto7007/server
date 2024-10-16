@@ -71,8 +71,10 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
 	c.ShouldBindJSON(&requestData)
 
+	userIdCheck := requestData.Data[0].UserId
+
 	validator := validation.RequestSingInData{
-		UserId:       requestData.Data[0].UserId,
+		UserId:       userIdCheck,
 		UserName:     requestData.Data[0].UserName,
 		UserPassword: requestData.Data[0].UserPassword,
 	}
@@ -92,7 +94,10 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.NewToken(requestData.Data[0].UserId, 12)
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	userId, _ := common.StrToInt(userIdCheck)
+
+	token, err := utils.NewToken(userId, 12)
 	if err != nil {
 		response := utils.Response{
 			ErrorMsg: "トークンの生成に失敗しました。",
@@ -124,9 +129,9 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	var common common.CommonFetcher = common.NewCommonFetcher()
 	// パラメータからユーザー情報取得
-	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+	userIdCheck := c.Query("user_id")
 	validator := validation.RequestRefreshTokenData{
-		UserId: userIdPrams,
+		UserId: userIdCheck,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -134,7 +139,9 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.RefreshToken(userIdPrams, 3)
+	userId, _ := common.StrToInt(userIdCheck)
+
+	token, err := utils.RefreshToken(userId, 3)
 	if err != nil {
 		response := utils.Response{
 			ErrorMsg: "トークンの生成に失敗しました。",

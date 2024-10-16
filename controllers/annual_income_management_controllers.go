@@ -52,7 +52,7 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	// パラメータから日付の始まりと終わりを取得
 	startDate := c.Query("start_date")
 	endDate := c.Query("end_date")
-	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+	userIdPrams := c.Query("user_id")
 
 	validator := validation.RequestYearIncomeAndDeductiontData{
 		UserId:    userIdPrams,
@@ -65,9 +65,11 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 		return
 	}
 
+	userId, _ := common.StrToInt(userIdPrams)
+
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userIdPrams)
+	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userId)
 
 	if err != nil {
 		response := utils.Response{
@@ -92,7 +94,7 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
 	var common common.CommonFetcher = common.NewCommonFetcher()
-	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+	userIdPrams := c.Query("user_id")
 
 	validator := validation.RequestDateRangeData{
 		UserId: userIdPrams,
@@ -103,9 +105,11 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 		return
 	}
 
+	userId, _ := common.StrToInt(userIdPrams)
+
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	paymentDate, err := dbFetcher.GetDateRange(userIdPrams)
+	paymentDate, err := dbFetcher.GetDateRange(userId)
 
 	if err != nil {
 		response := utils.Response{
@@ -130,7 +134,7 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
 	var common common.CommonFetcher = common.NewCommonFetcher()
-	userIdPrams, _ := common.StrToInt(c.Query("user_id"))
+	userIdPrams := c.Query("user_id")
 
 	validator := validation.RequestDateRangeData{
 		UserId: userIdPrams,
@@ -141,9 +145,11 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 		return
 	}
 
+	userId, _ := common.StrToInt(userIdPrams)
+
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
-	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userIdPrams)
+	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userId)
 
 	if err != nil {
 		response := utils.Response{
@@ -180,7 +186,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 			DeductionAmount: common.AnyToStr(data.DeductionAmount),
 			TakeHomeAmount:  common.AnyToStr(data.TakeHomeAmount),
 			Classification:  data.Classification,
-			UserID:          data.UserID,
+			UserId:          data.UserID,
 		}
 		// TODO:エラーになったリクエストデータを全て出力するのか？
 		// それとも、エラーが発生したレコードだけ出力するのか、考える

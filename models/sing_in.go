@@ -21,7 +21,7 @@ type (
 	}
 
 	RequestSingInData struct {
-		UserId       int    `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserId       string `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
 	}
@@ -33,13 +33,13 @@ type (
 	}
 
 	RequestSingInEditData struct {
-		UserId       int    `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserId       string `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
 	}
 
 	RequestSingInDeleteData struct {
-		UserId int `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserId string `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
 	}
 
 	SingInData struct {

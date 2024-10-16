@@ -18,10 +18,10 @@ type (
 	AnuualIncomeFetcher interface {
 		GetIncomeDataInRange(StartDate, EndDate, UserId string) ([]IncomeData, error)
 		GetDateRange(UserId int) ([]PaymentDate, error)
-		GetYearsIncomeAndDeduction(UserID int) ([]YearsIncomeData, error)
+		GetYearsIncomeAndDeduction(UserId int) ([]YearsIncomeData, error)
 		InsertIncome(data []InsertIncomeData) error
 		UpdateIncome(data []UpdateIncomeData) error
-		DeleteIncome(UserID []DeleteIncomeData) error
+		DeleteIncome(data []DeleteIncomeData) error
 	}
 
 	IncomeData struct {
@@ -57,7 +57,7 @@ type (
 		DeductionAmount interface{} `json:"deduction_amount"`
 		TakeHomeAmount  interface{} `json:"take_home_amount"`
 		Classification  string      `json:"classification"`
-		UserID          int         `json:"user_id"`
+		UserID          string      `json:"user_id"`
 	}
 
 	UpdateIncomeData struct {
