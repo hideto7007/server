@@ -240,6 +240,117 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			assert.Equal(t, responseBody, expectedErrorMessage)
 		}
 	})
+
+	t.Run("バリデーションエラー end_date 日付不正", func(t *testing.T) {
+		paramsList := [...]string{
+			"/?start_date=2022-07-01&end_date=202209-30&user_id=1",
+			"/?start_date=2022-07-01&end_date=2022-0930&user_id=1",
+			"/?start_date=2022-07-01&end_date=2022-13-30&user_id=1",
+			"/?start_date=2022-07-01&end_date=2022-09-32&user_id=1",
+			"/?start_date=2022-07-01&end_date=test0&user_id=1",
+		}
+
+		for _, params := range paramsList {
+			// エラーを引き起こすリクエストをシミュレート
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", params, nil)
+
+			mockData := []models.IncomeData{
+				{
+					IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+					PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
+					Age:              "30",
+					Industry:         "IT",
+					TotalAmount:      5000,
+					DeductionAmount:  500,
+					TakeHomeAmount:   4500,
+					Classification:   "Salary",
+					UserID:           1,
+				},
+			}
+
+			patches := ApplyMethod(
+				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				"GetIncomeDataInRange",
+				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+					return mockData, nil
+				})
+			defer patches.Reset()
+
+			fetcher := NewIncomeDataFetcher()
+			fetcher.GetIncomeDataInRangeApi(c)
+
+			// レスポンスのステータスコードを確認
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var responseBody []errorMessages
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := []errorMessages{
+				{
+					Field:   "end_date",
+					Message: "終了日の形式が間違っています。",
+				},
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		}
+	})
+
+	t.Run("バリデーションエラー user_id 必須又は整数値のみ", func(t *testing.T) {
+		paramsList := [...]string{
+			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=rr",
+			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=",
+		}
+
+		for _, params := range paramsList {
+			// エラーを引き起こすリクエストをシミュレート
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", params, nil)
+
+			mockData := []models.IncomeData{
+				{
+					IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+					PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
+					Age:              "30",
+					Industry:         "IT",
+					TotalAmount:      5000,
+					DeductionAmount:  500,
+					TakeHomeAmount:   4500,
+					Classification:   "Salary",
+					UserID:           1,
+				},
+			}
+
+			patches := ApplyMethod(
+				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				"GetIncomeDataInRange",
+				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+					return mockData, nil
+				})
+			defer patches.Reset()
+
+			fetcher := NewIncomeDataFetcher()
+			fetcher.GetIncomeDataInRangeApi(c)
+
+			// レスポンスのステータスコードを確認
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var responseBody []errorMessages
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := []errorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは必須又は整数値のみです。",
+				},
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		}
+	})
 }
 
 func TestGetDateRangeApi(t *testing.T) {
@@ -528,25 +639,23 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		testData := []models.UpdateIncomeData{
-			{
-				IncomeForecastID: "7b941edb-b7a2-e1e7-6466-ce53d1c8bcff",
-				PaymentDate:      "2024-02-10",
-				Age:              30,
-				Industry:         "IT",
-				TotalAmount:      320524,
-				DeductionAmount:  93480,
-				TakeHomeAmount:   227044,
-				UpdateUser:       "test_user",
-				Classification:   "給料",
+		data := testData{
+			Data: []models.UpdateIncomeData{
+				{
+					IncomeForecastID: "7b941edb-b7a2-e1e7-6466-ce53d1c8bcff",
+					PaymentDate:      "2024-02-10",
+					Age:              30,
+					Industry:         "IT",
+					TotalAmount:      320524,
+					DeductionAmount:  93480,
+					TakeHomeAmount:   227044,
+					UpdateUser:       "test_user",
+					Classification:   "給料",
+				},
 			},
 		}
-		var Body struct {
-			Data []models.UpdateIncomeData `json:"data"`
-		}
-		Body.Data = testData
 
-		body, _ := json.Marshal(Body)
+		body, _ := json.Marshal(data)
 		c.Request = httptest.NewRequest("PUT", "/api/income_update", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
@@ -584,25 +693,23 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
-			testData := []models.UpdateIncomeData{
-				{
-					IncomeForecastID: "7b941edb-b7a2-e1e7-6466-ce53d1c8bcff",
-					PaymentDate:      "2024-02-10",
-					Age:              30,
-					Industry:         "IT",
-					TotalAmount:      320524,
-					DeductionAmount:  93480,
-					TakeHomeAmount:   227044,
-					UpdateUser:       "test_user",
-					Classification:   "給料",
+			data := testData{
+				Data: []models.UpdateIncomeData{
+					{
+						IncomeForecastID: "7b941edb-b7a2-e1e7-6466-ce53d1c8bcff",
+						PaymentDate:      "2024-02-10",
+						Age:              30,
+						Industry:         "IT",
+						TotalAmount:      320524,
+						DeductionAmount:  93480,
+						TakeHomeAmount:   227044,
+						UpdateUser:       "test_user",
+						Classification:   "給料",
+					},
 				},
 			}
-			var Body struct {
-				Data []models.UpdateIncomeData `json:"data"`
-			}
-			Body.Data = testData
 
-			body, _ := json.Marshal(Body)
+			body, _ := json.Marshal(data)
 			c.Request = httptest.NewRequest("PUT", "/api/income_update", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
@@ -675,7 +782,18 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
+
+		data := testData{
+			Data: []models.DeleteIncomeData{
+				{
+					IncomeForecastID: "7b941edb-b7a2-e1e7-6466-ce53d1c8bcff",
+				},
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_delete?", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
@@ -702,7 +820,18 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("DELETE", "/api/income_delete?income_forecast_id=7b941edb-b7a2-e1e7-6466-ce53d1c8bcff", nil)
+
+		data := testData{
+			Data: []models.DeleteIncomeData{
+				{
+					IncomeForecastID: "7b941edb-b7a2-e1e7-6466-ce53d1c8bcff",
+				},
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_delete?", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
