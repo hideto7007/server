@@ -156,7 +156,7 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[0] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
@@ -207,7 +207,7 @@ func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
@@ -270,7 +270,7 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[0] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
@@ -321,7 +321,7 @@ func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
@@ -366,7 +366,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 		}
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[0] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
@@ -415,7 +415,7 @@ func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
@@ -442,7 +442,7 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 		}
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
@@ -493,7 +493,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 		})
 	}
 
-	if UserId := validInt(data.UserId); !UserId {
+	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[3] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",

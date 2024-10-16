@@ -298,7 +298,7 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		}
 	})
 
-	t.Run("バリデーションエラー user_id 必須のみ", func(t *testing.T) {
+	t.Run("バリデーションエラー user_id 必須", func(t *testing.T) {
 
 		// エラーを引き起こすリクエストをシミュレート
 		w := httptest.NewRecorder()
