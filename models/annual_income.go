@@ -57,7 +57,7 @@ type (
 		DeductionAmount interface{} `json:"deduction_amount"`
 		TakeHomeAmount  interface{} `json:"take_home_amount"`
 		Classification  string      `json:"classification"`
-		UserID          string      `json:"user_id"`
+		UserID          interface{} `json:"user_id"`
 	}
 
 	UpdateIncomeData struct {

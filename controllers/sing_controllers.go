@@ -68,10 +68,16 @@ func NewSingDataFetcher() SingDataFetcher {
 
 func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	var requestData requestSingInData
-	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
-	c.ShouldBindJSON(&requestData)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
 
-	userIdCheck := requestData.Data[0].UserId
+	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
 
 	validator := validation.RequestSingInData{
 		UserId:       userIdCheck,
@@ -165,8 +171,14 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 
 func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	var requestData requestSingUpData
-	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
-	c.ShouldBindJSON(&requestData)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
 
 	validator := validation.RequestSingUpData{
 		UserName:     requestData.Data[0].UserName,
@@ -203,11 +215,19 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 
 func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 	var requestData requestSingInEditData
-	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
-	c.ShouldBindJSON(&requestData)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
 
 	validator := validation.RequestSingInEditData{
-		UserId:       requestData.Data[0].UserId,
+		UserId:       userIdCheck,
 		UserName:     requestData.Data[0].UserName,
 		UserPassword: requestData.Data[0].UserPassword,
 	}
@@ -241,11 +261,19 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 
 func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	var requestData requestSingInDeleteData
-	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
-	c.ShouldBindJSON(&requestData)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
 
 	validator := validation.RequestSingInDeleteData{
-		UserId: requestData.Data[0].UserId,
+		UserId: userIdCheck,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {

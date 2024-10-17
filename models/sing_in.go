@@ -21,9 +21,9 @@ type (
 	}
 
 	RequestSingInData struct {
-		UserId       string `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserName     string `json:"user_name"`
-		UserPassword string `json:"user_password"`
+		UserId       interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserName     string      `json:"user_name"`
+		UserPassword string      `json:"user_password"`
 	}
 
 	RequestSingUpData struct {
@@ -33,13 +33,13 @@ type (
 	}
 
 	RequestSingInEditData struct {
-		UserId       string `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserName     string `json:"user_name"`
-		UserPassword string `json:"user_password"`
+		UserId       interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserName     string      `json:"user_name"`
+		UserPassword string      `json:"user_password"`
 	}
 
 	RequestSingInDeleteData struct {
-		UserId string `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserId interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
 	}
 
 	SingInData struct {
@@ -60,7 +60,7 @@ type (
 	}
 
 	SingInDeleteData struct {
-		UserId int
+		UserId interface{}
 	}
 
 	SingDataFetcher struct{ db *sql.DB }

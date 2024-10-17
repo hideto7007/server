@@ -174,8 +174,22 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	// JSONデータを受け取るための構造体を定義
 	var requestData requestInsertIncomeData
-	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
-	c.ShouldBindJSON(&requestData)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if len(requestData.Data) == 0 {
+		response := utils.Response{
+			ErrorMsg: "登録するデータが存在しません。",
+		}
+		c.JSON(http.StatusNotFound, response)
+		return
+	}
 
 	for idx, data := range requestData.Data {
 		validator := validation.RequestInsertIncomeData{
@@ -186,7 +200,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 			DeductionAmount: common.AnyToStr(data.DeductionAmount),
 			TakeHomeAmount:  common.AnyToStr(data.TakeHomeAmount),
 			Classification:  data.Classification,
-			UserId:          data.UserID,
+			UserId:          common.AnyToStr(data.UserID),
 		}
 		// TODO:エラーになったリクエストデータを全て出力するのか？
 		// それとも、エラーが発生したレコードだけ出力するのか、考える
@@ -222,8 +236,22 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	// JSONデータを受け取るための構造体を定義
 	var requestData requestUpdateIncomeData
-	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
-	c.ShouldBindJSON(&requestData)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if len(requestData.Data) == 0 {
+		response := utils.Response{
+			ErrorMsg: "更新するデータが存在しません。",
+		}
+		c.JSON(http.StatusNotFound, response)
+		return
+	}
 
 	for idx, data := range requestData.Data {
 		validator := validation.RequestUpdateIncomeData{
@@ -271,8 +299,22 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	// JSONデータを受け取るための構造体を定義
 	var requestData requestDeleteIncomeData
-	// JSONのバインドエラーチェックは無視する。後にバリデーションチェックを行うため
-	c.ShouldBindJSON(&requestData)
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.Response{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if len(requestData.Data) == 0 {
+		response := utils.Response{
+			ErrorMsg: "削除するデータが存在しません。",
+		}
+		c.JSON(http.StatusNotFound, response)
+		return
+	}
 
 	for idx, data := range requestData.Data {
 		validator := validation.RequestDeleteIncomeData{
