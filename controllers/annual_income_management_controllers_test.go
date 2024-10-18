@@ -644,6 +644,100 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "database error", response["error_msg"])
 	})
+
+	t.Run("バリデーションエラー user_id 必須", func(t *testing.T) {
+
+		// エラーを引き起こすリクエストをシミュレート
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/?user_id=", nil)
+
+		mockData := []models.YearsIncomeData{
+			{
+				Years:           "2022",
+				TotalAmount:     6000,
+				DeductionAmount: 600,
+				TakeHomeAmount:  5400,
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetYearsIncomeAndDeduction",
+			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+				return mockData, nil
+			})
+		defer patches.Reset()
+
+		// テスト対象の関数を呼び出し
+		fetcher := NewIncomeDataFetcher()
+		fetcher.GetYearIncomeAndDeductionApi(c)
+
+		// レスポンスのステータスコードを確認
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody []errorMessages
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := []errorMessages{
+			{
+				Field:   "user_id",
+				Message: "ユーザーIDは必須です。",
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("バリデーションエラー user_id 整数値のみ", func(t *testing.T) {
+		paramsList := [...]string{
+			"/?user_id=rere",
+			"/?user_id=1.23",
+		}
+
+		for _, params := range paramsList {
+			// エラーを引き起こすリクエストをシミュレート
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", params, nil)
+
+			mockData := []models.YearsIncomeData{
+				{
+					Years:           "2022",
+					TotalAmount:     6000,
+					DeductionAmount: 600,
+					TakeHomeAmount:  5400,
+				},
+			}
+
+			patches := ApplyMethod(
+				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				"GetYearsIncomeAndDeduction",
+				func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+					return mockData, nil
+				})
+			defer patches.Reset()
+
+			// テスト対象の関数を呼び出し
+			fetcher := NewIncomeDataFetcher()
+			fetcher.GetYearIncomeAndDeductionApi(c)
+
+			// レスポンスのステータスコードを確認
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var responseBody []errorMessages
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := []errorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは整数値のみです。",
+				},
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		}
+	})
 }
 
 func TestInsertIncomeDataApi(t *testing.T) {
