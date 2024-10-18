@@ -24,6 +24,16 @@ type ErrorStruct struct {
 	ErrorMsg string `json:"error_msg"`
 }
 
+type ErrorMessages struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+type ErrorMessagesResponse struct {
+	RecodeRows int             `json:"recode_rows,omitempty"`
+	Result     []ErrorMessages `json:"result,omitempty"`
+}
+
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 // トークン生成関数

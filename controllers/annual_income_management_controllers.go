@@ -205,8 +205,11 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 		// TODO:エラーになったリクエストデータを全て出力するのか？
 		// それとも、エラーが発生したレコードだけ出力するのか、考える
 		if valid, errMsgList := validator.Validate(); !valid {
-			errMsgList[0].RecodeRows = idx + 1
-			c.JSON(http.StatusBadRequest, errMsgList)
+			response := utils.ErrorMessagesResponse{
+				RecodeRows: idx + 1,
+				Result:     errMsgList,
+			}
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 	}
@@ -268,8 +271,11 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 		// TODO:エラーになったリクエストデータを全て出力するのか？
 		// それとも、エラーが発生したレコードだけ出力するのか、考える
 		if valid, errMsgList := validator.Validate(); !valid {
-			errMsgList[0].RecodeRows = idx + 1
-			c.JSON(http.StatusBadRequest, errMsgList)
+			response := utils.ErrorMessagesResponse{
+				RecodeRows: idx + 1,
+				Result:     errMsgList,
+			}
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 	}
@@ -321,8 +327,11 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 			IncomeForecastID: data.IncomeForecastID,
 		}
 		if valid, errMsgList := validator.Validate(); !valid {
-			errMsgList[0].RecodeRows = idx + 1
-			c.JSON(http.StatusBadRequest, errMsgList)
+			response := utils.ErrorMessagesResponse{
+				RecodeRows: idx + 1,
+				Result:     errMsgList,
+			}
+			c.JSON(http.StatusBadRequest, response)
 			return
 		}
 	}

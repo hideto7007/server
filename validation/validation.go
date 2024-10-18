@@ -6,6 +6,7 @@ import (
 	// "server/models"
 
 	"regexp"
+	"server/utils"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -107,12 +108,6 @@ type RequestDeleteIncomeData struct {
 	IncomeForecastID string `json:"income_forecast_id" valid:"required~年収推移IDは必須です。"`
 }
 
-type errorMessages struct {
-	RecodeRows int    `json:"recode_rows,omitempty"`
-	Field      string `json:"field"`
-	Message    string `json:"message"`
-}
-
 // パスワードのカスタムバリデーション関数
 func validPassword(password string) bool {
 	// 大文字が含まれているかをチェック
@@ -140,8 +135,8 @@ func validInt(val string) bool {
 	return intCase
 }
 
-func (data RequestSingInData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestSingInData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	validArray := [2]bool{true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -149,7 +144,7 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -158,7 +153,7 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[0] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -174,7 +169,7 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 		}
 
 		if flag {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   UserPassword,
 				Message: "パスワードの形式が間違っています。",
 			})
@@ -191,8 +186,8 @@ func (data RequestSingInData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestRefreshTokenData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -200,7 +195,7 @@ func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -209,7 +204,7 @@ func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -218,15 +213,15 @@ func (data RequestRefreshTokenData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingUpData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)
 
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -243,7 +238,7 @@ func (data RequestSingUpData) Validate() (bool, []errorMessages) {
 		}
 
 		if flag {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   UserPassword,
 				Message: "パスワードの形式が間違っています。",
 			})
@@ -254,8 +249,8 @@ func (data RequestSingUpData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestSingInEditData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	validArray := [2]bool{true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -263,7 +258,7 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -272,7 +267,7 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[0] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -288,7 +283,7 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 		}
 
 		if flag {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   UserPassword,
 				Message: "パスワードの形式が間違っています。",
 			})
@@ -305,8 +300,8 @@ func (data RequestSingInEditData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestSingInDeleteData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -314,7 +309,7 @@ func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -323,7 +318,7 @@ func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -332,15 +327,15 @@ func (data RequestSingInDeleteData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestPriceManagementData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestPriceManagementData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)
 
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -350,8 +345,8 @@ func (data RequestPriceManagementData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	validArray := [3]bool{true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -359,7 +354,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -368,7 +363,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[0] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -376,7 +371,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 
 	if date := validDate(data.StartDate); !date && data.StartDate != "" {
 		validArray[1] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "start_date",
 			Message: "開始日の形式が間違っています。",
 		})
@@ -384,7 +379,7 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 
 	if date := validDate(data.EndDate); !date && data.EndDate != "" {
 		validArray[2] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "end_date",
 			Message: "終了日の形式が間違っています。",
 		})
@@ -399,8 +394,8 @@ func (data RequestYearIncomeAndDeductiontData) Validate() (bool, []errorMessages
 	return valid, errorMessagesList
 }
 
-func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestDateRangeData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -408,7 +403,7 @@ func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -417,7 +412,7 @@ func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -426,8 +421,8 @@ func (data RequestDateRangeData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestYearIncomeAndDeductionData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	var valid bool = true
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -435,7 +430,7 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -444,7 +439,7 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		valid = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -453,8 +448,8 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 	return valid, errorMessagesList
 }
 
-func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestInsertIncomeData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	validArray := [5]bool{true, true, true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -462,7 +457,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -471,7 +466,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 
 	if date := validDate(data.PaymentDate); !date && data.PaymentDate != "" {
 		validArray[0] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "payment_date",
 			Message: "給料支給日の形式が間違っています。",
 		})
@@ -479,7 +474,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 
 	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
 		validArray[1] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "total_amount",
 			Message: "総支給額で数値文字列以外は無効です。",
 		})
@@ -487,7 +482,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 
 	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
 		validArray[2] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "deduction_amount",
 			Message: "差引額で数値文字列以外は無効です。",
 		})
@@ -495,7 +490,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 
 	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
 		validArray[3] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "take_home_amount",
 			Message: "手取額で数値文字列以外は無効です。",
 		})
@@ -503,7 +498,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
 		validArray[4] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
@@ -518,8 +513,8 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestUpdateIncomeData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 	validArray := [4]bool{true, true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -527,7 +522,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})
@@ -536,7 +531,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 
 	if date := validDate(data.PaymentDate); !date && data.PaymentDate != "" {
 		validArray[0] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "payment_date",
 			Message: "給料支給日の形式が間違っています。",
 		})
@@ -544,7 +539,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 
 	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
 		validArray[1] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "total_amount",
 			Message: "総支給額で数値文字列以外は無効です。",
 		})
@@ -552,7 +547,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 
 	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
 		validArray[2] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "deduction_amount",
 			Message: "差引額で数値文字列以外は無効です。",
 		})
@@ -560,7 +555,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 
 	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
 		validArray[3] = false
-		errorMessagesList = append(errorMessagesList, errorMessages{
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "take_home_amount",
 			Message: "手取額で数値文字列以外は無効です。",
 		})
@@ -575,15 +570,15 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestDeleteIncomeData) Validate() (bool, []errorMessages) {
-	var errorMessagesList []errorMessages
+func (data RequestDeleteIncomeData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)
 
 	if err != nil {
 		errorMap := govalidator.ErrorsByField(err)
 		for field, msg := range errorMap {
-			errorMessagesList = append(errorMessagesList, errorMessages{
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 				Field:   field,
 				Message: msg,
 			})

@@ -834,29 +834,109 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		assert.Equal(t, "新規登録時にエラーが発生。", response["error_msg"])
 	})
 
-	// t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
-	// 	// config.Setup()
-	// 	// defer config.Teardown()
-	// 	// defer config.TeardownTestDatabase()
+	t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
 
-	// 	w := httptest.NewRecorder()
-	// 	c, _ := gin.CreateTestContext(w)
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-	// 	// Invalid JSON
-	// 	invalidJSON := `{"data": [`
+		// Invalid JSON
+		invalidJSON := `{"data": [`
 
-	// 	c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBufferString(invalidJSON))
-	// 	c.Request.Header.Set("Content-Type", "application/json")
+		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBufferString(invalidJSON))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-	// 	fetcher := NewIncomeDataFetcher()
-	// 	fetcher.InsertIncomeDataApi(c)
+		fetcher := NewIncomeDataFetcher()
+		fetcher.InsertIncomeDataApi(c)
 
-	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	// 	var response map[string]interface{}
-	// 	err := json.Unmarshal(w.Body.Bytes(), &response)
-	// 	assert.NoError(t, err)
-	// 	assert.Contains(t, response["error_msg"], "unexpected EOF")
-	// })
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Contains(t, response["error_msg"], "unexpected EOF")
+	})
+	t.Run("バリデーションエラー 対象カラム必須", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.InsertIncomeData{
+				{
+					PaymentDate:     "",
+					Age:             0,
+					Industry:        "",
+					TotalAmount:     "",
+					DeductionAmount: "",
+					TakeHomeAmount:  "",
+					Classification:  "",
+					UserID:          "",
+				},
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"InsertIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := NewIncomeDataFetcher()
+		fetcher.InsertIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody []errorMessages
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := []errorMessages{
+			{
+				Field:   "payment_date",
+				Message: "報酬日付は必須です。",
+			},
+			{
+				Field:   "age",
+				Message: "年齢は必須又は整数値のみです。",
+			},
+			{
+				Field:   "industry",
+				Message: "業種は必須です。",
+			},
+			{
+				Field:   "total_amount",
+				Message: "総支給額は必須です。",
+			},
+			{
+				Field:   "deduction_amount",
+				Message: "差引額は必須です。",
+			},
+			{
+				Field:   "take_home_amount",
+				Message: "手取額は必須です。",
+			},
+			{
+				Field:   "classification",
+				Message: "分類は必須です。",
+			},
+			{
+				Field:   "user_id",
+				Message: "ユーザーIDは必須です。",
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
 }
 
 func TestUpdateIncomeDataApi(t *testing.T) {
