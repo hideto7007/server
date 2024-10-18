@@ -455,7 +455,7 @@ func (data RequestYearIncomeAndDeductionData) Validate() (bool, []errorMessages)
 
 func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
-	validArray := [4]bool{true, true, true, true}
+	validArray := [5]bool{true, true, true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -469,8 +469,16 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
+	if date := validDate(data.PaymentDate); !date && data.PaymentDate != "" {
 		validArray[0] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "payment_date",
+			Message: "給料支給日の形式が間違っています。",
+		})
+	}
+
+	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
+		validArray[1] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "total_amount",
 			Message: "総支給額で数値文字列以外は無効です。",
@@ -478,7 +486,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 	}
 
 	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
-		validArray[1] = false
+		validArray[2] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "deduction_amount",
 			Message: "差引額で数値文字列以外は無効です。",
@@ -486,7 +494,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 	}
 
 	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
-		validArray[2] = false
+		validArray[3] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "take_home_amount",
 			Message: "手取額で数値文字列以外は無効です。",
@@ -494,7 +502,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 	}
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
-		validArray[3] = false
+		validArray[4] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
@@ -512,7 +520,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []errorMessages) {
 
 func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 	var errorMessagesList []errorMessages
-	validArray := [3]bool{true, true, true}
+	validArray := [4]bool{true, true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -526,8 +534,16 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 		}
 	}
 
-	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
+	if date := validDate(data.PaymentDate); !date && data.PaymentDate != "" {
 		validArray[0] = false
+		errorMessagesList = append(errorMessagesList, errorMessages{
+			Field:   "payment_date",
+			Message: "給料支給日の形式が間違っています。",
+		})
+	}
+
+	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
+		validArray[1] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "total_amount",
 			Message: "総支給額で数値文字列以外は無効です。",
@@ -535,7 +551,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 	}
 
 	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
-		validArray[1] = false
+		validArray[2] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "deduction_amount",
 			Message: "差引額で数値文字列以外は無効です。",
@@ -543,7 +559,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []errorMessages) {
 	}
 
 	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
-		validArray[2] = false
+		validArray[3] = false
 		errorMessagesList = append(errorMessagesList, errorMessages{
 			Field:   "take_home_amount",
 			Message: "手取額で数値文字列以外は無効です。",
