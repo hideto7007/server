@@ -472,7 +472,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []utils.ErrorMessages) {
 		})
 	}
 
-	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
+	if TotalAmount := validInt(data.TotalAmount); !TotalAmount && data.TotalAmount != "" {
 		validArray[1] = false
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "total_amount",
@@ -480,7 +480,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []utils.ErrorMessages) {
 		})
 	}
 
-	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
+	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount && data.DeductionAmount != "" {
 		validArray[2] = false
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "deduction_amount",
@@ -488,7 +488,7 @@ func (data RequestInsertIncomeData) Validate() (bool, []utils.ErrorMessages) {
 		})
 	}
 
-	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
+	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount && data.TakeHomeAmount != "" {
 		validArray[3] = false
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "take_home_amount",
@@ -537,7 +537,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []utils.ErrorMessages) {
 		})
 	}
 
-	if TotalAmount := validInt(data.TotalAmount); !TotalAmount {
+	if TotalAmount := validInt(data.TotalAmount); !TotalAmount && data.TotalAmount != "" {
 		validArray[1] = false
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "total_amount",
@@ -545,7 +545,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []utils.ErrorMessages) {
 		})
 	}
 
-	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount {
+	if DeductionAmount := validInt(data.DeductionAmount); !DeductionAmount && data.DeductionAmount != "" {
 		validArray[2] = false
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "deduction_amount",
@@ -553,7 +553,7 @@ func (data RequestUpdateIncomeData) Validate() (bool, []utils.ErrorMessages) {
 		})
 	}
 
-	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount {
+	if TakeHomeAmount := validInt(data.TakeHomeAmount); !TakeHomeAmount && data.TakeHomeAmount != "" {
 		validArray[3] = false
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "take_home_amount",
