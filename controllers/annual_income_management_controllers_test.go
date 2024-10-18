@@ -477,6 +477,96 @@ func TestGetDateRangeApi(t *testing.T) {
 		json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NotNil(t, response["error_msg"])
 	})
+
+	t.Run("バリデーションエラー user_id 必須", func(t *testing.T) {
+
+		// エラーを引き起こすリクエストをシミュレート
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/?user_id=", nil)
+
+		mockData := []models.PaymentDate{
+			{
+				UserID:            1,
+				StratPaymaentDate: "2022-01-01",
+				EndPaymaentDate:   "2022-12-31",
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetDateRange",
+			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+				return mockData, nil
+			})
+		defer patches.Reset()
+
+		fetcher := NewIncomeDataFetcher()
+		fetcher.GetDateRangeApi(c)
+
+		// レスポンスのステータスコードを確認
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody []errorMessages
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := []errorMessages{
+			{
+				Field:   "user_id",
+				Message: "ユーザーIDは必須です。",
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("バリデーションエラー user_id 整数値のみ", func(t *testing.T) {
+		paramsList := [...]string{
+			"/?user_id=rere",
+			"/?user_id=1.23",
+		}
+
+		for _, params := range paramsList {
+			// エラーを引き起こすリクエストをシミュレート
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+			c.Request = httptest.NewRequest("GET", params, nil)
+
+			mockData := []models.PaymentDate{
+				{
+					UserID:            1,
+					StratPaymaentDate: "2022-01-01",
+					EndPaymaentDate:   "2022-12-31",
+				},
+			}
+
+			patches := ApplyMethod(
+				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				"GetDateRange",
+				func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+					return mockData, nil
+				})
+			defer patches.Reset()
+
+			fetcher := NewIncomeDataFetcher()
+			fetcher.GetDateRangeApi(c)
+
+			// レスポンスのステータスコードを確認
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var responseBody []errorMessages
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := []errorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは整数値のみです。",
+				},
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		}
+	})
 }
 
 func TestGetYearIncomeAndDeductionApi(t *testing.T) {
