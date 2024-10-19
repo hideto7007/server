@@ -11,6 +11,8 @@ import (
 
 	// "server/config"
 	"server/models"
+	"server/test_utils"
+	"server/utils"
 	"testing"
 	"time"
 
@@ -171,14 +173,65 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "start_date",
+					Message: "開始期間は必須です。",
+				},
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("バリデーションエラー end_date 必須", func(t *testing.T) {
+		// エラーを引き起こすリクエストをシミュレート
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/?start_date=2022-09-13&end_date=&user_id=1", nil)
+
+		mockData := []models.IncomeData{
 			{
-				Field:   "start_date",
-				Message: "開始期間は必須です。",
+				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
+				PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
+				Age:              "30",
+				Industry:         "IT",
+				TotalAmount:      5000,
+				DeductionAmount:  500,
+				TakeHomeAmount:   4500,
+				Classification:   "Salary",
+				UserID:           1,
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"GetIncomeDataInRange",
+			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				return mockData, nil
+			})
+		defer patches.Reset()
+
+		fetcher := NewIncomeDataFetcher()
+		fetcher.GetIncomeDataInRangeApi(c)
+
+		// レスポンスのステータスコードを確認
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.Response[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "end_date",
+					Message: "終了期間は必須です。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -227,14 +280,16 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody []errorMessages
+			var responseBody utils.Response[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := []errorMessages{
-				{
-					Field:   "start_date",
-					Message: "開始日の形式が間違っています。",
+			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "start_date",
+						Message: "開始日の形式が間違っています。",
+					},
 				},
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
@@ -284,14 +339,16 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody []errorMessages
+			var responseBody utils.Response[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := []errorMessages{
-				{
-					Field:   "end_date",
-					Message: "終了日の形式が間違っています。",
+			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "end_date",
+						Message: "終了日の形式が間違っています。",
+					},
 				},
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
@@ -333,14 +390,16 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "user_id",
-				Message: "ユーザーIDは必須です。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは必須です。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -386,14 +445,16 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody []errorMessages
+			var responseBody utils.Response[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := []errorMessages{
-				{
-					Field:   "user_id",
-					Message: "ユーザーIDは整数値のみです。",
+			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "user_id",
+						Message: "ユーザーIDは整数値のみです。",
+					},
 				},
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
@@ -507,14 +568,16 @@ func TestGetDateRangeApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "user_id",
-				Message: "ユーザーIDは必須です。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは必須です。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -554,14 +617,16 @@ func TestGetDateRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody []errorMessages
+			var responseBody utils.Response[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := []errorMessages{
-				{
-					Field:   "user_id",
-					Message: "ユーザーIDは整数値のみです。",
+			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "user_id",
+						Message: "ユーザーIDは整数値のみです。",
+					},
 				},
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
@@ -676,14 +741,16 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "user_id",
-				Message: "ユーザーIDは必須です。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは必須です。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -725,14 +792,16 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody []errorMessages
+			var responseBody utils.Response[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := []errorMessages{
-				{
-					Field:   "user_id",
-					Message: "ユーザーIDは整数値のみです。",
+			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "user_id",
+						Message: "ユーザーIDは整数値のみです。",
+					},
 				},
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
@@ -786,7 +855,7 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "新規給料情報を登録致しました。", response["result"])
+		assert.Equal(t, "新規給料情報を登録致しました。", response["result_msg"])
 	})
 
 	t.Run("error InsertIncomeDataApi", func(t *testing.T) {
@@ -897,44 +966,49 @@ func TestInsertIncomeDataApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "payment_date",
-				Message: "報酬日付は必須です。",
-			},
-			{
-				Field:   "age",
-				Message: "年齢は必須又は整数値のみです。",
-			},
-			{
-				Field:   "industry",
-				Message: "業種は必須です。",
-			},
-			{
-				Field:   "total_amount",
-				Message: "総支給額は必須です。",
-			},
-			{
-				Field:   "deduction_amount",
-				Message: "差引額は必須です。",
-			},
-			{
-				Field:   "take_home_amount",
-				Message: "手取額は必須です。",
-			},
-			{
-				Field:   "classification",
-				Message: "分類は必須です。",
-			},
-			{
-				Field:   "user_id",
-				Message: "ユーザーIDは必須です。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			RecodeRows: 1,
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "age",
+					Message: "年齢は必須又は整数値のみです。",
+				},
+				{
+					Field:   "industry",
+					Message: "業種は必須です。",
+				},
+				{
+					Field:   "total_amount",
+					Message: "総支給額は必須です。",
+				},
+				{
+					Field:   "deduction_amount",
+					Message: "差引額は必須です。",
+				},
+				{
+					Field:   "take_home_amount",
+					Message: "手取額は必須です。",
+				},
+				{
+					Field:   "classification",
+					Message: "分類は必須です。",
+				},
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは必須です。",
+				},
+				{
+					Field:   "payment_date",
+					Message: "報酬日付は必須です。",
+				},
 			},
 		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 }
@@ -986,7 +1060,7 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "給料情報の更新が問題なく成功しました。", response["result"])
+		assert.Equal(t, "給料情報の更新が問題なく成功しました。", response["result_msg"])
 	})
 
 	t.Run("error UpdateIncomeDataApi", func(t *testing.T) {
@@ -1122,7 +1196,7 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "給料情報の削除が問題なく成功しました。", response["result"])
+		assert.Equal(t, "給料情報の削除が問題なく成功しました。", response["result_msg"])
 	})
 
 	t.Run("error DeleteIncomeDataApi", func(t *testing.T) {

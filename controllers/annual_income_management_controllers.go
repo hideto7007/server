@@ -2,6 +2,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"server/common"
 	"server/config"
@@ -61,7 +62,10 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -72,7 +76,7 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userId)
 
 	if err != nil {
-		response := utils.Response{
+		response := utils.Response[models.IncomeData]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -80,7 +84,7 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	response := utils.Response{
+	response := utils.Response[models.IncomeData]{
 		Result: incomeData,
 	}
 	c.JSON(http.StatusOK, response)
@@ -101,7 +105,10 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -112,7 +119,7 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	paymentDate, err := dbFetcher.GetDateRange(userId)
 
 	if err != nil {
-		response := utils.Response{
+		response := utils.Response[models.PaymentDate]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -120,7 +127,7 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	response := utils.Response{
+	response := utils.Response[models.PaymentDate]{
 		Result: paymentDate,
 	}
 	c.JSON(http.StatusOK, response)
@@ -141,7 +148,10 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -152,7 +162,7 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userId)
 
 	if err != nil {
-		response := utils.Response{
+		response := utils.Response[models.YearsIncomeData]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -160,7 +170,7 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 	}
 
 	// JSONレスポンスを返す
-	response := utils.Response{
+	response := utils.Response[models.YearsIncomeData]{
 		Result: yearIncomeData,
 	}
 	c.JSON(http.StatusOK, response)
@@ -176,7 +186,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	var requestData requestInsertIncomeData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.Response{
+		response := utils.Response[models.InsertIncomeData]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -184,7 +194,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	}
 
 	if len(requestData.Data) == 0 {
-		response := utils.Response{
+		response := utils.Response[models.InsertIncomeData]{
 			ErrorMsg: "登録するデータが存在しません。",
 		}
 		c.JSON(http.StatusNotFound, response)
@@ -205,10 +215,11 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 		// TODO:エラーになったリクエストデータを全て出力するのか？
 		// それとも、エラーが発生したレコードだけ出力するのか、考える
 		if valid, errMsgList := validator.Validate(); !valid {
-			response := utils.ErrorMessagesResponse{
+			response := utils.Response[utils.ErrorMessages]{
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
+			fmt.Println(response.Result)
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
@@ -217,7 +228,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	// 収入データベースへ新しいデータ登録
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	if err := dbFetcher.InsertIncome(requestData.Data); err != nil {
-		response := utils.Response{
+		response := utils.Response[models.InsertIncomeData]{
 			ErrorMsg: "新規登録時にエラーが発生。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -225,8 +236,8 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	response := utils.Response{
-		Result: "新規給料情報を登録致しました。",
+	response := utils.Response[string]{
+		ResultMsg: "新規給料情報を登録致しました。",
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -241,7 +252,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	var requestData requestUpdateIncomeData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.Response{
+		response := utils.Response[models.UpdateIncomeData]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -249,7 +260,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	}
 
 	if len(requestData.Data) == 0 {
-		response := utils.Response{
+		response := utils.Response[models.UpdateIncomeData]{
 			ErrorMsg: "更新するデータが存在しません。",
 		}
 		c.JSON(http.StatusNotFound, response)
@@ -271,7 +282,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 		// TODO:エラーになったリクエストデータを全て出力するのか？
 		// それとも、エラーが発生したレコードだけ出力するのか、考える
 		if valid, errMsgList := validator.Validate(); !valid {
-			response := utils.ErrorMessagesResponse{
+			response := utils.Response[utils.ErrorMessages]{
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
@@ -283,7 +294,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	// 収入データベースの更新
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	if err := dbFetcher.UpdateIncome(requestData.Data); err != nil {
-		response := utils.Response{
+		response := utils.Response[models.UpdateIncomeData]{
 			ErrorMsg: "更新時にエラーが発生。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -291,8 +302,8 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	response := utils.Response{
-		Result: "給料情報の更新が問題なく成功しました。",
+	response := utils.Response[string]{
+		ResultMsg: "給料情報の更新が問題なく成功しました。",
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -307,7 +318,7 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	var requestData requestDeleteIncomeData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.Response{
+		response := utils.Response[models.DeleteIncomeData]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -315,7 +326,7 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	}
 
 	if len(requestData.Data) == 0 {
-		response := utils.Response{
+		response := utils.Response[models.DeleteIncomeData]{
 			ErrorMsg: "削除するデータが存在しません。",
 		}
 		c.JSON(http.StatusNotFound, response)
@@ -327,7 +338,7 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 			IncomeForecastID: data.IncomeForecastID,
 		}
 		if valid, errMsgList := validator.Validate(); !valid {
-			response := utils.ErrorMessagesResponse{
+			response := utils.Response[utils.ErrorMessages]{
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
@@ -339,7 +350,7 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	// 収入データベースの指定されたIDの削除
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
 	if err := dbFetcher.DeleteIncome(requestData.Data); err != nil {
-		response := utils.Response{
+		response := utils.Response[models.DeleteIncomeData]{
 			ErrorMsg: "削除中にエラーが発生しました",
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -347,8 +358,8 @@ func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	}
 
 	// JSONレスポンスを返す
-	response := utils.Response{
-		Result: "給料情報の削除が問題なく成功しました。",
+	response := utils.Response[string]{
+		ResultMsg: "給料情報の削除が問題なく成功しました。",
 	}
 	c.JSON(http.StatusOK, response)
 }

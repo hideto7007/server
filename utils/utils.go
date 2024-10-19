@@ -9,10 +9,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type Response struct {
-	Token    string      `json:"token,omitempty"`
-	Result   interface{} `json:"result,omitempty"`
-	ErrorMsg string      `json:"error_msg,omitempty"`
+type Response[T any] struct {
+	RecodeRows int    `json:"recode_rows,omitempty"`
+	Token      string `json:"token,omitempty"`
+	Result     []T    `json:"result,omitempty"`
+	ResultMsg  T      `json:"result_msg,omitempty"`
+	ErrorMsg   string `json:"error_msg,omitempty"`
 }
 
 type Request struct {
@@ -27,11 +29,6 @@ type ErrorStruct struct {
 type ErrorMessages struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
-}
-
-type ErrorMessagesResponse struct {
-	RecodeRows int             `json:"recode_rows,omitempty"`
-	Result     []ErrorMessages `json:"result,omitempty"`
 }
 
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))

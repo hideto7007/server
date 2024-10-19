@@ -6,15 +6,14 @@ import (
 	"net/http/httptest"
 
 	"server/common"
+	"server/utils"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
-type errorMessages struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+type TestRes struct {
 }
 
 func TestPriceCalc(t *testing.T) {
@@ -52,7 +51,7 @@ func TestGetPriceInfo(t *testing.T) {
 		assert.Equal(t, http.StatusOK, c.Writer.Status())
 
 		// レスポンスの JSON データを取得
-		response := Response{
+		response := utils.Response[PriceInfo]{
 			Result: []PriceInfo{
 				{
 					LeftAmount:  res.LeftAmount,
@@ -83,14 +82,16 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "money_received",
-				Message: "月の収入は整数値のみです。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "money_received",
+					Message: "月の収入は整数値のみです。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -109,14 +110,16 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "bouns",
-				Message: "ボーナスは整数値のみです。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "bouns",
+					Message: "ボーナスは整数値のみです。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -135,14 +138,16 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "fixed_cost",
-				Message: "月の収入は整数値のみです。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "fixed_cost",
+					Message: "月の収入は整数値のみです。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -161,14 +166,16 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "loan",
-				Message: "ローンは整数値のみです。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "loan",
+					Message: "ローンは整数値のみです。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -187,14 +194,16 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "private",
-				Message: "プライベートは整数値のみです。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "private",
+					Message: "プライベートは整数値のみです。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -213,14 +222,16 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody []errorMessages
+		var responseBody utils.Response[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := []errorMessages{
-			{
-				Field:   "insurance",
-				Message: "保険は整数値のみです。",
+		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "insurance",
+					Message: "保険は整数値のみです。",
+				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
