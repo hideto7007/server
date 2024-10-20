@@ -9,6 +9,13 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+// TokenGenerator インターフェースの定義
+type TokenGenerator interface {
+	GenerateJWT(UserId int, ExpirationDate int) (string, error)
+	NewToken(UserId int, ExpirationDate int) (string, error)
+	RefreshToken(UserId int, ExpirationDate int) (string, error)
+}
+
 type Response[T any] struct {
 	RecodeRows int    `json:"recode_rows,omitempty"`
 	Token      string `json:"token,omitempty"`

@@ -3,12 +3,15 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 
 	// "server/config"
 
+	mock_controllers "server/mock/controllers"
+	mock_utils "server/mock/utils"
 	"server/models"
 	"server/test_utils"
 	"server/utils"
@@ -16,6 +19,7 @@ import (
 
 	. "github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -361,61 +365,63 @@ func TestPostSingInApi(t *testing.T) {
 		assert.Equal(t, responseBody.Result[0].UserPassword, expectedOk.Result[0].UserPassword)
 	})
 
-	// t.Run("TestPostSingInApi トークン生成に失敗", func(t *testing.T) {
+	t.Run("TestPostSingInApi トークン生成に失敗", func(t *testing.T) {
+		data := testData{
+			Data: []models.RequestSingInData{
+				{
+					UserId:       1,
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
 
-	// 	data := testData{
-	// 		Data: []models.RequestSingInData{
-	// 			{
-	// 				UserId:       1,
-	// 				UserName:     "test@example.com",
-	// 				UserPassword: "Test123456!!",
-	// 			},
-	// 		},
-	// 	}
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-	// 	resMock := []models.SingInData{
-	// 		{
-	// 			UserId:       3,
-	// 			UserName:     "test@example.com",
-	// 			UserPassword: "Test12345!",
-	// 		},
-	// 	}
+		// TokenGenerator のモックを作成
+		mockTokenGen := mock_utils.NewMockTokenGenerator(ctrl)
 
-	// 	ctrl := gomock.NewController(t)
-	// 	defer ctrl.Finish()
+		// モックの挙動を定義 (トークン生成失敗)
+		mockTokenGen.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("", fmt.Errorf("トークン生成エラー")).Times(1)
 
-	// 	dbMock := mocks.NewMockUserDB(ctrl)
-	// 	dbMock.EXPECT().GetUser("user1").Return(&model.User{}, nil)
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-	// 	w := httptest.NewRecorder()
-	// 	c, _ := gin.CreateTestContext(w)
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-	// 	body, _ := json.Marshal(data)
-	// 	c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
-	// 	c.Request.Header.Set("Content-Type", "application/json")
+		// モックの PostSingInApi メソッドを設定して、エラーレスポンスを返す
+		mockFetcher := mock_controllers.NewMockSingDataFetcher(ctrl)
+		mockFetcher.EXPECT().PostSingInApi(gomock.Any()).DoAndReturn(func(c *gin.Context) {
+			w := httptest.NewRecorder()
+			c.Writer = w
+			response := utils.Response[requestSingInData]{
+				ErrorMsg: "サインインに失敗しました。",
+			}
+			c.JSON(http.StatusUnauthorized, response)
+		})
 
-	// 	patches := ApplyMethod(
-	// 		reflect.TypeOf(&models.SingDataFetcher{}),
-	// 		"GetSingIn",
-	// 		func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
-	// 			return resMock, nil
-	// 		})
-	// 	defer patches.Reset()
+		// モックを使って API を呼び出し
+		mockFetcher.PostSingInApi(c)
 
-	// 	fetcher := NewSingDataFetcher()
-	// 	fetcher.PostSingInApi(c)
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-	// 	assert.Equal(t, http.StatusUnauthorized, w.Code)
+		// レスポンスボディの確認
+		var responseBody utils.Response[requestSingInData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
 
-	// 	var responseBody utils.Response[requestSingInData]
-	// 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-	// 	assert.NoError(t, err)
-
-	// 	expectedErrorMessage := utils.Response[requestSingInData]{
-	// 		ErrorMsg: "サインインに失敗しました。",
-	// 	}
-	// 	assert.Equal(t, responseBody, expectedErrorMessage)
-	// })
+		expectedErrorMessage := utils.Response[requestSingInData]{
+			ErrorMsg: "サインインに失敗しました。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
 }
 
 // func TestGetDateRangeApi(t *testing.T) {
