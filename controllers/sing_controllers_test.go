@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	// "server/config"
+
 	"server/models"
 	"server/test_utils"
 	"server/utils"
@@ -255,6 +256,166 @@ func TestPostSingInApi(t *testing.T) {
 			assert.Equal(t, responseBody, expectedErrorMessage)
 		}
 	})
+
+	t.Run("TestPostSingInApi result件数0件", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSingInData{
+				{
+					UserId:       1,
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		resMock := []models.SingInData{}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SingDataFetcher{}),
+			"GetSingIn",
+			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		fetcher := NewSingDataFetcher()
+		fetcher.PostSingInApi(c)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var responseBody utils.Response[requestSingInData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.Response[requestSingInData]{
+			ErrorMsg: "サインインに失敗しました。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("TestPostSingInApi result 成功", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSingInData{
+				{
+					UserId:       1,
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		resMock := []models.SingInData{
+			{
+				UserId:       3,
+				UserName:     "test@example.com",
+				UserPassword: "Test12345!",
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SingDataFetcher{}),
+			"GetSingIn",
+			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		fetcher := NewSingDataFetcher()
+		fetcher.PostSingInApi(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody utils.Response[SingInResult]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		assert.Equal(t, len(responseBody.Token), 120)
+
+		expectedOk := utils.Response[SingInResult]{
+			Result: []SingInResult{
+				{
+					UserId:       3,
+					UserName:     "test@example.com",
+					UserPassword: "Test12345!",
+				},
+			},
+		}
+		assert.Equal(t, responseBody.Result[0].UserId, expectedOk.Result[0].UserId)
+		assert.Equal(t, responseBody.Result[0].UserName, expectedOk.Result[0].UserName)
+		assert.Equal(t, responseBody.Result[0].UserPassword, expectedOk.Result[0].UserPassword)
+	})
+
+	// t.Run("TestPostSingInApi トークン生成に失敗", func(t *testing.T) {
+
+	// 	data := testData{
+	// 		Data: []models.RequestSingInData{
+	// 			{
+	// 				UserId:       1,
+	// 				UserName:     "test@example.com",
+	// 				UserPassword: "Test123456!!",
+	// 			},
+	// 		},
+	// 	}
+
+	// 	resMock := []models.SingInData{
+	// 		{
+	// 			UserId:       3,
+	// 			UserName:     "test@example.com",
+	// 			UserPassword: "Test12345!",
+	// 		},
+	// 	}
+
+	// 	ctrl := gomock.NewController(t)
+	// 	defer ctrl.Finish()
+
+	// 	dbMock := mocks.NewMockUserDB(ctrl)
+	// 	dbMock.EXPECT().GetUser("user1").Return(&model.User{}, nil)
+
+	// 	w := httptest.NewRecorder()
+	// 	c, _ := gin.CreateTestContext(w)
+
+	// 	body, _ := json.Marshal(data)
+	// 	c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+	// 	c.Request.Header.Set("Content-Type", "application/json")
+
+	// 	patches := ApplyMethod(
+	// 		reflect.TypeOf(&models.SingDataFetcher{}),
+	// 		"GetSingIn",
+	// 		func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+	// 			return resMock, nil
+	// 		})
+	// 	defer patches.Reset()
+
+	// 	fetcher := NewSingDataFetcher()
+	// 	fetcher.PostSingInApi(c)
+
+	// 	assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+	// 	var responseBody utils.Response[requestSingInData]
+	// 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+	// 	assert.NoError(t, err)
+
+	// 	expectedErrorMessage := utils.Response[requestSingInData]{
+	// 		ErrorMsg: "サインインに失敗しました。",
+	// 	}
+	// 	assert.Equal(t, responseBody, expectedErrorMessage)
+	// })
 }
 
 // func TestGetDateRangeApi(t *testing.T) {

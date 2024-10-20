@@ -38,7 +38,7 @@ type (
 		Data []models.RequestSingInDeleteData `json:"data"`
 	}
 
-	singInResult struct {
+	SingInResult struct {
 		UserId       int    `json:"user_id"`
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
@@ -122,9 +122,9 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	}
 
 	// サインイン成功のレスポンス
-	response := utils.Response[singInResult]{
+	response := utils.Response[SingInResult]{
 		Token: token,
-		Result: []singInResult{
+		Result: []SingInResult{
 			{
 				UserId:       result[0].UserId,
 				UserName:     result[0].UserName,

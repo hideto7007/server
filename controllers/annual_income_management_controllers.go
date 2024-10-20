@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"server/common"
 	"server/config"
@@ -219,7 +218,6 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
-			fmt.Println(response.Result)
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
