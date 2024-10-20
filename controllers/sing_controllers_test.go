@@ -12,11 +12,9 @@ import (
 	"server/test_utils"
 	"server/utils"
 	"testing"
-	"time"
 
 	. "github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -136,169 +134,43 @@ func TestPostSingInApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	// t.Run("TestPostSingInApi バリデーション メールアドレス不正", func(t *testing.T) {
-	// 	w := httptest.NewRecorder()
-	// 	c, _ := gin.CreateTestContext(w)
-
-	// 	data := testData{
-	// 		Data: []models.RequestSingInData{
-	// 			{
-	// 				UserId:       1,
-	// 				UserName:     "test",
-	// 				UserPassword: "",
-	// 			},
-	// 		},
-	// 	}
-
-	// 	resMock := []models.SingInData{
-	// 		{
-	// 			UserId:       3,
-	// 			UserName:     "test@example.com",
-	// 			UserPassword: "Test12345!",
-	// 		},
-	// 	}
-
-	// 	body, _ := json.Marshal(data)
-	// 	c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
-	// 	c.Request.Header.Set("Content-Type", "application/json")
-
-	// 	patches := ApplyMethod(
-	// 		reflect.TypeOf(&models.SingDataFetcher{}),
-	// 		"GetSingIn",
-	// 		func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
-	// 			return resMock, nil
-	// 		})
-	// 	defer patches.Reset()
-
-	// 	fetcher := NewSingDataFetcher()
-	// 	fetcher.PostSingInApi(c)
-
-	// 	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	// 	var responseBody utils.Response[utils.ErrorMessages]
-	// 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-	// 	assert.NoError(t, err)
-
-	// 	expectedErrorMessage := utils.Response[utils.ErrorMessages]{
-	// 		Result: []utils.ErrorMessages{
-	// 			{
-	// 				Field:   "user_name",
-	// 				Message: "正しいメールアドレス形式である必要があります。",
-	// 			},
-	// 		},
-	// 	}
-	// 	assert.Equal(t, responseBody, expectedErrorMessage)
-	// })
-
-	// t.Run("TestPostSingInApi バリデーション パスワード不正", func(t *testing.T) {
-
-	// 	dataList := []testData{
-	// 		{
-	// 			Data: []models.RequestSingInData{
-	// 				{
-	// 					UserId:       1,
-	// 					UserName:     "test@example.com",
-	// 					UserPassword: "test123456",
-	// 				},
-	// 			},
-	// 		},
-	// 		{
-	// 			Data: []models.RequestSingInData{
-	// 				{
-	// 					UserId:       1,
-	// 					UserName:     "test@example.com",
-	// 					UserPassword: "Test123456",
-	// 				},
-	// 			},
-	// 		},
-	// 		{
-	// 			Data: []models.RequestSingInData{
-	// 				{
-	// 					UserId:       1,
-	// 					UserName:     "test@example.com",
-	// 					UserPassword: "test12345!",
-	// 				},
-	// 			},
-	// 		},
-	// 	}
-
-	// 	resMock := []models.SingInData{
-	// 		{
-	// 			UserId:       3,
-	// 			UserName:     "test@example.com",
-	// 			UserPassword: "Test12345!",
-	// 		},
-	// 	}
-
-	// 	for _, data := range dataList {
-	// 		w := httptest.NewRecorder()
-	// 		c, _ := gin.CreateTestContext(w)
-
-	// 		body, _ := json.Marshal(data)
-	// 		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
-	// 		c.Request.Header.Set("Content-Type", "application/json")
-
-	// 		patches := ApplyMethod(
-	// 			reflect.TypeOf(&models.SingDataFetcher{}),
-	// 			"GetSingIn",
-	// 			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
-	// 				return resMock, nil
-	// 			})
-	// 		defer patches.Reset()
-
-	// 		fetcher := NewSingDataFetcher()
-	// 		fetcher.PostSingInApi(c)
-
-	// 		assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	// 		var responseBody utils.Response[utils.ErrorMessages]
-	// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-	// 		assert.NoError(t, err)
-
-	// 		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
-	// 			Result: []utils.ErrorMessages{
-	// 				{
-	// 					Field:   "user_password",
-	// 					Message: "正しいメールアドレス形式である必要があります。",
-	// 				},
-	// 			},
-	// 		}
-	// 		assert.Equal(t, responseBody, expectedErrorMessage)
-	// 	}
-	// })
-
-	t.Run("バリデーションエラー start_date 必須", func(t *testing.T) {
-		// エラーを引き起こすリクエストをシミュレート
+	t.Run("TestPostSingInApi バリデーション メールアドレス不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/?start_date=&end_date=2022-09-30&user_id=1", nil)
 
-		mockData := []models.IncomeData{
-			{
-				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-				PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
-				Age:              "30",
-				Industry:         "IT",
-				TotalAmount:      5000,
-				DeductionAmount:  500,
-				TakeHomeAmount:   4500,
-				Classification:   "Salary",
-				UserID:           1,
+		data := testData{
+			Data: []models.RequestSingInData{
+				{
+					UserId:       1,
+					UserName:     "test",
+					UserPassword: "Test12345!",
+				},
 			},
 		}
 
+		resMock := []models.SingInData{
+			{
+				UserId:       3,
+				UserName:     "test@example.com",
+				UserPassword: "Test12345!",
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
-			"GetIncomeDataInRange",
-			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
-				return mockData, nil
+			reflect.TypeOf(&models.SingDataFetcher{}),
+			"GetSingIn",
+			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+				return resMock, nil
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
-		fetcher.GetIncomeDataInRangeApi(c)
+		fetcher := NewSingDataFetcher()
+		fetcher.PostSingInApi(c)
 
-		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		var responseBody utils.Response[utils.ErrorMessages]
@@ -308,269 +180,64 @@ func TestPostSingInApi(t *testing.T) {
 		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "start_date",
-					Message: "開始期間は必須です。",
+					Field:   "user_name",
+					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("バリデーションエラー end_date 必須", func(t *testing.T) {
-		// エラーを引き起こすリクエストをシミュレート
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/?start_date=2022-09-13&end_date=&user_id=1", nil)
+	t.Run("TestPostSingInApi バリデーション パスワード不正", func(t *testing.T) {
 
-		mockData := []models.IncomeData{
+		dataList := []testData{
 			{
-				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-				PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
-				Age:              "30",
-				Industry:         "IT",
-				TotalAmount:      5000,
-				DeductionAmount:  500,
-				TakeHomeAmount:   4500,
-				Classification:   "Salary",
-				UserID:           1,
-			},
-		}
-
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
-			"GetIncomeDataInRange",
-			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
-				return mockData, nil
-			})
-		defer patches.Reset()
-
-		fetcher := NewIncomeDataFetcher()
-		fetcher.GetIncomeDataInRangeApi(c)
-
-		// レスポンスのステータスコードを確認
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-
-		var responseBody utils.Response[utils.ErrorMessages]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
-			Result: []utils.ErrorMessages{
-				{
-					Field:   "end_date",
-					Message: "終了期間は必須です。",
-				},
-			},
-		}
-		assert.Equal(t, responseBody, expectedErrorMessage)
-	})
-
-	t.Run("バリデーションエラー start_date 日付不正", func(t *testing.T) {
-		paramsList := [...]string{
-			"/?start_date=202207-01&end_date=2022-09-30&user_id=1",
-			"/?start_date=2022-0701&end_date=2022-09-30&user_id=1",
-			"/?start_date=2022-13-01&end_date=2022-09-30&user_id=1",
-			"/?start_date=2022-11-32&end_date=2022-09-30&user_id=1",
-			"/?start_date=test&end_date=2022-09-30&user_id=1",
-		}
-
-		for _, params := range paramsList {
-			// エラーを引き起こすリクエストをシミュレート
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			c.Request = httptest.NewRequest("GET", params, nil)
-
-			mockData := []models.IncomeData{
-				{
-					IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-					PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
-					Age:              "30",
-					Industry:         "IT",
-					TotalAmount:      5000,
-					DeductionAmount:  500,
-					TakeHomeAmount:   4500,
-					Classification:   "Salary",
-					UserID:           1,
-				},
-			}
-
-			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
-				"GetIncomeDataInRange",
-				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
-					return mockData, nil
-				})
-			defer patches.Reset()
-
-			fetcher := NewIncomeDataFetcher()
-			fetcher.GetIncomeDataInRangeApi(c)
-
-			// レスポンスのステータスコードを確認
-			assert.Equal(t, http.StatusBadRequest, w.Code)
-
-			var responseBody utils.Response[utils.ErrorMessages]
-			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-			assert.NoError(t, err)
-
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
-				Result: []utils.ErrorMessages{
+				Data: []models.RequestSingInData{
 					{
-						Field:   "start_date",
-						Message: "開始日の形式が間違っています。",
+						UserId:       1,
+						UserName:     "test@example.com",
+						UserPassword: "Test12!",
 					},
 				},
-			}
-			assert.Equal(t, responseBody, expectedErrorMessage)
-		}
-	})
-
-	t.Run("バリデーションエラー end_date 日付不正", func(t *testing.T) {
-		paramsList := [...]string{
-			"/?start_date=2022-07-01&end_date=202209-30&user_id=1",
-			"/?start_date=2022-07-01&end_date=2022-0930&user_id=1",
-			"/?start_date=2022-07-01&end_date=2022-13-30&user_id=1",
-			"/?start_date=2022-07-01&end_date=2022-09-32&user_id=1",
-			"/?start_date=2022-07-01&end_date=test0&user_id=1",
-		}
-
-		for _, params := range paramsList {
-			// エラーを引き起こすリクエストをシミュレート
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			c.Request = httptest.NewRequest("GET", params, nil)
-
-			mockData := []models.IncomeData{
-				{
-					IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-					PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
-					Age:              "30",
-					Industry:         "IT",
-					TotalAmount:      5000,
-					DeductionAmount:  500,
-					TakeHomeAmount:   4500,
-					Classification:   "Salary",
-					UserID:           1,
-				},
-			}
-
-			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
-				"GetIncomeDataInRange",
-				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
-					return mockData, nil
-				})
-			defer patches.Reset()
-
-			fetcher := NewIncomeDataFetcher()
-			fetcher.GetIncomeDataInRangeApi(c)
-
-			// レスポンスのステータスコードを確認
-			assert.Equal(t, http.StatusBadRequest, w.Code)
-
-			var responseBody utils.Response[utils.ErrorMessages]
-			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-			assert.NoError(t, err)
-
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
-				Result: []utils.ErrorMessages{
+			},
+			{
+				Data: []models.RequestSingInData{
 					{
-						Field:   "end_date",
-						Message: "終了日の形式が間違っています。",
+						UserId:       1,
+						UserName:     "test@example.com",
+						UserPassword: "Test123456",
 					},
 				},
-			}
-			assert.Equal(t, responseBody, expectedErrorMessage)
+			},
 		}
-	})
 
-	t.Run("バリデーションエラー user_id 必須", func(t *testing.T) {
-
-		// エラーを引き起こすリクエストをシミュレート
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=", nil)
-
-		mockData := []models.IncomeData{
+		resMock := []models.SingInData{
 			{
-				IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-				PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
-				Age:              "30",
-				Industry:         "IT",
-				TotalAmount:      5000,
-				DeductionAmount:  500,
-				TakeHomeAmount:   4500,
-				Classification:   "Salary",
-				UserID:           1,
+				UserId:       3,
+				UserName:     "test@example.com",
+				UserPassword: "Test12345!",
 			},
 		}
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
-			"GetIncomeDataInRange",
-			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
-				return mockData, nil
-			})
-		defer patches.Reset()
-
-		fetcher := NewIncomeDataFetcher()
-		fetcher.GetIncomeDataInRangeApi(c)
-
-		// レスポンスのステータスコードを確認
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-
-		var responseBody utils.Response[utils.ErrorMessages]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
-			Result: []utils.ErrorMessages{
-				{
-					Field:   "user_id",
-					Message: "ユーザーIDは必須です。",
-				},
-			},
-		}
-		assert.Equal(t, responseBody, expectedErrorMessage)
-	})
-
-	t.Run("バリデーションエラー user_id 整数値のみ", func(t *testing.T) {
-		paramsList := [...]string{
-			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=rere",
-			"/?start_date=2022-07-01&end_date=2022-09-30&user_id=1.23",
-		}
-
-		for _, params := range paramsList {
-			// エラーを引き起こすリクエストをシミュレート
+		for _, data := range dataList {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
-			c.Request = httptest.NewRequest("GET", params, nil)
 
-			mockData := []models.IncomeData{
-				{
-					IncomeForecastID: uuid.MustParse("8df939de-5a97-4f20-b41b-9ac355c16e36"),
-					PaymentDate:      time.Date(2022, time.July, 15, 0, 0, 0, 0, time.FixedZone("", 0)),
-					Age:              "30",
-					Industry:         "IT",
-					TotalAmount:      5000,
-					DeductionAmount:  500,
-					TakeHomeAmount:   4500,
-					Classification:   "Salary",
-					UserID:           1,
-				},
-			}
+			body, _ := json.Marshal(data)
+			c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
-				"GetIncomeDataInRange",
-				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
-					return mockData, nil
+				reflect.TypeOf(&models.SingDataFetcher{}),
+				"GetSingIn",
+				func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+					return resMock, nil
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
-			fetcher.GetIncomeDataInRangeApi(c)
+			fetcher := NewSingDataFetcher()
+			fetcher.PostSingInApi(c)
 
-			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
 			var responseBody utils.Response[utils.ErrorMessages]
@@ -580,8 +247,8 @@ func TestPostSingInApi(t *testing.T) {
 			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
-						Field:   "user_id",
-						Message: "ユーザーIDは整数値のみです。",
+						Field:   "user_password",
+						Message: "パスワードの形式が間違っています。",
 					},
 				},
 			}
