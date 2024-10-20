@@ -92,7 +92,10 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -147,7 +150,10 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -193,7 +199,10 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -239,7 +248,10 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -283,7 +295,10 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
