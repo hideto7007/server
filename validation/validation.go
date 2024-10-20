@@ -174,7 +174,7 @@ func (data RequestSingInData) Validate() (bool, []utils.ErrorMessages) {
 				Message: "パスワードの形式が間違っています。",
 			})
 		}
-		validArray[1] = valid
+		validArray[1] = false
 	}
 
 	for _, validCheck := range validArray {
@@ -288,7 +288,7 @@ func (data RequestSingInEditData) Validate() (bool, []utils.ErrorMessages) {
 				Message: "パスワードの形式が間違っています。",
 			})
 		}
-		validArray[1] = valid
+		validArray[1] = false
 	}
 
 	for _, validCheck := range validArray {
