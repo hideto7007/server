@@ -2,6 +2,7 @@ package routes
 
 import (
 	"server/controllers"
+	"server/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,20 +10,32 @@ import (
 func SetupRoutes(r *gin.Engine) {
 
 	// APiインターフェイスのインスタンス定義
+	var singAPI controllers.SingDataFetcher = controllers.NewSingDataFetcher()
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
 	var incomeAPI controllers.IncomeDataFetcher = controllers.NewIncomeDataFetcher()
 
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.GET("/price", priceAPI.GetPriceInfoApi)
-		Routes.GET("/income_data", incomeAPI.GetIncomeDataInRangeApi)
-		Routes.GET("/range_date", incomeAPI.GetDateRangeApi)
-		Routes.GET("/years_income_date", incomeAPI.GetYearIncomeAndDeductionApi)
-		Routes.POST("/income_create", incomeAPI.InsertIncomeDataApi)
-		Routes.PUT("/income_update", incomeAPI.UpdateIncomeDataApi)
-		Routes.DELETE("/income_delete", incomeAPI.DeleteIncomeDataApi)
-		// 他のエンドポイントのルーティングもここで設定
+		Routes.POST("/singin", singAPI.PostSingInApi)
+		Routes.GET("/refresh_token", singAPI.GetRefreshTokenApi)
+		Routes.POST("/singup", singAPI.PostSingUpApi)
+		Routes.PUT("/singin_edit", singAPI.PutSingInEditApi)
+		Routes.DELETE("/singin_delete", singAPI.DeleteSingInApi)
+
+		// 認証が必要なルートにミドルウェアを追加
+		authRoutes := Routes.Group("/")
+		authRoutes.Use(middleware.JWTAuthMiddleware())
+		{
+			authRoutes.GET("/price", priceAPI.GetPriceInfoApi)
+			authRoutes.GET("/income_data", incomeAPI.GetIncomeDataInRangeApi)
+			authRoutes.GET("/range_date", incomeAPI.GetDateRangeApi)
+			authRoutes.GET("/years_income_date", incomeAPI.GetYearIncomeAndDeductionApi)
+			authRoutes.POST("/income_create", incomeAPI.InsertIncomeDataApi)
+			authRoutes.PUT("/income_update", incomeAPI.UpdateIncomeDataApi)
+			authRoutes.POST("/income_delete", incomeAPI.DeleteIncomeDataApi)
+			// 他のエンドポイントのルーティングもここで設定
+		}
 	}
 }
 

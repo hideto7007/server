@@ -17,11 +17,11 @@ import (
 type (
 	AnuualIncomeFetcher interface {
 		GetIncomeDataInRange(StartDate, EndDate, UserId string) ([]IncomeData, error)
-		GetDateRange(UserID string) ([]PaymentDate, error)
-		GetYearsIncomeAndDeduction(UserID string) ([]YearsIncomeData, error)
+		GetDateRange(UserId int) ([]PaymentDate, error)
+		GetYearsIncomeAndDeduction(UserId int) ([]YearsIncomeData, error)
 		InsertIncome(data []InsertIncomeData) error
 		UpdateIncome(data []UpdateIncomeData) error
-		DeleteIncome(UserID []DeleteIncomeData) error
+		DeleteIncome(data []DeleteIncomeData) error
 	}
 
 	IncomeData struct {
@@ -50,30 +50,30 @@ type (
 	}
 
 	InsertIncomeData struct {
-		PaymentDate     string `json:"payment_date"`
-		Age             int    `json:"age"`
-		Industry        string `json:"industry"`
-		TotalAmount     int    `json:"total_amount"`
-		DeductionAmount int    `json:"deduction_amount"`
-		TakeHomeAmount  int    `json:"take_home_amount"`
-		Classification  string `json:"classification"`
-		UserID          int    `json:"user_id"`
+		PaymentDate     string      `json:"payment_date"`
+		Age             int         `json:"age"`
+		Industry        string      `json:"industry"`
+		TotalAmount     interface{} `json:"total_amount"`
+		DeductionAmount interface{} `json:"deduction_amount"`
+		TakeHomeAmount  interface{} `json:"take_home_amount"`
+		Classification  string      `json:"classification"`
+		UserID          interface{} `json:"user_id"`
 	}
 
 	UpdateIncomeData struct {
-		IncomeForecastID string `json:"income_forecast_id"`
-		PaymentDate      string `json:"payment_date"`
-		Age              int    `json:"age"`
-		Industry         string `json:"industry"`
-		TotalAmount      int    `json:"total_amount"`
-		DeductionAmount  int    `json:"deduction_amount"`
-		TakeHomeAmount   int    `json:"take_home_amount"`
-		UpdateUser       string `json:"update_user"`
-		Classification   string `json:"classification"`
+		IncomeForecastID string      `json:"income_forecast_id"`
+		PaymentDate      string      `json:"payment_date"`
+		Age              int         `json:"age"`
+		Industry         string      `json:"industry"`
+		TotalAmount      interface{} `json:"total_amount"`
+		DeductionAmount  interface{} `json:"deduction_amount"`
+		TakeHomeAmount   interface{} `json:"take_home_amount"`
+		UpdateUser       string      `json:"update_user"`
+		Classification   string      `json:"classification"`
 	}
 
 	DeleteIncomeData struct {
-		IncomeForecastID string `form:"income_forecast_id" binding:"required"`
+		IncomeForecastID string `json:"income_forecast_id"`
 	}
 
 	PostgreSQLDataFetcher struct{ db *sql.DB }
@@ -105,7 +105,7 @@ func NewPostgreSQLDataFetcher(dataSourceName string) (*PostgreSQLDataFetcher, sq
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate, EndDate, UserId string) ([]IncomeData, error) {
+func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate string, EndDate string, UserId int) ([]IncomeData, error) {
 	var incomeData []IncomeData
 
 	// startDate と endDate を日付型に変換
@@ -166,7 +166,7 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate, EndDate, UserId
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetDateRange(UserId string) ([]PaymentDate, error) {
+func (pf *PostgreSQLDataFetcher) GetDateRange(UserId int) ([]PaymentDate, error) {
 	var paymentDate []PaymentDate
 
 	// データベースクエリを実行
@@ -229,7 +229,7 @@ func (pf *PostgreSQLDataFetcher) GetDateRange(UserId string) ([]PaymentDate, err
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId string) ([]YearsIncomeData, error) {
+func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId int) ([]YearsIncomeData, error) {
 	var yearsIncomeData []YearsIncomeData
 
 	// データベースクエリを実行
@@ -281,6 +281,8 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 
 	var err error
 	createdAt := time.Now()
+
+	log.Println("dbに登録開始")
 
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
@@ -336,6 +338,8 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	}
 
 	defer pf.db.Close()
+
+	log.Println("dbに登録完了")
 
 	return nil
 }

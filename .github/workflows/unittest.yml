@@ -26,6 +26,7 @@ jobs:
             echo "LOCALDBSOURCE=${{ vars.LOCALDBSOURCE }}" >> .env && \
             echo "REACT_CLIENT=${{ vars.REACT_CLIENT }}" >> .env && \
             echo "VUE_CLIENT=${{ vars.VUE_CLIENT }}" >> .env && \
+            echo "TEST=${{ vars.TEST }}" >> .env && \
             echo '.env content:' && cat .env && \
             go get github.com/agiledragon/gomonkey/v2 && \
             chmod +x ./go_test.sh && \
