@@ -10,46 +10,20 @@ import (
 
 	// "server/config"
 
-	mock_controllers "server/mock/controllers"
-	mock_utils "server/mock/utils"
+	"server/common"
 	"server/models"
 	"server/test_utils"
 	"server/utils"
 	"testing"
 
+	mock_utils "server/mock/utils"
+
 	. "github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
-
-// func TestMain(m *testing.M) {
-// 	config.Setup()
-// 	code := m.Run()
-// 	config.Teardown()
-// 	os.Exit(code)
-// }
-
-// func TestMain(m *testing.M) {
-// 	config.Setup()
-// 	config.SetupTestDatabase()
-// 	code := m.Run()
-// 	config.TeardownTestDatabase()
-// 	config.Teardown()
-// 	os.Exit(code)
-// }
-
-// func TestMain(m *testing.M) {
-// 	config.Setup()
-// 	defer config.Teardown()
-
-// 	code := m.Run()
-// 	os.Exit(code)
-// }
-
-// type testData struct {
-// 	Data interface{} `json:"data"`
-// }
 
 func TestPostSingInApi(t *testing.T) {
 
@@ -65,7 +39,10 @@ func TestPostSingInApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := NewSingDataFetcher()
+		fetcher := apiSingDataFetcher{
+			TokenFetcher:  utils.NewTokenFetcher(),
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.PostSingInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -109,7 +86,10 @@ func TestPostSingInApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewSingDataFetcher()
+		fetcher := apiSingDataFetcher{
+			TokenFetcher:  utils.NewTokenFetcher(),
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.PostSingInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -173,7 +153,10 @@ func TestPostSingInApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewSingDataFetcher()
+		fetcher := apiSingDataFetcher{
+			TokenFetcher:  utils.NewTokenFetcher(),
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.PostSingInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -240,7 +223,10 @@ func TestPostSingInApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewSingDataFetcher()
+			fetcher := apiSingDataFetcher{
+				TokenFetcher:  utils.NewTokenFetcher(),
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.PostSingInApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -290,7 +276,10 @@ func TestPostSingInApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewSingDataFetcher()
+		fetcher := apiSingDataFetcher{
+			TokenFetcher:  utils.NewTokenFetcher(),
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.PostSingInApi(c)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
@@ -340,7 +329,10 @@ func TestPostSingInApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewSingDataFetcher()
+		fetcher := apiSingDataFetcher{
+			TokenFetcher:  utils.NewTokenFetcher(),
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.PostSingInApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -376,17 +368,25 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
+		resMock := []models.SingInData{
+			{
+				UserId:       3,
+				UserName:     "test@example.com",
+				UserPassword: "Test12345!",
+			},
+		}
+
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		// TokenGenerator のモックを作成
-		mockTokenGen := mock_utils.NewMockTokenGenerator(ctrl)
+		// TokenFetcher のモックを作成
+		mockTokenFetcher := mock_utils.NewMockTokenFetcher(ctrl)
 
-		// モックの挙動を定義 (トークン生成失敗)
-		mockTokenGen.EXPECT().
+		// モックの挙動を定義
+		mockTokenFetcher.EXPECT().
 			NewToken(gomock.Any(), gomock.Any()).
-			Return("", fmt.Errorf("トークン生成エラー")).Times(1)
+			Return("", fmt.Errorf("トークン生成エラー"))
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -395,22 +395,24 @@ func TestPostSingInApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		// モックの PostSingInApi メソッドを設定して、エラーレスポンスを返す
-		mockFetcher := mock_controllers.NewMockSingDataFetcher(ctrl)
-		mockFetcher.EXPECT().PostSingInApi(gomock.Any()).DoAndReturn(func(c *gin.Context) {
-			w := httptest.NewRecorder()
-			c.Writer = w
-			response := utils.Response[requestSingInData]{
-				ErrorMsg: "サインインに失敗しました。",
-			}
-			c.JSON(http.StatusUnauthorized, response)
-		})
+		// GetSingIn のモック化
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SingDataFetcher{}),
+			"GetSingIn",
+			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+				return resMock, nil
+			})
+		defer patches1.Reset()
 
 		// モックを使って API を呼び出し
-		mockFetcher.PostSingInApi(c)
+		fetcher := apiSingDataFetcher{
+			TokenFetcher:  mockTokenFetcher,
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		fetcher.PostSingInApi(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
 		var responseBody utils.Response[requestSingInData]
@@ -418,7 +420,7 @@ func TestPostSingInApi(t *testing.T) {
 		assert.NoError(t, err)
 
 		expectedErrorMessage := utils.Response[requestSingInData]{
-			ErrorMsg: "サインインに失敗しました。",
+			ErrorMsg: "トークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})

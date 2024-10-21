@@ -59,23 +59,32 @@ type (
 		ErrorMsg string `json:"error_msg,omitempty"`
 	}
 
-	apiSingDataFetcher struct{}
+	apiSingDataFetcher struct {
+		TokenFetcher  utils.TokenFetcher
+		CommonFetcher common.CommonFetcher
+	}
 )
 
-func NewSingDataFetcher() SingDataFetcher {
-	return &apiSingDataFetcher{}
+func NewSingDataFetcher(
+	tokenFetcher utils.TokenFetcher,
+	CommonFetcher common.CommonFetcher,
+) SingDataFetcher {
+	return &apiSingDataFetcher{
+		TokenFetcher:  tokenFetcher,
+		CommonFetcher: CommonFetcher,
+	}
 }
 
 // PostSingInApi はサインイン情報を返すAPI
 //
 // 引数:
 //   - c: Ginコンテキスト
+//   - tokenFetcher utils.TokenFetcher: tokenフィーチャー構造体
 //
 
 func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	var requestData requestSingInData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
-		// エラーメッセージを出力して確認
 		response := utils.Response[requestSingInData]{
 			ErrorMsg: err.Error(),
 		}
@@ -109,10 +118,10 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		return
 	}
 
-	var common common.CommonFetcher = common.NewCommonFetcher()
-	userId, _ := common.StrToInt(userIdCheck)
+	userId, _ := af.CommonFetcher.StrToInt(userIdCheck)
 
-	token, err := utils.NewToken(userId, 12)
+	// TokenFetcher を使用してトークンを生成
+	token, err := af.TokenFetcher.NewToken(userId, 12)
 	if err != nil {
 		response := utils.Response[requestSingInData]{
 			ErrorMsg: "トークンの生成に失敗しました。",
@@ -159,7 +168,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 
 	userId, _ := common.StrToInt(userIdCheck)
 
-	token, err := utils.RefreshToken(userId, 3)
+	token, err := af.TokenFetcher.RefreshToken(userId, 3)
 	if err != nil {
 		response := utils.Response[RequestRefreshToken]{
 			ErrorMsg: "トークンの生成に失敗しました。",

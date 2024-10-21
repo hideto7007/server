@@ -1,8 +1,10 @@
 package routes
 
 import (
+	"server/common"
 	"server/controllers"
 	"server/middleware"
+	"server/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +12,10 @@ import (
 func SetupRoutes(r *gin.Engine) {
 
 	// APiインターフェイスのインスタンス定義
-	var singAPI controllers.SingDataFetcher = controllers.NewSingDataFetcher()
+	var singAPI controllers.SingDataFetcher = controllers.NewSingDataFetcher(
+		utils.NewTokenFetcher(),
+		common.NewCommonFetcher(),
+	)
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
 	var incomeAPI controllers.IncomeDataFetcher = controllers.NewIncomeDataFetcher()
 
