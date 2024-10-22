@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -9,7 +10,10 @@ import (
 	"server/utils"
 	"testing"
 
+	common_mock "server/mock/common"
+
 	"github.com/gin-gonic/gin"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -69,6 +73,47 @@ func TestGetPriceInfo(t *testing.T) {
 		t.Logf("response.PriceInfo.LeftAmount: %d", response.Result[0].LeftAmount)
 		t.Logf("response.PriceInfo.TotalAmount: %d", response.Result[0].TotalAmount)
 		t.Logf("err: %v", err)
+	})
+	t.Run("IntgetPrameterのところでエラー GetPriceInfoApi()", func(t *testing.T) {
+		// テスト用のGinコンテキストを作成
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest("GET", "/?money_received=300&bouns=100&fixed_cost=50&loan=50&private=50&insurance=30", nil)
+
+		// TokenFetcher のモックを作成
+		mockTokenFetcher := common_mock.NewMockCommonFetcher(ctrl)
+
+		mocReturn := map[string]int{
+			"test": 1,
+		}
+
+		mockTokenFetcher.EXPECT().
+			IntgetPrameter(gomock.Any(), gomock.Any()).
+			Return(mocReturn, fmt.Errorf("変換失敗"))
+
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: mockTokenFetcher,
+		}
+		// GetPriceInfoApi 関数を呼び出し
+		pm.GetPriceInfoApi(c)
+
+		// レスポンスのステータスコードを確認
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.Response[PriceInfo]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.Response[PriceInfo]{
+			ErrorMsg: "変換失敗",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+
 	})
 
 	t.Run("バリデーションエラー money_received", func(t *testing.T) {

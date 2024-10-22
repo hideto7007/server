@@ -940,6 +940,49 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		assert.Equal(t, "新規登録時にエラーが発生。", response["error_msg"])
 	})
 
+	t.Run("request Data empty InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.InsertIncomeData{},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"InsertIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		fetcher.InsertIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.Response[models.InsertIncomeData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// 期待するエラーメッセージを確認
+		expectedErrorMessage := utils.Response[models.InsertIncomeData]{
+			ErrorMsg: "登録するデータが存在しません。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
 	t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
 		// config.Setup()
 		// defer config.Teardown()
@@ -1355,6 +1398,49 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		}
 	})
 
+	t.Run("request Data empty UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.UpdateIncomeData{},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"UpdateIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		fetcher.UpdateIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.Response[models.UpdateIncomeData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// 期待するエラーメッセージを確認
+		expectedErrorMessage := utils.Response[models.UpdateIncomeData]{
+			ErrorMsg: "更新するデータが存在しません。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
 	t.Run("invalid JSON UpdateIncomeDataApi", func(t *testing.T) {
 		// config.Setup()
 		// defer config.Teardown()
@@ -1759,6 +1845,49 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 		assert.Contains(t, response["error_msg"], "unexpected EOF")
+	})
+
+	t.Run("request Data empty DeleteIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.DeleteIncomeData{},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_delete", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"DeleteIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		fetcher.DeleteIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.Response[models.DeleteIncomeData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// 期待するエラーメッセージを確認
+		expectedErrorMessage := utils.Response[models.DeleteIncomeData]{
+			ErrorMsg: "削除するデータが存在しません。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("バリデーションエラー 対象カラム必須", func(t *testing.T) {
