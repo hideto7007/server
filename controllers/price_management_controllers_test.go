@@ -20,8 +20,10 @@ func TestPriceCalc(t *testing.T) {
 	t.Run("success PriceCalc()", func(t *testing.T) {
 		// テストケース1: 正常な整数の計算
 
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		result := price.PriceCalc(300, 100, 50, 50, 50, 30)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		result := pm.PriceCalc(300, 100, 50, 50, 50, 30)
 
 		assert.Equal(t, 150, result.LeftAmount)
 		assert.Equal(t, 1870, result.TotalAmount)
@@ -36,16 +38,16 @@ func TestGetPriceInfo(t *testing.T) {
 		// テスト用のGinコンテキストを作成
 		c, _ := gin.CreateTestContext(httptest.NewRecorder())
 		c.Request = httptest.NewRequest("GET", "/?money_received=300&bouns=100&fixed_cost=50&loan=50&private=50&insurance=30", nil)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 
-		var common common.CommonFetcher = common.NewCommonFetcher()
-		paramMap, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
+		paramMap, err := pm.CommonFetcher.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
 
-		// PriceCalc 関数をモック化
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		res := price.PriceCalc(paramMap["money_received"], paramMap["bouns"], paramMap["fixed_cost"], paramMap["loan"], paramMap["private"], paramMap["insurance"])
+		res := pm.PriceCalc(paramMap["money_received"], paramMap["bouns"], paramMap["fixed_cost"], paramMap["loan"], paramMap["private"], paramMap["insurance"])
 
 		// GetPriceInfoApi 関数を呼び出し
-		price.GetPriceInfoApi(c)
+		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusOK, c.Writer.Status())
@@ -76,8 +78,10 @@ func TestGetPriceInfo(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/?money_received=test&bouns=100&fixed_cost=100&loan=50&private=50&insurance=30", nil)
 
 		// GetPriceInfoApi 関数を呼び出し
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		price.GetPriceInfoApi(c)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -104,8 +108,10 @@ func TestGetPriceInfo(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/?money_received=100&bouns=test&fixed_cost=100&loan=50&private=50&insurance=30", nil)
 
 		// GetPriceInfoApi 関数を呼び出し
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		price.GetPriceInfoApi(c)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -132,8 +138,10 @@ func TestGetPriceInfo(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/?money_received=100&bouns=100&fixed_cost=test&loan=50&private=50&insurance=30", nil)
 
 		// GetPriceInfoApi 関数を呼び出し
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		price.GetPriceInfoApi(c)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -160,8 +168,10 @@ func TestGetPriceInfo(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/?money_received=100&bouns=100&fixed_cost=100&loan=test&private=50&insurance=30", nil)
 
 		// GetPriceInfoApi 関数を呼び出し
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		price.GetPriceInfoApi(c)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -188,8 +198,10 @@ func TestGetPriceInfo(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/?money_received=100&bouns=100&fixed_cost=100&loan=100&private=test&insurance=30", nil)
 
 		// GetPriceInfoApi 関数を呼び出し
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		price.GetPriceInfoApi(c)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -216,8 +228,10 @@ func TestGetPriceInfo(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/?money_received=100&bouns=100&fixed_cost=100&loan=100&private=100&insurance=test", nil)
 
 		// GetPriceInfoApi 関数を呼び出し
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		price.GetPriceInfoApi(c)
+		pm := apiPriceManagementFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)

@@ -16,8 +16,12 @@ func SetupRoutes(r *gin.Engine) {
 		utils.NewTokenFetcher(),
 		common.NewCommonFetcher(),
 	)
-	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher()
-	var incomeAPI controllers.IncomeDataFetcher = controllers.NewIncomeDataFetcher()
+	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher(
+		common.NewCommonFetcher(),
+	)
+	var incomeAPI controllers.IncomeDataFetcher = controllers.NewIncomeDataFetcher(
+		common.NewCommonFetcher(),
+	)
 
 	// ルートの設定
 	Routes := r.Group("/api")
