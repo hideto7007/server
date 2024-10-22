@@ -266,7 +266,7 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 
 	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
 	if err := dbFetcher.PutSingInEdit(requestData.Data[0]); err != nil {
-		response := utils.Response[singInEditResult]{
+		response := utils.Response[string]{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
 		}
 		c.JSON(http.StatusUnauthorized, response)
@@ -314,7 +314,7 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
 	err := dbFetcher.DeleteSingIn(requestData.Data[0])
 	if err != nil {
-		response := utils.Response[singInDeleteResult]{
+		response := utils.Response[string]{
 			ErrorMsg: "サインインの削除に失敗しました。",
 		}
 		c.JSON(http.StatusUnauthorized, response)
