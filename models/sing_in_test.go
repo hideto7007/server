@@ -400,3 +400,86 @@ func TestPutSingInEdit(t *testing.T) {
 		t.Log("transaction begin error PutSingInEdit log", err)
 	})
 }
+
+func TestDeleteSingIn(t *testing.T) {
+	t.Run("DeleteSingIn 登録成功", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		testData := RequestSingInDeleteData{
+			UserId: 1,
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSingInSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.DeleteSingIn(testData)
+
+		// エラーがないことを検証
+		assert.NoError(t, err)
+	})
+	t.Run("DeleteSingIn 失敗", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テストデータを作成
+		testData := RequestSingInDeleteData{
+			UserId: 1,
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSingInSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+			).
+			WillReturnError(errors.New("delete failed")) // Execの結果にエラーを返す
+		mock.ExpectRollback() // エラー発生時にはロールバックを期待
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.DeleteSingIn(testData)
+
+		// エラーが発生すること
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "delete failed")
+
+		t.Log("error DeleteSingIn log", err)
+	})
+	t.Run("DeleteSingIn トランザクションエラー", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// トランザクションの開始に失敗させる
+		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+
+		// テストデータを作成
+		testData := RequestSingInDeleteData{
+			UserId: 1,
+		}
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.DeleteSingIn(testData)
+
+		// エラーが発生することを検証
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction begin error")
+
+		t.Log("transaction begin error DeleteSingIn log", err)
+	})
+}
