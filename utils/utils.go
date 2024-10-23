@@ -16,7 +16,9 @@ type TokenFetcher interface {
 	RefreshToken(UserId int, ExpirationDate int) (string, error)
 }
 
-type TokenDataFetcher struct{}
+type TokenDataFetcher struct {
+	JwtSecret []byte
+}
 
 type Response[T any] struct {
 	RecodeRows int    `json:"recode_rows,omitempty"`
@@ -42,8 +44,10 @@ type ErrorMessages struct {
 
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
-func NewTokenFetcher() TokenFetcher {
-	return &TokenDataFetcher{}
+func NewTokenFetcher(JwtSecret []byte) TokenFetcher {
+	return &TokenDataFetcher{
+		JwtSecret: JwtSecret,
+	}
 }
 
 // トークン生成関数
@@ -64,8 +68,10 @@ func (tg *TokenDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string,
 	tokenClaims, _ := token.Claims.(jwt.MapClaims)
 	fmt.Printf("生成されたトークンのクレーム: %+v\n", tokenClaims)
 
+	fmt.Println("check ", tg.JwtSecret)
+
 	// トークンに署名
-	tokenString, err := token.SignedString(JwtSecret)
+	tokenString, err := token.SignedString(tg.JwtSecret)
 	if err != nil {
 		return "", err
 	}
