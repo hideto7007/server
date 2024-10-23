@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func NewMocks
+
 func TestGetSingIn(t *testing.T) {
 	t.Run("GetSingIn クエリー実行時エラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
