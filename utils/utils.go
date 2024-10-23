@@ -9,6 +9,15 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+// TokenFetcher インターフェースの定義
+type TokenFetcher interface {
+	GenerateJWT(UserId int, ExpirationDate int) (string, error)
+	NewToken(UserId int, ExpirationDate int) (string, error)
+	RefreshToken(UserId int, ExpirationDate int) (string, error)
+}
+
+type TokenDataFetcher struct{}
+
 type Response[T any] struct {
 	RecodeRows int    `json:"recode_rows,omitempty"`
 	Token      string `json:"token,omitempty"`
@@ -33,8 +42,12 @@ type ErrorMessages struct {
 
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
+func NewTokenFetcher() TokenFetcher {
+	return &TokenDataFetcher{}
+}
+
 // トークン生成関数
-func GenerateJWT(UserId int, ExpirationDate int) (string, error) {
+func (tg *TokenDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string, error) {
 	// トークンの有効期限を設定
 
 	// トークンのクレーム（データペイロード）を作成
@@ -61,11 +74,11 @@ func GenerateJWT(UserId int, ExpirationDate int) (string, error) {
 }
 
 // 新規有効期限付きのトークン発行
-func NewToken(UserId int, ExpirationDate int) (string, error) {
-	return GenerateJWT(UserId, ExpirationDate)
+func (tg *TokenDataFetcher) NewToken(UserId int, ExpirationDate int) (string, error) {
+	return tg.GenerateJWT(UserId, ExpirationDate)
 }
 
 // 新規有効期限付きのリフレッシュトークン発行
-func RefreshToken(UserId int, ExpirationDate int) (string, error) {
-	return GenerateJWT(UserId, ExpirationDate)
+func (tg *TokenDataFetcher) RefreshToken(UserId int, ExpirationDate int) (string, error) {
+	return tg.GenerateJWT(UserId, ExpirationDate)
 }

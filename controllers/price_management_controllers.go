@@ -21,11 +21,15 @@ type (
 		TotalAmount int `json:"total_amount"`
 	}
 
-	apiPriceManagementFetcher struct{}
+	apiPriceManagementFetcher struct {
+		CommonFetcher common.CommonFetcher
+	}
 )
 
-func NewPriceManagementFetcher() PriceManagementFetcher {
-	return &apiPriceManagementFetcher{}
+func NewPriceManagementFetcher(CommonFetcher common.CommonFetcher) PriceManagementFetcher {
+	return &apiPriceManagementFetcher{
+		CommonFetcher: CommonFetcher,
+	}
 }
 
 // PriceCalc は月の収入、ボーナス、固定費、ローン、プライベートの値を使用して、
@@ -81,7 +85,7 @@ func (af *apiPriceManagementFetcher) PriceCalc(moneyReceived, bouns, fixedCost, 
 //	  "message": "Invalid query parameters"
 //	}
 
-func (af *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
+func (pm *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 
 	validator := validation.RequestPriceManagementData{
 		MoneyReceived: c.Query("money_received"),
@@ -100,12 +104,10 @@ func (af *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 		return
 	}
 
-	var common common.CommonFetcher = common.NewCommonFetcher()
-	data, err := common.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
+	data, err := pm.CommonFetcher.IntgetPrameter(c, "money_received", "bouns", "fixed_cost", "loan", "private", "insurance")
 
 	if err == nil {
-		var price PriceManagementFetcher = NewPriceManagementFetcher()
-		res := price.PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"], data["insurance"])
+		res := pm.PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"], data["insurance"])
 
 		response := utils.Response[PriceInfo]{
 			Result: []PriceInfo{

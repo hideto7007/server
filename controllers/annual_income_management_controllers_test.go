@@ -10,6 +10,7 @@ import (
 	"reflect"
 
 	// "server/config"
+	"server/common"
 	"server/models"
 	"server/test_utils"
 	"server/utils"
@@ -97,7 +98,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetIncomeDataInRangeApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -130,7 +133,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetIncomeDataInRangeApi(c)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -167,7 +172,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetIncomeDataInRangeApi(c)
 
 		// レスポンスのステータスコードを確認
@@ -216,7 +223,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetIncomeDataInRangeApi(c)
 
 		// レスポンスのステータスコードを確認
@@ -274,7 +283,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.GetIncomeDataInRangeApi(c)
 
 			// レスポンスのステータスコードを確認
@@ -333,7 +344,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.GetIncomeDataInRangeApi(c)
 
 			// レスポンスのステータスコードを確認
@@ -384,7 +397,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetIncomeDataInRangeApi(c)
 
 		// レスポンスのステータスコードを確認
@@ -439,7 +454,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.GetIncomeDataInRangeApi(c)
 
 			// レスポンスのステータスコードを確認
@@ -494,7 +511,9 @@ func TestGetDateRangeApi(t *testing.T) {
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetDateRangeApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -529,7 +548,9 @@ func TestGetDateRangeApi(t *testing.T) {
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetDateRangeApi(c)
 
 		// レスポンスの確認
@@ -562,7 +583,9 @@ func TestGetDateRangeApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetDateRangeApi(c)
 
 		// レスポンスのステータスコードを確認
@@ -611,7 +634,9 @@ func TestGetDateRangeApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.GetDateRangeApi(c)
 
 			// レスポンスのステータスコードを確認
@@ -667,7 +692,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetYearIncomeAndDeductionApi(c)
 
 		// レスポンスの確認
@@ -699,7 +726,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetYearIncomeAndDeductionApi(c)
 
 		// レスポンスの確認
@@ -735,7 +764,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		defer patches.Reset()
 
 		// テスト対象の関数を呼び出し
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.GetYearIncomeAndDeductionApi(c)
 
 		// レスポンスのステータスコードを確認
@@ -786,7 +817,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 			defer patches.Reset()
 
 			// テスト対象の関数を呼び出し
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.GetYearIncomeAndDeductionApi(c)
 
 			// レスポンスのステータスコードを確認
@@ -848,7 +881,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.InsertIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -893,7 +928,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.InsertIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -901,6 +938,49 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 		assert.Equal(t, "新規登録時にエラーが発生。", response["error_msg"])
+	})
+
+	t.Run("request Data empty InsertIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.InsertIncomeData{},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"InsertIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		fetcher.InsertIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.Response[models.InsertIncomeData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// 期待するエラーメッセージを確認
+		expectedErrorMessage := utils.Response[models.InsertIncomeData]{
+			ErrorMsg: "登録するデータが存在しません。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("invalid JSON InsertIncomeDataApi", func(t *testing.T) {
@@ -917,7 +997,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/income_create", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.InsertIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -962,7 +1044,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.InsertIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1048,7 +1132,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.InsertIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1158,7 +1244,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.InsertIncomeDataApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1227,7 +1315,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.UpdateIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -1281,7 +1371,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.UpdateIncomeDataApi(c)
 
 			if w.Code == http.StatusInternalServerError {
@@ -1306,6 +1398,49 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		}
 	})
 
+	t.Run("request Data empty UpdateIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.UpdateIncomeData{},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"UpdateIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		fetcher.UpdateIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.Response[models.UpdateIncomeData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// 期待するエラーメッセージを確認
+		expectedErrorMessage := utils.Response[models.UpdateIncomeData]{
+			ErrorMsg: "更新するデータが存在しません。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
 	t.Run("invalid JSON UpdateIncomeDataApi", func(t *testing.T) {
 		// config.Setup()
 		// defer config.Teardown()
@@ -1320,7 +1455,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/income_update", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.UpdateIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1366,7 +1503,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.UpdateIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1457,7 +1596,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.UpdateIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1571,7 +1712,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 				})
 			defer patches.Reset()
 
-			fetcher := NewIncomeDataFetcher()
+			fetcher := apiIncomeDataFetcher{
+				CommonFetcher: common.NewCommonFetcher(),
+			}
 			fetcher.UpdateIncomeDataApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1626,7 +1769,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.DeleteIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -1664,7 +1809,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.DeleteIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
@@ -1688,7 +1835,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/income_delete", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.DeleteIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1696,6 +1845,49 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
 		assert.Contains(t, response["error_msg"], "unexpected EOF")
+	})
+
+	t.Run("request Data empty DeleteIncomeDataApi", func(t *testing.T) {
+		// config.Setup()
+		// defer config.Teardown()
+		// defer config.TeardownTestDatabase()
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.DeleteIncomeData{},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/income_delete", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			"DeleteIncome",
+			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
+		fetcher.DeleteIncomeDataApi(c)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.Response[models.DeleteIncomeData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// 期待するエラーメッセージを確認
+		expectedErrorMessage := utils.Response[models.DeleteIncomeData]{
+			ErrorMsg: "削除するデータが存在しません。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("バリデーションエラー 対象カラム必須", func(t *testing.T) {
@@ -1729,7 +1921,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
-		fetcher := NewIncomeDataFetcher()
+		fetcher := apiIncomeDataFetcher{
+			CommonFetcher: common.NewCommonFetcher(),
+		}
 		fetcher.DeleteIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)

@@ -38,7 +38,7 @@ type (
 		Data []models.RequestSingInDeleteData `json:"data"`
 	}
 
-	singInResult struct {
+	SingInResult struct {
 		UserId       int    `json:"user_id"`
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
@@ -59,23 +59,32 @@ type (
 		ErrorMsg string `json:"error_msg,omitempty"`
 	}
 
-	apiSingDataFetcher struct{}
+	apiSingDataFetcher struct {
+		TokenFetcher  utils.TokenFetcher
+		CommonFetcher common.CommonFetcher
+	}
 )
 
-func NewSingDataFetcher() SingDataFetcher {
-	return &apiSingDataFetcher{}
+func NewSingDataFetcher(
+	tokenFetcher utils.TokenFetcher,
+	CommonFetcher common.CommonFetcher,
+) SingDataFetcher {
+	return &apiSingDataFetcher{
+		TokenFetcher:  tokenFetcher,
+		CommonFetcher: CommonFetcher,
+	}
 }
 
 // PostSingInApi はサインイン情報を返すAPI
 //
 // 引数:
 //   - c: Ginコンテキスト
+//   - tokenFetcher utils.TokenFetcher: tokenフィーチャー構造体
 //
 
 func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	var requestData requestSingInData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
-		// エラーメッセージを出力して確認
 		response := utils.Response[requestSingInData]{
 			ErrorMsg: err.Error(),
 		}
@@ -92,7 +101,10 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -106,10 +118,10 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		return
 	}
 
-	var common common.CommonFetcher = common.NewCommonFetcher()
-	userId, _ := common.StrToInt(userIdCheck)
+	userId, _ := af.CommonFetcher.StrToInt(userIdCheck)
 
-	token, err := utils.NewToken(userId, 12)
+	// TokenFetcher を使用してトークンを生成
+	token, err := af.TokenFetcher.NewToken(userId, 12)
 	if err != nil {
 		response := utils.Response[requestSingInData]{
 			ErrorMsg: "トークンの生成に失敗しました。",
@@ -119,9 +131,9 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	}
 
 	// サインイン成功のレスポンス
-	response := utils.Response[singInResult]{
+	response := utils.Response[SingInResult]{
 		Token: token,
-		Result: []singInResult{
+		Result: []SingInResult{
 			{
 				UserId:       result[0].UserId,
 				UserName:     result[0].UserName,
@@ -147,13 +159,16 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	userId, _ := common.StrToInt(userIdCheck)
 
-	token, err := utils.RefreshToken(userId, 3)
+	token, err := af.TokenFetcher.RefreshToken(userId, 3)
 	if err != nil {
 		response := utils.Response[RequestRefreshToken]{
 			ErrorMsg: "トークンの生成に失敗しました。",
@@ -193,7 +208,10 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -239,13 +257,16 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
 	if err := dbFetcher.PutSingInEdit(requestData.Data[0]); err != nil {
-		response := utils.Response[singInEditResult]{
+		response := utils.Response[string]{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
 		}
 		c.JSON(http.StatusUnauthorized, response)
@@ -283,14 +304,17 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		c.JSON(http.StatusBadRequest, errMsgList)
+		response := utils.Response[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
 	err := dbFetcher.DeleteSingIn(requestData.Data[0])
 	if err != nil {
-		response := utils.Response[singInDeleteResult]{
+		response := utils.Response[string]{
 			ErrorMsg: "サインインの削除に失敗しました。",
 		}
 		c.JSON(http.StatusUnauthorized, response)

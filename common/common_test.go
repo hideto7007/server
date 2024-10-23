@@ -299,6 +299,15 @@ func TestAnyToStr(t *testing.T) {
 
 		t.Logf("int to string replace : '%s'", result)
 	})
+	t.Run("success AnyToStr() pattern3", func(t *testing.T) {
+		// テストケース1: 整数値6543は文字列に変換する
+		intDate := 6.543
+		result := AnyToStr(intDate)
+
+		assert.Equal(t, "7", result)
+
+		t.Logf("int to string replace : '%s'", result)
+	})
 }
 
 // func TestIntgetPrameter(t *testing.T) {

@@ -34,4 +34,10 @@ go build -o server main.go
   go tool cover -html=../coverage/coverage.out -o ../coverage/coverage.html
   ```
 
-
+- mock作成
+  - 対象ファイルにインターフェイスを定義
+  - 以下のコマンドを実行
+  ```bash
+  // <>の中は適宜変える
+  mockgen -source=<./controllers/sing_controllers.go> -destination=<./mock_func/mock_controllers/sing_controllers_mock.go>
+  ```

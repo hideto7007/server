@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"server/common"
 	"server/config"
@@ -23,8 +22,6 @@ type (
 		DeleteIncomeDataApi(c *gin.Context)
 	}
 
-	apiGetIncomeDataFetcher struct{}
-
 	requestInsertIncomeData struct {
 		Data []models.InsertIncomeData `json:"data"`
 	}
@@ -36,10 +33,16 @@ type (
 	requestDeleteIncomeData struct {
 		Data []models.DeleteIncomeData `json:"data"`
 	}
+
+	apiIncomeDataFetcher struct {
+		CommonFetcher common.CommonFetcher
+	}
 )
 
-func NewIncomeDataFetcher() IncomeDataFetcher {
-	return &apiGetIncomeDataFetcher{}
+func NewIncomeDataFetcher(CommonFetcher common.CommonFetcher) IncomeDataFetcher {
+	return &apiIncomeDataFetcher{
+		CommonFetcher: CommonFetcher,
+	}
 }
 
 // GetIncomeDataInRangeApi は登録された給料及び賞与の金額を指定期間で返すAPI
@@ -48,8 +51,7 @@ func NewIncomeDataFetcher() IncomeDataFetcher {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
-	var common common.CommonFetcher = common.NewCommonFetcher()
+func (aid *apiIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	// パラメータから日付の始まりと終わりを取得
 	startDate := c.Query("start_date")
 	endDate := c.Query("end_date")
@@ -69,7 +71,7 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 		return
 	}
 
-	userId, _ := common.StrToInt(userIdPrams)
+	userId, _ := aid.CommonFetcher.StrToInt(userIdPrams)
 
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
@@ -95,9 +97,8 @@ func (af *apiGetIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
+func (aid *apiIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
-	var common common.CommonFetcher = common.NewCommonFetcher()
 	userIdPrams := c.Query("user_id")
 
 	validator := validation.RequestDateRangeData{
@@ -112,7 +113,7 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 		return
 	}
 
-	userId, _ := common.StrToInt(userIdPrams)
+	userId, _ := aid.CommonFetcher.StrToInt(userIdPrams)
 
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
@@ -138,9 +139,8 @@ func (af *apiGetIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
+func (aid *apiIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
 	// パラメータからユーザー情報取得
-	var common common.CommonFetcher = common.NewCommonFetcher()
 	userIdPrams := c.Query("user_id")
 
 	validator := validation.RequestDateRangeData{
@@ -155,7 +155,7 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 		return
 	}
 
-	userId, _ := common.StrToInt(userIdPrams)
+	userId, _ := aid.CommonFetcher.StrToInt(userIdPrams)
 
 	// データベースから指定範囲のデータを取得
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.DataSourceName)
@@ -181,7 +181,7 @@ func (af *apiGetIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) 
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
+func (aid *apiIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	// JSONデータを受け取るための構造体を定義
 	var requestData requestInsertIncomeData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
@@ -219,7 +219,6 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
-			fmt.Println(response.Result)
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
@@ -247,7 +246,7 @@ func (af *apiGetIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
+func (aid *apiIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	// JSONデータを受け取るための構造体を定義
 	var requestData requestUpdateIncomeData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
@@ -313,7 +312,7 @@ func (af *apiGetIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiGetIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
+func (aid *apiIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	// JSONデータを受け取るための構造体を定義
 	var requestData requestDeleteIncomeData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
