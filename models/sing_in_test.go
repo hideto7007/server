@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"server/DB"
@@ -170,5 +171,105 @@ func TestGetSingIn(t *testing.T) {
 			t.Errorf("mock check: %s", err)
 		}
 
+	})
+}
+
+func TestPostSingUp(t *testing.T) {
+	t.Run("PostSingUp 登録成功", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		testData := RequestSingUpData{
+			UserName:     "test@exmple.com",
+			UserPassword: "Test12345!",
+			NickName:     "test",
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PostSingUpSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PostSingUp(testData)
+
+		// エラーがないことを検証
+		assert.NoError(t, err)
+	})
+	t.Run("PostSingUp 失敗", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テストデータを作成
+		testData := RequestSingUpData{
+			UserName:     "test@exmple.com",
+			UserPassword: "Test12345!",
+			NickName:     "test",
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PostSingUpSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewErrorResult(errors.New("ERROR"))).
+			WillReturnError(errors.New("INSERT FAILED"))
+		mock.ExpectCommit()
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PostSingUp(testData)
+
+		// エラーが発生すること
+		assert.Error(t, err)
+
+		t.Log("error PostSingUp log", err)
+	})
+	t.Run("PostSingUp トランザクションエラー", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// トランザクションの開始に失敗させる
+		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+
+		// テストデータを作成
+		testData := RequestSingUpData{
+			UserName:     "test@exmple.com",
+			UserPassword: "Test12345!",
+			NickName:     "test",
+		}
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PostSingUp(testData)
+
+		// エラーが発生することを検証
+		assert.Error(t, err)
+
+		t.Log("transaction begin error PostSingUp log", err)
 	})
 }
