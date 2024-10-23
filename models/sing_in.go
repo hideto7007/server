@@ -142,19 +142,22 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 	var err error
 	createdAt := time.Now()
 
+	// データベースのクローズをdeferで最初に宣言
+	defer pf.db.Close()
+
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
+	// deferでロールバックまたはコミットを管理
 	defer func() {
-		if err != nil {
-			// エラーが発生した場合、トランザクションをロールバック
-			tx.Rollback()
+		if p := recover(); p != nil || err != nil {
+			tx.Rollback() // パニックまたはエラー発生時にロールバック
 		} else {
-			// エラーが発生しなかった場合、トランザクションをコミット
-			err = tx.Commit()
+			err = tx.Commit() // エラーがなければコミット
 		}
 	}()
 
@@ -168,18 +171,8 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 		data.NickName,
 		createdAt,
 		1); err != nil {
-		tx.Rollback()
-		log.Println(err)
-	}
-
-	// トランザクションをコミット
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
-	defer pf.db.Close()
 
 	return nil
 }
@@ -202,19 +195,22 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 	var userName *string
 	var userPassword *string
 
+	// データベースのクローズをdeferで最初に宣言
+	defer pf.db.Close()
+
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
+	// deferでロールバックまたはコミットを管理
 	defer func() {
-		if err != nil {
-			// エラーが発生した場合、トランザクションをロールバック
-			tx.Rollback()
+		if p := recover(); p != nil || err != nil {
+			tx.Rollback() // パニックまたはエラー発生時にロールバック
 		} else {
-			// エラーが発生しなかった場合、トランザクションをコミット
-			err = tx.Commit()
+			err = tx.Commit() // エラーがなければコミット
 		}
 	}()
 
@@ -234,18 +230,8 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 		userPassword,
 		createdAt,
 		data.UserId); err != nil {
-		tx.Rollback()
-		log.Println(err)
-	}
-
-	// トランザクションをコミット
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
-	defer pf.db.Close()
 
 	return nil
 }
@@ -264,19 +250,22 @@ func (pf *SingDataFetcher) DeleteSingIn(data RequestSingInDeleteData) error {
 
 	var err error
 
+	// データベースのクローズをdeferで最初に宣言
+	defer pf.db.Close()
+
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
+	// deferでロールバックまたはコミットを管理
 	defer func() {
-		if err != nil {
-			// エラーが発生した場合、トランザクションをロールバック
-			tx.Rollback()
+		if p := recover(); p != nil || err != nil {
+			tx.Rollback() // パニックまたはエラー発生時にロールバック
 		} else {
-			// エラーが発生しなかった場合、トランザクションをコミット
-			err = tx.Commit()
+			err = tx.Commit() // エラーがなければコミット
 		}
 	}()
 
@@ -284,18 +273,8 @@ func (pf *SingDataFetcher) DeleteSingIn(data RequestSingInDeleteData) error {
 
 	if _, err = tx.Exec(singInDelete,
 		data.UserId); err != nil {
-		tx.Rollback()
-		log.Println(err)
-	}
-
-	// トランザクションをコミット
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-
-	defer pf.db.Close()
 
 	return nil
 }

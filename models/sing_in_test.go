@@ -235,8 +235,7 @@ func TestPostSingUp(t *testing.T) {
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
 			).
-			WillReturnResult(sqlmock.NewErrorResult(errors.New("ERROR"))).
-			WillReturnError(errors.New("INSERT FAILED"))
+			WillReturnError(errors.New("insert failed"))
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
@@ -244,6 +243,7 @@ func TestPostSingUp(t *testing.T) {
 
 		// エラーが発生すること
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "insert failed")
 
 		t.Log("error PostSingUp log", err)
 	})
@@ -269,7 +269,134 @@ func TestPostSingUp(t *testing.T) {
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction begin error")
 
 		t.Log("transaction begin error PostSingUp log", err)
+	})
+}
+
+func TestPutSingInEdit(t *testing.T) {
+	t.Run("PutSingInEdit 登録成功 1", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		testData := RequestSingInEditData{
+			UserName:     "",
+			UserPassword: "Test12345!",
+			UserId:       1,
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutSingInEditSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PutSingInEdit(testData)
+
+		// エラーがないことを検証
+		assert.NoError(t, err)
+	})
+	t.Run("PutSingInEdit 登録成功 2", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		testData := RequestSingInEditData{
+			UserName:     "test@exmple.com",
+			UserPassword: "",
+			UserId:       1,
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutSingInEditSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PutSingInEdit(testData)
+
+		// エラーがないことを検証
+		assert.NoError(t, err)
+	})
+	t.Run("PutSingInEdit 失敗", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テストデータを作成
+		testData := RequestSingInEditData{
+			UserName:     "test@exmple.com",
+			UserPassword: "Test12345!",
+			UserId:       1,
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutSingInEditSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnError(errors.New("update failed")) // Execの結果にエラーを返す
+		mock.ExpectRollback() // エラー発生時にはロールバックを期待
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PutSingInEdit(testData)
+
+		// エラーが発生すること
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "update failed")
+
+		t.Log("error PutSingInEdit log", err)
+	})
+	t.Run("PutSingInEdit トランザクションエラー", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher("test")
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// トランザクションの開始に失敗させる
+		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+
+		// テストデータを作成
+		testData := RequestSingInEditData{
+			UserName:     "test@exmple.com",
+			UserPassword: "Test12345!",
+			UserId:       1,
+		}
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PutSingInEdit(testData)
+
+		// エラーが発生することを検証
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction begin error")
+
+		t.Log("transaction begin error PutSingInEdit log", err)
 	})
 }
