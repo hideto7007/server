@@ -282,7 +282,8 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	var err error
 	createdAt := time.Now()
 
-	log.Println("dbに登録開始")
+	// データベースのクローズをdeferで最初に宣言
+	defer pf.db.Close()
 
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
@@ -290,13 +291,13 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 		fmt.Println(err)
 		return err
 	}
+
+	// deferでロールバックまたはコミットを管理
 	defer func() {
-		if err != nil {
-			// エラーが発生した場合、トランザクションをロールバック
-			tx.Rollback()
+		if p := recover(); p != nil || err != nil {
+			tx.Rollback() // パニックまたはエラー発生時にロールバック
 		} else {
-			// エラーが発生しなかった場合、トランザクションをコミット
-			err = tx.Commit()
+			err = tx.Commit() // エラーがなければコミット
 		}
 	}()
 
@@ -325,21 +326,9 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 			createdAt,
 			data.Classification,
 			data.UserID); err != nil {
-			tx.Rollback()
-			fmt.Println(err)
+			return err
 		}
 	}
-
-	// トランザクションをコミット
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	defer pf.db.Close()
-
-	log.Println("dbに登録完了")
 
 	return nil
 }
@@ -360,19 +349,22 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 	var err error
 	createdAt := time.Now()
 
+	// データベースのクローズをdeferで最初に宣言
+	defer pf.db.Close()
+
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
+	// deferでロールバックまたはコミットを管理
 	defer func() {
-		if err != nil {
-			// エラーが発生した場合、トランザクションをロールバック
-			tx.Rollback()
+		if p := recover(); p != nil || err != nil {
+			tx.Rollback() // パニックまたはエラー発生時にロールバック
 		} else {
-			// エラーが発生しなかった場合、トランザクションをコミット
-			err = tx.Commit()
+			err = tx.Commit() // エラーがなければコミット
 		}
 	}()
 
@@ -401,19 +393,9 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 			data.UpdateUser,
 			data.Classification,
 			data.IncomeForecastID); err != nil {
-			tx.Rollback()
-			fmt.Println(err)
+			return err
 		}
 	}
-
-	// トランザクションをコミット
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	defer pf.db.Close()
 
 	return nil
 }
@@ -433,19 +415,22 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 
 	var err error
 
+	// データベースのクローズをdeferで最初に宣言
+	defer pf.db.Close()
+
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
+	// deferでロールバックまたはコミットを管理
 	defer func() {
-		if err != nil {
-			// エラーが発生した場合、トランザクションをロールバック
-			tx.Rollback()
+		if p := recover(); p != nil || err != nil {
+			tx.Rollback() // パニックまたはエラー発生時にロールバック
 		} else {
-			// エラーが発生しなかった場合、トランザクションをコミット
-			err = tx.Commit()
+			err = tx.Commit() // エラーがなければコミット
 		}
 	}()
 
@@ -453,19 +438,9 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 
 	for _, deleteData := range data {
 		if _, err = tx.Exec(deleteStatement, deleteData.IncomeForecastID); err != nil {
-			tx.Rollback()
-			fmt.Println(err)
+			return err
 		}
 	}
-
-	// トランザクションをコミット
-	err = tx.Commit()
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	defer pf.db.Close()
 
 	return nil
 }
