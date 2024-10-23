@@ -1398,9 +1398,19 @@ func TestInsertIncome(t *testing.T) {
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.InsertIncomeSyntax)).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
-			WillReturnResult(sqlmock.NewErrorResult(errors.New("ERROR"))).
-			WillReturnError(errors.New("INSERT FAILED"))
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnError(errors.New("insert failed"))
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
@@ -1408,6 +1418,7 @@ func TestInsertIncome(t *testing.T) {
 
 		// エラーが発生すること
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "insert failed")
 
 		t.Log("error TestInsertIncome log", err)
 	})
@@ -1440,6 +1451,7 @@ func TestInsertIncome(t *testing.T) {
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction begin error")
 
 		t.Log("transaction begin error TestInsertIncome log", err)
 	})
@@ -1507,9 +1519,19 @@ func TestUpdateIncome(t *testing.T) {
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.UpdateIncomeSyntax)).
-			WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
-			WillReturnResult(sqlmock.NewErrorResult(errors.New("ERROR"))).
-			WillReturnError(errors.New("UPDATE FAILED"))
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnError(errors.New("update failed"))
 		mock.ExpectCommit()
 
 		// UpdateIncome メソッドを呼び出し
@@ -1517,6 +1539,7 @@ func TestUpdateIncome(t *testing.T) {
 
 		// エラーが発生すること
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "update failed")
 
 		t.Log("error", err)
 	})
@@ -1550,6 +1573,7 @@ func TestUpdateIncome(t *testing.T) {
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction begin error")
 
 		t.Log("transaction begin error TestUpdateIncome log", err)
 	})
@@ -1600,9 +1624,10 @@ func TestDeleteIncome(t *testing.T) {
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteIncomeSyntax)).
-			WithArgs(sqlmock.AnyArg()).
-			WillReturnResult(sqlmock.NewErrorResult(errors.New("ERROR"))).
-			WillReturnError(errors.New("DELETE FAILED"))
+			WithArgs(
+				sqlmock.AnyArg(),
+			).
+			WillReturnError(errors.New("delete failed")) // Execの結果にエラーを返す
 		mock.ExpectCommit()
 
 		// DeleteIncome メソッドを呼び出し
@@ -1610,6 +1635,7 @@ func TestDeleteIncome(t *testing.T) {
 
 		// エラーが発生すること
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "delete failed")
 
 		t.Log("error", err)
 	})
@@ -1635,6 +1661,7 @@ func TestDeleteIncome(t *testing.T) {
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction begin error")
 
 		t.Log("transaction begin error TestDeleteIncome log", err)
 	})
