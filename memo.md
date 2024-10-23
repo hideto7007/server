@@ -158,7 +158,3 @@ expected 9 destination arguments in Scan, not 12
 go test -coverprofile="../coverage/coverage.out"
 go tool cover -html=../coverage/coverage.out -o ../coverage/coverage.html
 ```
-
-### TODO
-- utils.goの単体テスト実施
-それが終えたらバックエンドが一旦実装完了
