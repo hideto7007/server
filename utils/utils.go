@@ -15,7 +15,7 @@ type UtilsFetcher interface {
 	GenerateJWT(UserId int, ExpirationDate int) (string, error)
 	NewToken(UserId int, ExpirationDate int) (string, error)
 	RefreshToken(UserId int, ExpirationDate int) (string, error)
-	encryptPassword(password string) (string, error)
+	EncryptPassword(password string) (string, error)
 }
 
 type UtilsDataFetcher struct {
@@ -93,7 +93,7 @@ func (tg *UtilsDataFetcher) RefreshToken(UserId int, ExpirationDate int) (string
 }
 
 // パスワードの平文をハッシュ化
-func (tg *UtilsDataFetcher) encryptPassword(password string) (string, error) {
+func (tg *UtilsDataFetcher) EncryptPassword(password string) (string, error) {
 	// パスワードの文字列をハッシュ化する
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

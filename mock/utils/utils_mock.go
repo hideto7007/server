@@ -33,6 +33,21 @@ func (m *MockUtilsFetcher) EXPECT() *MockUtilsFetcherMockRecorder {
 	return m.recorder
 }
 
+// EncryptPassword mocks base method.
+func (m *MockUtilsFetcher) EncryptPassword(password string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EncryptPassword", password)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EncryptPassword indicates an expected call of EncryptPassword.
+func (mr *MockUtilsFetcherMockRecorder) EncryptPassword(password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptPassword", reflect.TypeOf((*MockUtilsFetcher)(nil).EncryptPassword), password)
+}
+
 // GenerateJWT mocks base method.
 func (m *MockUtilsFetcher) GenerateJWT(UserId, ExpirationDate int) (string, error) {
 	m.ctrl.T.Helper()
@@ -76,19 +91,4 @@ func (m *MockUtilsFetcher) RefreshToken(UserId, ExpirationDate int) (string, err
 func (mr *MockUtilsFetcherMockRecorder) RefreshToken(UserId, ExpirationDate interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshToken", reflect.TypeOf((*MockUtilsFetcher)(nil).RefreshToken), UserId, ExpirationDate)
-}
-
-// encryptPassword mocks base method.
-func (m *MockUtilsFetcher) encryptPassword(password string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "encryptPassword", password)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// encryptPassword indicates an expected call of encryptPassword.
-func (mr *MockUtilsFetcherMockRecorder) encryptPassword(password interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "encryptPassword", reflect.TypeOf((*MockUtilsFetcher)(nil).encryptPassword), password)
 }

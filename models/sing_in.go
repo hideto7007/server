@@ -63,9 +63,8 @@ type (
 		UserId interface{}
 	}
 
-	SingDataFetcher struct{ 
+	SingDataFetcher struct {
 		db *sql.DB
-		
 	}
 )
 
