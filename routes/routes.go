@@ -13,7 +13,7 @@ func SetupRoutes(r *gin.Engine) {
 
 	// APiインターフェイスのインスタンス定義
 	var singAPI controllers.SingDataFetcher = controllers.NewSingDataFetcher(
-		utils.NewTokenFetcher(utils.JwtSecret),
+		utils.NewUtilsFetcher(utils.JwtSecret),
 		common.NewCommonFetcher(),
 	)
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher(

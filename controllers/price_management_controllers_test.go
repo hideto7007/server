@@ -84,19 +84,19 @@ func TestGetPriceInfo(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Request = httptest.NewRequest("GET", "/?money_received=300&bouns=100&fixed_cost=50&loan=50&private=50&insurance=30", nil)
 
-		// TokenFetcher のモックを作成
-		mockTokenFetcher := common_mock.NewMockCommonFetcher(ctrl)
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := common_mock.NewMockCommonFetcher(ctrl)
 
 		mocReturn := map[string]int{
 			"test": 1,
 		}
 
-		mockTokenFetcher.EXPECT().
+		mockUtilsFetcher.EXPECT().
 			IntgetPrameter(gomock.Any(), gomock.Any()).
 			Return(mocReturn, fmt.Errorf("変換失敗"))
 
 		pm := apiPriceManagementFetcher{
-			CommonFetcher: mockTokenFetcher,
+			CommonFetcher: mockUtilsFetcher,
 		}
 		// GetPriceInfoApi 関数を呼び出し
 		pm.GetPriceInfoApi(c)

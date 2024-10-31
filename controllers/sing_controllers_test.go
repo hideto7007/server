@@ -40,7 +40,7 @@ func TestPostSingInApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingInApi(c)
@@ -87,7 +87,7 @@ func TestPostSingInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingInApi(c)
@@ -154,7 +154,7 @@ func TestPostSingInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingInApi(c)
@@ -224,7 +224,7 @@ func TestPostSingInApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSingDataFetcher{
-				TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
 			fetcher.PostSingInApi(c)
@@ -277,7 +277,7 @@ func TestPostSingInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingInApi(c)
@@ -330,7 +330,7 @@ func TestPostSingInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingInApi(c)
@@ -380,11 +380,11 @@ func TestPostSingInApi(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		// TokenFetcher のモックを作成
-		mockTokenFetcher := mock_utils.NewMockTokenFetcher(ctrl)
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
 		// モックの挙動を定義
-		mockTokenFetcher.EXPECT().
+		mockUtilsFetcher.EXPECT().
 			NewToken(gomock.Any(), gomock.Any()).
 			Return("", fmt.Errorf("トークン生成エラー"))
 
@@ -406,7 +406,7 @@ func TestPostSingInApi(t *testing.T) {
 
 		// モックを使って API を呼び出し
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  mockTokenFetcher,
+			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingInApi(c)
@@ -438,9 +438,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		// TokenFetcher のモックを使ってAPIを呼び出し
+		// UtilsFetcher のモックを使ってAPIを呼び出し
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.GetRefreshTokenApi(c)
@@ -472,9 +472,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		// TokenFetcher のモックを使ってAPIを呼び出し
+		// UtilsFetcher のモックを使ってAPIを呼び出し
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.GetRefreshTokenApi(c)
@@ -506,9 +506,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		// TokenFetcher のモックを使ってAPIを呼び出し
+		// UtilsFetcher のモックを使ってAPIを呼び出し
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.GetRefreshTokenApi(c)
@@ -546,9 +546,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 			c.Request = httptest.NewRequest("GET", params, nil)
 			c.Request.Header.Set("Content-Type", "application/json")
 
-			// TokenFetcher のモックを使ってAPIを呼び出し
+			// UtilsFetcher のモックを使ってAPIを呼び出し
 			fetcher := apiSingDataFetcher{
-				TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
 			fetcher.GetRefreshTokenApi(c)
@@ -579,11 +579,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		// TokenFetcher のモックを作成
-		mockTokenFetcher := mock_utils.NewMockTokenFetcher(ctrl)
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
 		// モックの挙動を定義
-		mockTokenFetcher.EXPECT().
+		mockUtilsFetcher.EXPECT().
 			RefreshToken(gomock.Any(), gomock.Any()).
 			Return("", fmt.Errorf("トークン生成エラー"))
 
@@ -596,7 +596,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  mockTokenFetcher,
+			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.GetRefreshTokenApi(c)
@@ -621,11 +621,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		// TokenFetcher のモックを作成
-		mockTokenFetcher := mock_utils.NewMockTokenFetcher(ctrl)
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
 		// モックの挙動を定義（トークン生成成功）
-		mockTokenFetcher.EXPECT().
+		mockUtilsFetcher.EXPECT().
 			RefreshToken(gomock.Any(), gomock.Any()).
 			Return("mocked_refresh_token", nil)
 
@@ -638,7 +638,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  mockTokenFetcher,
+			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.GetRefreshTokenApi(c)
@@ -673,7 +673,7 @@ func TestPostSingUpApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingUpApi(c)
@@ -712,7 +712,7 @@ func TestPostSingUpApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingUpApi(c)
@@ -771,7 +771,7 @@ func TestPostSingUpApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingUpApi(c)
@@ -833,7 +833,7 @@ func TestPostSingUpApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSingDataFetcher{
-				TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
 			fetcher.PostSingUpApi(c)
@@ -884,7 +884,7 @@ func TestPostSingUpApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingUpApi(c)
@@ -929,7 +929,7 @@ func TestPostSingUpApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PostSingUpApi(c)
@@ -962,7 +962,7 @@ func TestPutSingInEditApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PutSingInEditApi(c)
@@ -1001,7 +1001,7 @@ func TestPutSingInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PutSingInEditApi(c)
@@ -1064,7 +1064,7 @@ func TestPutSingInEditApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSingDataFetcher{
-				TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
 			fetcher.PutSingInEditApi(c)
@@ -1116,7 +1116,7 @@ func TestPutSingInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PutSingInEditApi(c)
@@ -1178,7 +1178,7 @@ func TestPutSingInEditApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSingDataFetcher{
-				TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
 			fetcher.PutSingInEditApi(c)
@@ -1229,7 +1229,7 @@ func TestPutSingInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PutSingInEditApi(c)
@@ -1274,7 +1274,7 @@ func TestPutSingInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.PutSingInEditApi(c)
@@ -1307,7 +1307,7 @@ func TestDeleteSingInApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.DeleteSingInApi(c)
@@ -1344,7 +1344,7 @@ func TestDeleteSingInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.DeleteSingInApi(c)
@@ -1403,7 +1403,7 @@ func TestDeleteSingInApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSingDataFetcher{
-				TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
 			fetcher.DeleteSingInApi(c)
@@ -1454,7 +1454,7 @@ func TestDeleteSingInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.DeleteSingInApi(c)
@@ -1497,7 +1497,7 @@ func TestDeleteSingInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSingDataFetcher{
-			TokenFetcher:  utils.NewTokenFetcher(utils.JwtSecret),
+			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
 		fetcher.DeleteSingInApi(c)

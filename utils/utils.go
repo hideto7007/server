@@ -7,19 +7,22 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// TokenFetcher インターフェースの定義
-type TokenFetcher interface {
+// UtilsFetcher インターフェースの定義
+type UtilsFetcher interface {
 	GenerateJWT(UserId int, ExpirationDate int) (string, error)
 	NewToken(UserId int, ExpirationDate int) (string, error)
 	RefreshToken(UserId int, ExpirationDate int) (string, error)
+	encryptPassword(password string) (string, error)
 }
 
-type TokenDataFetcher struct {
+type UtilsDataFetcher struct {
 	JwtSecret []byte
 }
 
+// Responseを制御する関数作成する
 type Response[T any] struct {
 	RecodeRows int    `json:"recode_rows,omitempty"`
 	Token      string `json:"token,omitempty"`
@@ -44,14 +47,14 @@ type ErrorMessages struct {
 
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
-func NewTokenFetcher(JwtSecret []byte) TokenFetcher {
-	return &TokenDataFetcher{
+func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
+	return &UtilsDataFetcher{
 		JwtSecret: JwtSecret,
 	}
 }
 
 // トークン生成関数
-func (tg *TokenDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string, error) {
+func (tg *UtilsDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string, error) {
 	// トークンの有効期限を設定
 
 	// トークンのクレーム（データペイロード）を作成
@@ -80,11 +83,21 @@ func (tg *TokenDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string,
 }
 
 // 新規有効期限付きのトークン発行
-func (tg *TokenDataFetcher) NewToken(UserId int, ExpirationDate int) (string, error) {
+func (tg *UtilsDataFetcher) NewToken(UserId int, ExpirationDate int) (string, error) {
 	return tg.GenerateJWT(UserId, ExpirationDate)
 }
 
 // 新規有効期限付きのリフレッシュトークン発行
-func (tg *TokenDataFetcher) RefreshToken(UserId int, ExpirationDate int) (string, error) {
+func (tg *UtilsDataFetcher) RefreshToken(UserId int, ExpirationDate int) (string, error) {
 	return tg.GenerateJWT(UserId, ExpirationDate)
+}
+
+// パスワードの平文をハッシュ化
+func (tg *UtilsDataFetcher) encryptPassword(password string) (string, error) {
+	// パスワードの文字列をハッシュ化する
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
 }

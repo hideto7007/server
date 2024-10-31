@@ -12,7 +12,7 @@ import (
 
 func TestGenerateJWT(t *testing.T) {
 	t.Run("GenerateJWT token発行できる", func(t *testing.T) {
-		tokenFetcher := NewTokenFetcher(JwtSecret)
+		tokenFetcher := NewUtilsFetcher(JwtSecret)
 
 		token, err := tokenFetcher.GenerateJWT(1, 3)
 
@@ -27,15 +27,15 @@ func TestGenerateJWT(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockTokenFetcher := mock_utils.NewMockTokenFetcher(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
 		// 署名エラーを返すモックの挙動を定義
-		mockTokenFetcher.EXPECT().
+		mockUtilsFetcher.EXPECT().
 			GenerateJWT(1, 3).
 			Return("", fmt.Errorf("署名エラー"))
 
 		// JWT トークンの生成をテスト（エラーが発生する）
-		token, err := mockTokenFetcher.GenerateJWT(1, 3)
+		token, err := mockUtilsFetcher.GenerateJWT(1, 3)
 
 		// エラーが発生することを確認
 		assert.Error(t, err)
@@ -48,7 +48,7 @@ func TestGenerateJWT(t *testing.T) {
 
 func TestNewToken(t *testing.T) {
 	t.Run("NewToken token発行できる", func(t *testing.T) {
-		tokenFetcher := NewTokenFetcher(JwtSecret)
+		tokenFetcher := NewUtilsFetcher(JwtSecret)
 
 		token, err := tokenFetcher.NewToken(1, 3)
 
@@ -60,7 +60,7 @@ func TestNewToken(t *testing.T) {
 
 func TestRefreshToken(t *testing.T) {
 	t.Run("RefreshToken token発行できる", func(t *testing.T) {
-		tokenFetcher := NewTokenFetcher(JwtSecret)
+		tokenFetcher := NewUtilsFetcher(JwtSecret)
 
 		token, err := tokenFetcher.RefreshToken(1, 3)
 

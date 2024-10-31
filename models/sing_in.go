@@ -63,7 +63,10 @@ type (
 		UserId interface{}
 	}
 
-	SingDataFetcher struct{ db *sql.DB }
+	SingDataFetcher struct{ 
+		db *sql.DB
+		
+	}
 )
 
 func NewSingDataFetcher(dataSourceName string) (*SingDataFetcher, sqlmock.Sqlmock, error) {
@@ -97,6 +100,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 	var err error
 
 	// データベースクエリを実行
+	// TBD：ここでパスワードをハッシュ化にして検索かける
 	rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName, data.UserPassword)
 
 	if err != nil {
@@ -165,7 +169,7 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 
 	if _, err = tx.Exec(singUp,
 		data.UserName,
-		data.UserPassword,
+		data.UserPassword, // TBD:ここでハッシュ化して保存
 		data.NickName,
 		createdAt,
 		data.NickName,
@@ -220,6 +224,7 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 	}
 
 	if data.UserPassword != "" {
+		// TBD:変更する値もハッシュ化する
 		userPassword = &data.UserPassword
 	}
 

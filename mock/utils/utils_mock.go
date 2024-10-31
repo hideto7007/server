@@ -10,31 +10,31 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockTokenFetcher is a mock of TokenFetcher interface.
-type MockTokenFetcher struct {
+// MockUtilsFetcher is a mock of UtilsFetcher interface.
+type MockUtilsFetcher struct {
 	ctrl     *gomock.Controller
-	recorder *MockTokenFetcherMockRecorder
+	recorder *MockUtilsFetcherMockRecorder
 }
 
-// MockTokenFetcherMockRecorder is the mock recorder for MockTokenFetcher.
-type MockTokenFetcherMockRecorder struct {
-	mock *MockTokenFetcher
+// MockUtilsFetcherMockRecorder is the mock recorder for MockUtilsFetcher.
+type MockUtilsFetcherMockRecorder struct {
+	mock *MockUtilsFetcher
 }
 
-// NewMockTokenFetcher creates a new mock instance.
-func NewMockTokenFetcher(ctrl *gomock.Controller) *MockTokenFetcher {
-	mock := &MockTokenFetcher{ctrl: ctrl}
-	mock.recorder = &MockTokenFetcherMockRecorder{mock}
+// NewMockUtilsFetcher creates a new mock instance.
+func NewMockUtilsFetcher(ctrl *gomock.Controller) *MockUtilsFetcher {
+	mock := &MockUtilsFetcher{ctrl: ctrl}
+	mock.recorder = &MockUtilsFetcherMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockTokenFetcher) EXPECT() *MockTokenFetcherMockRecorder {
+func (m *MockUtilsFetcher) EXPECT() *MockUtilsFetcherMockRecorder {
 	return m.recorder
 }
 
 // GenerateJWT mocks base method.
-func (m *MockTokenFetcher) GenerateJWT(UserId, ExpirationDate int) (string, error) {
+func (m *MockUtilsFetcher) GenerateJWT(UserId, ExpirationDate int) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateJWT", UserId, ExpirationDate)
 	ret0, _ := ret[0].(string)
@@ -43,13 +43,13 @@ func (m *MockTokenFetcher) GenerateJWT(UserId, ExpirationDate int) (string, erro
 }
 
 // GenerateJWT indicates an expected call of GenerateJWT.
-func (mr *MockTokenFetcherMockRecorder) GenerateJWT(UserId, ExpirationDate interface{}) *gomock.Call {
+func (mr *MockUtilsFetcherMockRecorder) GenerateJWT(UserId, ExpirationDate interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateJWT", reflect.TypeOf((*MockTokenFetcher)(nil).GenerateJWT), UserId, ExpirationDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateJWT", reflect.TypeOf((*MockUtilsFetcher)(nil).GenerateJWT), UserId, ExpirationDate)
 }
 
 // NewToken mocks base method.
-func (m *MockTokenFetcher) NewToken(UserId, ExpirationDate int) (string, error) {
+func (m *MockUtilsFetcher) NewToken(UserId, ExpirationDate int) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewToken", UserId, ExpirationDate)
 	ret0, _ := ret[0].(string)
@@ -58,13 +58,13 @@ func (m *MockTokenFetcher) NewToken(UserId, ExpirationDate int) (string, error) 
 }
 
 // NewToken indicates an expected call of NewToken.
-func (mr *MockTokenFetcherMockRecorder) NewToken(UserId, ExpirationDate interface{}) *gomock.Call {
+func (mr *MockUtilsFetcherMockRecorder) NewToken(UserId, ExpirationDate interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewToken", reflect.TypeOf((*MockTokenFetcher)(nil).NewToken), UserId, ExpirationDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewToken", reflect.TypeOf((*MockUtilsFetcher)(nil).NewToken), UserId, ExpirationDate)
 }
 
 // RefreshToken mocks base method.
-func (m *MockTokenFetcher) RefreshToken(UserId, ExpirationDate int) (string, error) {
+func (m *MockUtilsFetcher) RefreshToken(UserId, ExpirationDate int) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RefreshToken", UserId, ExpirationDate)
 	ret0, _ := ret[0].(string)
@@ -73,7 +73,22 @@ func (m *MockTokenFetcher) RefreshToken(UserId, ExpirationDate int) (string, err
 }
 
 // RefreshToken indicates an expected call of RefreshToken.
-func (mr *MockTokenFetcherMockRecorder) RefreshToken(UserId, ExpirationDate interface{}) *gomock.Call {
+func (mr *MockUtilsFetcherMockRecorder) RefreshToken(UserId, ExpirationDate interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshToken", reflect.TypeOf((*MockTokenFetcher)(nil).RefreshToken), UserId, ExpirationDate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshToken", reflect.TypeOf((*MockUtilsFetcher)(nil).RefreshToken), UserId, ExpirationDate)
+}
+
+// encryptPassword mocks base method.
+func (m *MockUtilsFetcher) encryptPassword(password string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "encryptPassword", password)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// encryptPassword indicates an expected call of encryptPassword.
+func (mr *MockUtilsFetcherMockRecorder) encryptPassword(password interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "encryptPassword", reflect.TypeOf((*MockUtilsFetcher)(nil).encryptPassword), password)
 }
