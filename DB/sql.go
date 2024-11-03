@@ -51,8 +51,7 @@ const DeleteIncomeSyntax = `
 const GetSingInSyntax = `
 			SELECT user_id, user_name, user_password
 			FROM users
-			WHERE user_name = $1
-			AND user_password = $2;
+			WHERE user_name = $1;
 			`
 
 const PostSingUpSyntax = `

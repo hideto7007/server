@@ -59,7 +59,6 @@ func TestPostSingInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSingInData{
 				{
-					UserId:       "",
 					UserName:     "",
 					UserPassword: "",
 				},
@@ -101,10 +100,6 @@ func TestPostSingInApi(t *testing.T) {
 		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_id",
-					Message: "ユーザーIDは必須です。",
-				},
-				{
 					Field:   "user_name",
 					Message: "ユーザー名は必須です。",
 				},
@@ -126,7 +121,6 @@ func TestPostSingInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSingInData{
 				{
-					UserId:       1,
 					UserName:     "test",
 					UserPassword: "Test12345!",
 				},
@@ -182,7 +176,6 @@ func TestPostSingInApi(t *testing.T) {
 			{
 				Data: []models.RequestSingInData{
 					{
-						UserId:       1,
 						UserName:     "test@example.com",
 						UserPassword: "Test12!",
 					},
@@ -191,7 +184,6 @@ func TestPostSingInApi(t *testing.T) {
 			{
 				Data: []models.RequestSingInData{
 					{
-						UserId:       1,
 						UserName:     "test@example.com",
 						UserPassword: "Test123456",
 					},
@@ -247,59 +239,58 @@ func TestPostSingInApi(t *testing.T) {
 		}
 	})
 
-	t.Run("TestPostSingInApi result件数0件", func(t *testing.T) {
+	// 処理削除したのでスキップ
+	// t.Run("TestPostSingInApi result件数0件", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSingInData{
-				{
-					UserId:       1,
-					UserName:     "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
-		}
+	// 	data := testData{
+	// 		Data: []models.RequestSingInData{
+	// 			{
+	// 				UserName:     "test@example.com",
+	// 				UserPassword: "Test123456!!",
+	// 			},
+	// 		},
+	// 	}
 
-		resMock := []models.SingInData{}
+	// 	resMock := []models.SingInData{}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+	// 	w := httptest.NewRecorder()
+	// 	c, _ := gin.CreateTestContext(w)
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+	// 	body, _ := json.Marshal(data)
+	// 	c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+	// 	c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"GetSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
-				return resMock, nil
-			})
-		defer patches.Reset()
+	// 	patches := ApplyMethod(
+	// 		reflect.TypeOf(&models.SingDataFetcher{}),
+	// 		"GetSingIn",
+	// 		func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+	// 			return resMock, nil
+	// 		})
+	// 	defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
-		}
-		fetcher.PostSingInApi(c)
+	// 	fetcher := apiSingDataFetcher{
+	// 		UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
+	// 		CommonFetcher: common.NewCommonFetcher(),
+	// 	}
+	// 	fetcher.PostSingInApi(c)
 
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+	// 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.Response[requestSingInData]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
+	// 	var responseBody utils.Response[requestSingInData]
+	// 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+	// 	assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[requestSingInData]{
-			ErrorMsg: "サインインに失敗しました。",
-		}
-		assert.Equal(t, responseBody, expectedErrorMessage)
-	})
+	// 	expectedErrorMessage := utils.Response[requestSingInData]{
+	// 		ErrorMsg: "サインインに失敗しました。",
+	// 	}
+	// 	assert.Equal(t, responseBody, expectedErrorMessage)
+	// })
 
 	t.Run("TestPostSingInApi result 成功", func(t *testing.T) {
 
 		data := testData{
 			Data: []models.RequestSingInData{
 				{
-					UserId:       1,
 					UserName:     "test@example.com",
 					UserPassword: "Test123456!!",
 				},
@@ -361,7 +352,6 @@ func TestPostSingInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSingInData{
 				{
-					UserId:       1,
 					UserName:     "test@example.com",
 					UserPassword: "Test123456!!",
 				},

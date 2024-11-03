@@ -92,10 +92,7 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		return
 	}
 
-	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
-
 	validator := validation.RequestSingInData{
-		UserId:       userIdCheck,
 		UserName:     requestData.Data[0].UserName,
 		UserPassword: requestData.Data[0].UserPassword,
 	}
@@ -108,20 +105,21 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewSingDataFetcher(
+		config.DataSourceName,
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
 	result, err := dbFetcher.GetSingIn(requestData.Data[0])
-	if err != nil || len(result) == 0 {
+	if err != nil {
 		response := utils.Response[requestSingInData]{
-			ErrorMsg: "サインインに失敗しました。",
+			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
-	userId, _ := af.CommonFetcher.StrToInt(userIdCheck)
-
 	// UtilsFetcher を使用してトークンを生成
-	token, err := af.UtilsFetcher.NewToken(userId, 12)
+	token, err := af.UtilsFetcher.NewToken(result[0].UserId, 12)
 	if err != nil {
 		response := utils.Response[requestSingInData]{
 			ErrorMsg: "トークンの生成に失敗しました。",
@@ -215,7 +213,10 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewSingDataFetcher(
+		config.DataSourceName,
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
 	if err := dbFetcher.PostSingUp(requestData.Data[0]); err != nil {
 		response := utils.Response[string]{
 			ErrorMsg: "サインアップに失敗しました。",
@@ -264,7 +265,10 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewSingDataFetcher(
+		config.DataSourceName,
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
 	if err := dbFetcher.PutSingInEdit(requestData.Data[0]); err != nil {
 		response := utils.Response[string]{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
@@ -311,7 +315,10 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(config.DataSourceName)
+	dbFetcher, _, _ := models.NewSingDataFetcher(
+		config.DataSourceName,
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
 	err := dbFetcher.DeleteSingIn(requestData.Data[0])
 	if err != nil {
 		response := utils.Response[string]{

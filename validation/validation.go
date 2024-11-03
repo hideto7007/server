@@ -31,7 +31,6 @@ const UserPassword = "user_password"
 // }
 
 type RequestSingInData struct {
-	UserId       string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 }
@@ -149,14 +148,6 @@ func (data RequestSingInData) Validate() (bool, []utils.ErrorMessages) {
 				Message: msg,
 			})
 		}
-	}
-
-	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
-		validArray[0] = false
-		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
-			Field:   "user_id",
-			Message: "ユーザーIDは整数値のみです。",
-		})
 	}
 
 	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {

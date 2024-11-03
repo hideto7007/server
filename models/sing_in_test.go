@@ -5,32 +5,35 @@ import (
 	"fmt"
 	"regexp"
 	"server/DB"
+	"server/utils"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
-
 
 func TestGetSingIn(t *testing.T) {
 	t.Run("GetSingIn クエリー実行時エラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テスト対象のデータ
 		requestData := RequestSingInData{
-			UserId:       1,
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
-			WithArgs(requestData.UserName, requestData.UserPassword).
+			WithArgs(requestData.UserName).
 			WillReturnError(fmt.Errorf("クエリの実行に失敗しました"))
 
 		// テストを実行
@@ -43,14 +46,16 @@ func TestGetSingIn(t *testing.T) {
 
 	t.Run("GetSingIn rows.Scan時にエラー発生 UserIdで検証", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テスト対象のデータ
 		requestData := RequestSingInData{
-			UserId:       1,
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -66,7 +71,7 @@ func TestGetSingIn(t *testing.T) {
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
-			WithArgs(requestData.UserName, requestData.UserPassword).
+			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -78,14 +83,16 @@ func TestGetSingIn(t *testing.T) {
 
 	t.Run("GetSingIn rows.Err()にエラー発生", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テスト対象のデータ
 		requestData := RequestSingInData{
-			UserId:       1,
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -104,7 +111,7 @@ func TestGetSingIn(t *testing.T) {
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
-			WithArgs(requestData.UserName, requestData.UserPassword).
+			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -117,23 +124,31 @@ func TestGetSingIn(t *testing.T) {
 
 	t.Run("GetSingIn 成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		// テスト対象のデータ
 		requestData := RequestSingInData{
-			UserId:       1,
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
+		}
+
+		// 平文のパスワードをハッシュ化
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(requestData.UserPassword), bcrypt.DefaultCost)
+		if err != nil {
+			t.Fatalf("Error hashing password: %v", err)
 		}
 
 		mockData := []SingInData{
 			{
 				UserId:       1,
 				UserName:     "test@exmple.com",
-				UserPassword: "Test12345!",
+				UserPassword: string(hashedPassword),
 			},
 		}
 
@@ -153,7 +168,7 @@ func TestGetSingIn(t *testing.T) {
 		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
-			WithArgs(requestData.UserName, requestData.UserPassword).
+			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -170,14 +185,112 @@ func TestGetSingIn(t *testing.T) {
 		if err := mock.ExpectationsWereMet(); err != nil {
 			t.Errorf("mock check: %s", err)
 		}
+	})
 
+	t.Run("GetSingIn 存在しないユーザー名です", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト対象のデータ
+		requestData := RequestSingInData{
+			UserName:     "test@exmple.com",
+			UserPassword: "Test12345!",
+		}
+
+		expectedData := "存在しないユーザー名です。"
+
+		// テスト用の行データを設定
+		rows := sqlmock.NewRows([]string{
+			"user_id", "user_name", "user_password",
+		})
+
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+			WithArgs(requestData.UserName).
+			WillReturnRows(rows)
+
+		// テストを実行
+		result, err := dbFetcher.GetSingIn(requestData)
+
+		// 取得したデータが期待値と一致することを検証
+		assert.Empty(t, result)
+		assert.Equal(t, expectedData, err.Error())
+
+		// モックが期待通りのクエリを受け取ったか確認
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("mock check: %s", err)
+		}
+	})
+
+	t.Run("GetSingIn パスワードが一致しません。", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト対象のデータ
+		requestData := RequestSingInData{
+			UserName:     "test@exmple.com",
+			UserPassword: "Test12345!",
+		}
+
+		mockData := []SingInData{
+			{
+				UserId:       1,
+				UserName:     "test@exmple.com",
+				UserPassword: "Test12345!",
+			},
+		}
+
+		expectedData := "パスワードが一致しませんでした。"
+
+		// テスト用の行データを設定
+		rows := sqlmock.NewRows([]string{
+			"user_id", "user_name", "user_password",
+		})
+
+		for _, data := range mockData {
+			rows.AddRow(
+				data.UserId,
+				data.UserName,
+				data.UserPassword,
+			)
+		}
+
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+			WithArgs(requestData.UserName).
+			WillReturnRows(rows)
+
+		// テストを実行
+		result, err := dbFetcher.GetSingIn(requestData)
+
+		// 取得したデータが期待値と一致することを検証
+		assert.Empty(t, result)
+		assert.Equal(t, expectedData, err.Error())
+
+		// モックが期待通りのクエリを受け取ったか確認
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("mock check: %s", err)
+		}
 	})
 }
 
 func TestPostSingUp(t *testing.T) {
 	t.Run("PostSingUp 登録成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -211,7 +324,10 @@ func TestPostSingUp(t *testing.T) {
 	})
 	t.Run("PostSingUp 失敗", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -249,7 +365,10 @@ func TestPostSingUp(t *testing.T) {
 	})
 	t.Run("PostSingUp トランザクションエラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -278,7 +397,10 @@ func TestPostSingUp(t *testing.T) {
 func TestPutSingInEdit(t *testing.T) {
 	t.Run("PutSingInEdit 登録成功 1", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -309,7 +431,10 @@ func TestPutSingInEdit(t *testing.T) {
 	})
 	t.Run("PutSingInEdit 登録成功 2", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -340,7 +465,10 @@ func TestPutSingInEdit(t *testing.T) {
 	})
 	t.Run("PutSingInEdit 失敗", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -375,7 +503,10 @@ func TestPutSingInEdit(t *testing.T) {
 	})
 	t.Run("PutSingInEdit トランザクションエラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -404,7 +535,10 @@ func TestPutSingInEdit(t *testing.T) {
 func TestDeleteSingIn(t *testing.T) {
 	t.Run("DeleteSingIn 登録成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -430,7 +564,10 @@ func TestDeleteSingIn(t *testing.T) {
 	})
 	t.Run("DeleteSingIn 失敗", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
@@ -460,7 +597,10 @@ func TestDeleteSingIn(t *testing.T) {
 	})
 	t.Run("DeleteSingIn トランザクションエラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher("test")
+		dbFetcher, mock, err := NewSingDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}

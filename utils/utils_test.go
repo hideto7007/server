@@ -8,13 +8,14 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestGenerateJWT(t *testing.T) {
 	t.Run("GenerateJWT token発行できる", func(t *testing.T) {
-		tokenFetcher := NewUtilsFetcher(JwtSecret)
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
 
-		token, err := tokenFetcher.GenerateJWT(1, 3)
+		token, err := utilsFetcher.GenerateJWT(1, 3)
 
 		// クエリエラーが発生したことを確認
 		assert.NoError(t, err)
@@ -48,9 +49,9 @@ func TestGenerateJWT(t *testing.T) {
 
 func TestNewToken(t *testing.T) {
 	t.Run("NewToken token発行できる", func(t *testing.T) {
-		tokenFetcher := NewUtilsFetcher(JwtSecret)
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
 
-		token, err := tokenFetcher.NewToken(1, 3)
+		token, err := utilsFetcher.NewToken(1, 3)
 
 		// クエリエラーが発生したことを確認
 		assert.NoError(t, err)
@@ -60,12 +61,27 @@ func TestNewToken(t *testing.T) {
 
 func TestRefreshToken(t *testing.T) {
 	t.Run("RefreshToken token発行できる", func(t *testing.T) {
-		tokenFetcher := NewUtilsFetcher(JwtSecret)
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
 
-		token, err := tokenFetcher.RefreshToken(1, 3)
+		token, err := utilsFetcher.RefreshToken(1, 3)
 
 		// クエリエラーが発生したことを確認
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
+	})
+}
+
+func TestEncryptPassword(t *testing.T) {
+	t.Run("EncryptPassword ハッシュ化できること", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+		val := "test"
+
+		// パスワードをハッシュ化
+		result, err := utilsFetcher.EncryptPassword(val)
+		assert.NoError(t, err, "ハッシュ化時にエラーが発生しました")
+
+		// ハッシュが平文のパスワードと一致するかを確認
+		err = bcrypt.CompareHashAndPassword([]byte(result), []byte(val))
+		assert.NoError(t, err, "ハッシュが平文パスワードと一致しませんでした")
 	})
 }

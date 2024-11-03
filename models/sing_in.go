@@ -3,13 +3,16 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"server/DB"
+	"server/utils"
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -21,9 +24,8 @@ type (
 	}
 
 	RequestSingInData struct {
-		UserId       interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserName     string      `json:"user_name"`
-		UserPassword string      `json:"user_password"`
+		UserName     string `json:"user_name"`
+		UserPassword string `json:"user_password"`
 	}
 
 	RequestSingUpData struct {
@@ -64,21 +66,22 @@ type (
 	}
 
 	SingDataFetcher struct {
-		db *sql.DB
+		db           *sql.DB
+		UtilsFetcher utils.UtilsFetcher
 	}
 )
 
-func NewSingDataFetcher(dataSourceName string) (*SingDataFetcher, sqlmock.Sqlmock, error) {
+func NewSingDataFetcher(dataSourceName string, UtilsFetcher utils.UtilsFetcher) (*SingDataFetcher, sqlmock.Sqlmock, error) {
 	if dataSourceName == "test" {
 		db, mock, err := sqlmock.New()
-		return &SingDataFetcher{db: db}, mock, err
+		return &SingDataFetcher{db: db, UtilsFetcher: UtilsFetcher}, mock, err
 	} else {
 		// test実行時に以下のカバレッジは無視する
 		db, err := sql.Open("postgres", dataSourceName)
 		if err != nil {
 			log.Printf("sql.Open error %s", err)
 		}
-		return &SingDataFetcher{db: db}, nil, nil
+		return &SingDataFetcher{db: db, UtilsFetcher: UtilsFetcher}, nil, nil
 	}
 }
 
@@ -99,8 +102,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 	var err error
 
 	// データベースクエリを実行
-	// TBD：ここでパスワードをハッシュ化にして検索かける
-	rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName, data.UserPassword)
+	rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName)
 
 	if err != nil {
 		fmt.Printf("Query failed: %v\n", err)
@@ -108,23 +110,39 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var data SingInData
-		err := rows.Scan(
-			&data.UserId,
-			&data.UserName,
-			&data.UserPassword,
-		)
+	// if flg := rows.Next(); !flg {
+	// 	fmt.Println(result, "存在しないユーザー名です。")
+	// 	// return result, errors.New("存在しないユーザー名です。")
+	// }
 
+	// fmt.Println(rows.Next())
+
+	for rows.Next() {
+		var record SingInData
+		err := rows.Scan(
+			&record.UserId,
+			&record.UserName,
+			&record.UserPassword,
+		)
 		if err != nil {
 			return result, err
 		}
 
-		result = append(result, data)
+		// パスワードの整合性を確認
+		err = bcrypt.CompareHashAndPassword([]byte(record.UserPassword), []byte(data.UserPassword))
+		if err == nil {
+			// パスワードが一致する場合のみ結果に追加
+			result = append(result, record)
+		} else {
+			return result, errors.New("パスワードが一致しませんでした。")
+		}
 	}
-
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	if len(result) == 0 {
+		return result, errors.New("存在しないユーザー名です。")
 	}
 
 	return result, nil
@@ -166,9 +184,11 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 
 	singUp := DB.PostSingUpSyntax
 
+	hashPassword, _ := pf.UtilsFetcher.EncryptPassword(data.UserPassword)
+
 	if _, err = tx.Exec(singUp,
 		data.UserName,
-		data.UserPassword, // TBD:ここでハッシュ化して保存
+		hashPassword, // TBD:ここでハッシュ化して保存
 		data.NickName,
 		createdAt,
 		data.NickName,
@@ -224,7 +244,8 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 
 	if data.UserPassword != "" {
 		// TBD:変更する値もハッシュ化する
-		userPassword = &data.UserPassword
+		hashPassword, _ := pf.UtilsFetcher.EncryptPassword(data.UserPassword)
+		userPassword = &hashPassword
 	}
 
 	singInEdit := DB.PutSingInEditSyntax
