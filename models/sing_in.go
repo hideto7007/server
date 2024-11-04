@@ -12,7 +12,6 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type (
@@ -129,7 +128,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 		}
 
 		// パスワードの整合性を確認
-		err = bcrypt.CompareHashAndPassword([]byte(record.UserPassword), []byte(data.UserPassword))
+		err = pf.UtilsFetcher.CompareHashPassword(record.UserPassword, data.UserPassword)
 		if err == nil {
 			// パスワードが一致する場合のみ結果に追加
 			result = append(result, record)

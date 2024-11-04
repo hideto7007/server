@@ -93,11 +93,11 @@ func TestPostSingInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_name",
@@ -155,11 +155,11 @@ func TestPostSingInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_name",
@@ -223,11 +223,11 @@ func TestPostSingInApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_password",
@@ -276,11 +276,11 @@ func TestPostSingInApi(t *testing.T) {
 
 	// 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-	// 	var responseBody utils.Response[requestSingInData]
+	// 	var responseBody utils.ResponseWithSlice[requestSingInData]
 	// 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 	// 	assert.NoError(t, err)
 
-	// 	expectedErrorMessage := utils.Response[requestSingInData]{
+	// 	expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
 	// 		ErrorMsg: "サインインに失敗しました。",
 	// 	}
 	// 	assert.Equal(t, responseBody, expectedErrorMessage)
@@ -328,13 +328,13 @@ func TestPostSingInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.Response[SingInResult]
+		var responseBody utils.ResponseWithSlice[SingInResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(responseBody.Token), 120)
 
-		expectedOk := utils.Response[SingInResult]{
+		expectedOk := utils.ResponseWithSlice[SingInResult]{
 			Result: []SingInResult{
 				{
 					UserId:       3,
@@ -405,11 +405,11 @@ func TestPostSingInApi(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.Response[requestSingInData]
+		var responseBody utils.ResponseWithSlice[requestSingInData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[requestSingInData]{
+		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
 			ErrorMsg: "トークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -439,11 +439,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -471,11 +471,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -505,11 +505,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -545,11 +545,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -595,11 +595,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.Response[RequestRefreshToken]
+		var responseBody utils.ResponseWithSlice[RequestRefreshToken]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[RequestRefreshToken]{
+		expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
 			ErrorMsg: "トークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -709,11 +709,11 @@ func TestPostSingUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "nick_name",
@@ -768,11 +768,11 @@ func TestPostSingUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_name",
@@ -830,11 +830,11 @@ func TestPostSingUpApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_password",
@@ -881,11 +881,11 @@ func TestPostSingUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.Response[requestSingInData]
+		var responseBody utils.ResponseWithSlice[requestSingInData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[requestSingInData]{
+		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
 			ErrorMsg: "サインアップに失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -926,14 +926,14 @@ func TestPostSingUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.Response[string]
+		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.Response[string]{
-			ResultMsg: "サインアップに成功",
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "サインアップに成功",
 		}
-		assert.Equal(t, responseBody.ResultMsg, expectedOk.ResultMsg)
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
 
@@ -998,11 +998,11 @@ func TestPutSingInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -1061,11 +1061,11 @@ func TestPutSingInEditApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -1113,11 +1113,11 @@ func TestPutSingInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_name",
@@ -1175,11 +1175,11 @@ func TestPutSingInEditApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_password",
@@ -1226,11 +1226,11 @@ func TestPutSingInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.Response[string]
+		var responseBody utils.ResponseWithSlice[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[string]{
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -1271,14 +1271,14 @@ func TestPutSingInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.Response[string]
+		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.Response[string]{
-			ResultMsg: "サインイン編集に成功",
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "サインイン編集に成功",
 		}
-		assert.Equal(t, responseBody.ResultMsg, expectedOk.ResultMsg)
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
 
@@ -1341,11 +1341,11 @@ func TestDeleteSingInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -1400,11 +1400,11 @@ func TestDeleteSingInApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -1451,11 +1451,11 @@ func TestDeleteSingInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.Response[string]
+		var responseBody utils.ResponseWithSlice[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[string]{
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
 			ErrorMsg: "サインインの削除に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -1494,13 +1494,13 @@ func TestDeleteSingInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.Response[string]
+		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.Response[string]{
-			ResultMsg: "サインイン削除に成功",
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "サインイン削除に成功",
 		}
-		assert.Equal(t, responseBody.ResultMsg, expectedOk.ResultMsg)
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }

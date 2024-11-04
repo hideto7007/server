@@ -16,18 +16,26 @@ type UtilsFetcher interface {
 	NewToken(UserId int, ExpirationDate int) (string, error)
 	RefreshToken(UserId int, ExpirationDate int) (string, error)
 	EncryptPassword(password string) (string, error)
+	CompareHashPassword(hashedPassword, requestPassword string) error
 }
 
 type UtilsDataFetcher struct {
 	JwtSecret []byte
 }
 
-// Responseを制御する関数作成する
-type Response[T any] struct {
+// ResponseWithSlice with slice Result
+type ResponseWithSlice[T any] struct {
 	RecodeRows int    `json:"recode_rows,omitempty"`
 	Token      string `json:"token,omitempty"`
 	Result     []T    `json:"result,omitempty"`
-	ResultMsg  T      `json:"result_msg,omitempty"`
+	ErrorMsg   string `json:"error_msg,omitempty"`
+}
+
+// ResponseWithSlice with single Result
+type ResponseWithSingle[T any] struct {
+	RecodeRows int    `json:"recode_rows,omitempty"`
+	Token      string `json:"token,omitempty"`
+	Result     T      `json:"result,omitempty"`
 	ErrorMsg   string `json:"error_msg,omitempty"`
 }
 
@@ -100,4 +108,13 @@ func (tg *UtilsDataFetcher) EncryptPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
+}
+
+// ハッシュを比較
+func (tg *UtilsDataFetcher) CompareHashPassword(hashedPassword, requestPassword string) error {
+	// パスワードの文字列をハッシュ化して、既に登録されているハッシュ化したパスワードと比較します
+	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(requestPassword)); err != nil {
+		return err
+	}
+	return nil
 }
