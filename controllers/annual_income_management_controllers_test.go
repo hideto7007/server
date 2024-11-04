@@ -180,11 +180,11 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "start_date",
@@ -231,11 +231,11 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "end_date",
@@ -291,11 +291,11 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "start_date",
@@ -352,11 +352,11 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "end_date",
@@ -405,11 +405,11 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -462,11 +462,11 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -591,11 +591,11 @@ func TestGetDateRangeApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -642,11 +642,11 @@ func TestGetDateRangeApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -772,11 +772,11 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -825,11 +825,11 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 			// レスポンスのステータスコードを確認
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -887,10 +887,10 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		fetcher.InsertIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var response map[string]interface{}
+		var response utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "新規給料情報を登録致しました。", response["result_msg"])
+		assert.Equal(t, "新規給料情報を登録致しました。", response.Result)
 	})
 
 	t.Run("error InsertIncomeDataApi", func(t *testing.T) {
@@ -972,12 +972,12 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.Response[models.InsertIncomeData]
+		var responseBody utils.ResponseWithSlice[models.InsertIncomeData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
 		// 期待するエラーメッセージを確認
-		expectedErrorMessage := utils.Response[models.InsertIncomeData]{
+		expectedErrorMessage := utils.ResponseWithSlice[models.InsertIncomeData]{
 			ErrorMsg: "登録するデータが存在しません。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -1051,11 +1051,11 @@ func TestInsertIncomeDataApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			RecodeRows: 1,
 			Result: []utils.ErrorMessages{
 				{
@@ -1139,11 +1139,11 @@ func TestInsertIncomeDataApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			RecodeRows: 1,
 			Result: []utils.ErrorMessages{
 				{
@@ -1251,11 +1251,11 @@ func TestInsertIncomeDataApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				RecodeRows: 1,
 				Result: []utils.ErrorMessages{
 					{
@@ -1321,10 +1321,10 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		fetcher.UpdateIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var response map[string]interface{}
+		var response utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "給料情報の更新が問題なく成功しました。", response["result_msg"])
+		assert.Equal(t, "給料情報の更新が問題なく成功しました。", response.Result)
 	})
 
 	t.Run("error UpdateIncomeDataApi", func(t *testing.T) {
@@ -1430,12 +1430,12 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.Response[models.UpdateIncomeData]
+		var responseBody utils.ResponseWithSlice[models.UpdateIncomeData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
 		// 期待するエラーメッセージを確認
-		expectedErrorMessage := utils.Response[models.UpdateIncomeData]{
+		expectedErrorMessage := utils.ResponseWithSlice[models.UpdateIncomeData]{
 			ErrorMsg: "更新するデータが存在しません。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -1510,11 +1510,11 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			RecodeRows: 1,
 			Result: []utils.ErrorMessages{
 				{
@@ -1603,11 +1603,11 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			RecodeRows: 1,
 			Result: []utils.ErrorMessages{
 				{
@@ -1719,11 +1719,11 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.Response[utils.ErrorMessages]
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 				RecodeRows: 1,
 				Result: []utils.ErrorMessages{
 					{
@@ -1775,10 +1775,10 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		fetcher.DeleteIncomeDataApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var response map[string]interface{}
+		var response utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "給料情報の削除が問題なく成功しました。", response["result_msg"])
+		assert.Equal(t, "給料情報の削除が問題なく成功しました。", response.Result)
 	})
 
 	t.Run("error DeleteIncomeDataApi", func(t *testing.T) {
@@ -1879,12 +1879,12 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.Response[models.DeleteIncomeData]
+		var responseBody utils.ResponseWithSlice[models.DeleteIncomeData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
 		// 期待するエラーメッセージを確認
-		expectedErrorMessage := utils.Response[models.DeleteIncomeData]{
+		expectedErrorMessage := utils.ResponseWithSlice[models.DeleteIncomeData]{
 			ErrorMsg: "削除するデータが存在しません。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -1928,11 +1928,11 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			RecodeRows: 2,
 			Result: []utils.ErrorMessages{
 				{

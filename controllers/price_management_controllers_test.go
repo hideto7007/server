@@ -57,7 +57,7 @@ func TestGetPriceInfo(t *testing.T) {
 		assert.Equal(t, http.StatusOK, c.Writer.Status())
 
 		// レスポンスの JSON データを取得
-		response := utils.Response[PriceInfo]{
+		response := utils.ResponseWithSlice[PriceInfo]{
 			Result: []PriceInfo{
 				{
 					LeftAmount:  res.LeftAmount,
@@ -105,11 +105,11 @@ func TestGetPriceInfo(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.Response[PriceInfo]
+		var responseBody utils.ResponseWithSlice[PriceInfo]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[PriceInfo]{
+		expectedErrorMessage := utils.ResponseWithSlice[PriceInfo]{
 			ErrorMsg: "変換失敗",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -131,11 +131,11 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "money_received",
@@ -161,11 +161,11 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "bouns",
@@ -191,11 +191,11 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "fixed_cost",
@@ -221,11 +221,11 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "loan",
@@ -251,11 +251,11 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "private",
@@ -281,11 +281,11 @@ func TestGetPriceInfo(t *testing.T) {
 		// レスポンスのステータスコードを確認
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.Response[utils.ErrorMessages]
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.Response[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "insurance",

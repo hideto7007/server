@@ -23,12 +23,19 @@ type UtilsDataFetcher struct {
 	JwtSecret []byte
 }
 
-// Responseを制御する関数作成する
-type Response[T any] struct {
+// ResponseWithSlice with slice Result
+type ResponseWithSlice[T any] struct {
 	RecodeRows int    `json:"recode_rows,omitempty"`
 	Token      string `json:"token,omitempty"`
 	Result     []T    `json:"result,omitempty"`
-	ResultMsg  T      `json:"result_msg,omitempty"`
+	ErrorMsg   string `json:"error_msg,omitempty"`
+}
+
+// ResponseWithSlice with single Result
+type ResponseWithSingle[T any] struct {
+	RecodeRows int    `json:"recode_rows,omitempty"`
+	Token      string `json:"token,omitempty"`
+	Result     T      `json:"result,omitempty"`
 	ErrorMsg   string `json:"error_msg,omitempty"`
 }
 
