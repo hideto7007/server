@@ -16,6 +16,7 @@ type UtilsFetcher interface {
 	NewToken(UserId int, ExpirationDate int) (string, error)
 	RefreshToken(UserId int, ExpirationDate int) (string, error)
 	EncryptPassword(password string) (string, error)
+	CompareHashPassword(hashedPassword, requestPassword string) error
 }
 
 type UtilsDataFetcher struct {
@@ -100,4 +101,13 @@ func (tg *UtilsDataFetcher) EncryptPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
+}
+
+// ハッシュを比較
+func (tg *UtilsDataFetcher) CompareHashPassword(hashedPassword, requestPassword string) error {
+	// パスワードの文字列をハッシュ化して、既に登録されているハッシュ化したパスワードと比較します
+	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(requestPassword)); err != nil {
+		return err
+	}
+	return nil
 }

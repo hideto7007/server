@@ -8,7 +8,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestGenerateJWT(t *testing.T) {
@@ -81,7 +80,30 @@ func TestEncryptPassword(t *testing.T) {
 		assert.NoError(t, err, "ハッシュ化時にエラーが発生しました")
 
 		// ハッシュが平文のパスワードと一致するかを確認
-		err = bcrypt.CompareHashAndPassword([]byte(result), []byte(val))
+		err = utilsFetcher.CompareHashPassword(result, val)
 		assert.NoError(t, err, "ハッシュが平文パスワードと一致しませんでした")
+	})
+}
+
+func TestCompareHashPassword(t *testing.T) {
+	t.Run("CompareHashPassword nilが返されること", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+		val := "test"
+
+		// パスワードをハッシュ化
+		hashedPassword, err := utilsFetcher.EncryptPassword(val)
+		assert.NoError(t, err, "ハッシュ化時にエラーが発生しました")
+
+		// ハッシュ化されたパスワードと元の平文パスワードを比較
+		err = utilsFetcher.CompareHashPassword(hashedPassword, val)
+		assert.NoError(t, err, "ハッシュが平文パスワードと一致しませんでした")
+	})
+	t.Run("CompareHashPassword errが発生すること", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+		val := "test"
+
+		// ハッシュ化されたパスワードと元の平文パスワードを比較
+		err := utilsFetcher.CompareHashPassword(val, val)
+		assert.NotNil(t, err)
 	})
 }
