@@ -34,7 +34,7 @@ func SetupRoutes(r *gin.Engine) {
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")
-		authRoutes.Use(middleware.JWTAuthMiddleware())
+		authRoutes.Use(middleware.JWTAuthMiddleware(utils.UtilsDataFetcher{}))
 		{
 			authRoutes.GET("/price", priceAPI.GetPriceInfoApi)
 			authRoutes.GET("/income_data", incomeAPI.GetIncomeDataInRangeApi)

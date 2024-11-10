@@ -2,7 +2,9 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"server/common"
 	"server/config"
 	"server/models" // モデルのインポート
@@ -84,6 +86,8 @@ func NewSingDataFetcher(
 
 func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	var requestData requestSingInData
+	var secure bool = false
+	var domain string = "localhost"
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		response := utils.ResponseWithSlice[requestSingInData]{
 			ErrorMsg: err.Error(),
@@ -119,18 +123,36 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	}
 
 	// UtilsFetcher を使用してトークンを生成
-	token, err := af.UtilsFetcher.NewToken(result[0].UserId, 12)
+	newToken, err := af.UtilsFetcher.NewToken(result[0].UserId, utils.AuthTokenHour)
 	if err != nil {
 		response := utils.ResponseWithSlice[requestSingInData]{
-			ErrorMsg: "トークンの生成に失敗しました。",
+			ErrorMsg: "新規トークンの生成に失敗しました。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
+	refreshToken, err := af.UtilsFetcher.RefreshToken(result[0].UserId, utils.RefreshAuthTokenHour)
+	if err != nil {
+		response := utils.ResponseWithSlice[RequestRefreshToken]{
+			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// ローカルの場合
+	if os.Getenv("ENV") != "local" {
+		domain = os.Getenv("DOMAIN")
+		secure = true
+	}
+
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, true)
+	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, true)
+
 	// サインイン成功のレスポンス
 	response := utils.ResponseWithSlice[SingInResult]{
-		Token: token,
+		// Token: token,
 		Result: []SingInResult{
 			{
 				UserId:       result[0].UserId,
@@ -150,6 +172,8 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 
 func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	var common common.CommonFetcher = common.NewCommonFetcher()
+	var secure bool = false
+	var domain string = "localhost"
 	// パラメータからユーザー情報取得
 	userIdCheck := c.Query("user_id")
 	validator := validation.RequestRefreshTokenData{
@@ -164,20 +188,62 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		return
 	}
 
+	refreshToken, err := c.Cookie(utils.RefreshAuthToken)
+	if err != nil || refreshToken == "" {
+		response := utils.ResponseWithSlice[RequestRefreshToken]{
+			ErrorMsg: "リフレッシュトークンがありません。再ログインしてください。",
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
+	// リフレッシュトークンの検証
+	token, err := af.UtilsFetcher.ParseWithClaims(refreshToken)
+	if err != nil || !token.Valid {
+		response := utils.ResponseWithSlice[RequestRefreshToken]{
+			ErrorMsg: "リフレッシュトークンが無効です。再ログインしてください。",
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
+	// クレームからユーザー情報を取得
+	_, ok := af.UtilsFetcher.MapClaims(token)
+	if !ok || !token.Valid {
+		response := utils.ResponseWithSlice[RequestRefreshToken]{
+			ErrorMsg: "無効なリフレッシュトークン",
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
 	userId, _ := common.StrToInt(userIdCheck)
 
-	token, err := af.UtilsFetcher.RefreshToken(userId, 3)
+	newToken, err := af.UtilsFetcher.NewToken(userId, utils.RefreshAuthTokenHour)
 	if err != nil {
 		response := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "トークンの生成に失敗しました。",
+			ErrorMsg: "新しいアクセストークンの生成に失敗しました",
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
+	// ローカルの場合
+	if os.Getenv("ENV") != "local" {
+		domain = os.Getenv("DOMAIN")
+		secure = true
+	}
+
+	// 新しいアクセストークンをクッキーとしてセット（またはJSONとして返す）
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, true)
+	// // リフレッシュトークンも更新しておく
+	// c.SetCookie(utils.RefreshAuthToken, newToken, 2*60*60, "/", domain, secure, true)
+
+	log.Println("INFO: ", newToken)
+
 	// リフレッシュトークン成功のレスポンス
-	response := refreshTokenDataResponse{
-		Token: token,
+	response := utils.ResponseWithSingle[string]{
+		Result: "新しいアクセストークンが発行されました",
 	}
 	c.JSON(http.StatusOK, response)
 }

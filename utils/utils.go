@@ -2,7 +2,6 @@
 package utils
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -17,6 +16,8 @@ type UtilsFetcher interface {
 	RefreshToken(UserId int, ExpirationDate int) (string, error)
 	EncryptPassword(password string) (string, error)
 	CompareHashPassword(hashedPassword, requestPassword string) error
+	ParseWithClaims(validationToken string) (*jwt.Token, error)
+	MapClaims(token *jwt.Token) (jwt.MapClaims, bool)
 }
 
 type UtilsDataFetcher struct {
@@ -55,6 +56,14 @@ type ErrorMessages struct {
 
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
+var AuthToken = "AuthToken"
+var RefreshAuthToken = "RefreshAuthToken"
+var AuthTokenHour = 1
+
+// 推奨：90日間だが、一旦12時間で設定
+var RefreshAuthTokenHour = 12
+var SecondsInHour = 3600
+
 func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
 	return &UtilsDataFetcher{
 		JwtSecret: JwtSecret,
@@ -62,7 +71,7 @@ func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
 }
 
 // トークン生成関数
-func (tg *UtilsDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string, error) {
+func (ud *UtilsDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string, error) {
 	// トークンの有効期限を設定
 
 	// トークンのクレーム（データペイロード）を作成
@@ -76,13 +85,11 @@ func (tg *UtilsDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string,
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// トークンのクレームを確認
-	tokenClaims, _ := token.Claims.(jwt.MapClaims)
-	fmt.Printf("生成されたトークンのクレーム: %+v\n", tokenClaims)
-
-	fmt.Println("check ", tg.JwtSecret)
+	// tokenClaims, _ := token.Claims.(jwt.MapClaims)
+	// fmt.Printf("生成されたトークンのクレーム: %+v\n", tokenClaims)
 
 	// トークンに署名
-	tokenString, err := token.SignedString(tg.JwtSecret)
+	tokenString, err := token.SignedString(ud.JwtSecret)
 	if err != nil {
 		return "", err
 	}
@@ -91,17 +98,17 @@ func (tg *UtilsDataFetcher) GenerateJWT(UserId int, ExpirationDate int) (string,
 }
 
 // 新規有効期限付きのトークン発行
-func (tg *UtilsDataFetcher) NewToken(UserId int, ExpirationDate int) (string, error) {
-	return tg.GenerateJWT(UserId, ExpirationDate)
+func (ud *UtilsDataFetcher) NewToken(UserId int, ExpirationDate int) (string, error) {
+	return ud.GenerateJWT(UserId, ExpirationDate)
 }
 
 // 新規有効期限付きのリフレッシュトークン発行
-func (tg *UtilsDataFetcher) RefreshToken(UserId int, ExpirationDate int) (string, error) {
-	return tg.GenerateJWT(UserId, ExpirationDate)
+func (ud *UtilsDataFetcher) RefreshToken(UserId int, ExpirationDate int) (string, error) {
+	return ud.GenerateJWT(UserId, ExpirationDate)
 }
 
 // パスワードの平文をハッシュ化
-func (tg *UtilsDataFetcher) EncryptPassword(password string) (string, error) {
+func (ud *UtilsDataFetcher) EncryptPassword(password string) (string, error) {
 	// パスワードの文字列をハッシュ化する
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -111,10 +118,24 @@ func (tg *UtilsDataFetcher) EncryptPassword(password string) (string, error) {
 }
 
 // ハッシュを比較
-func (tg *UtilsDataFetcher) CompareHashPassword(hashedPassword, requestPassword string) error {
+func (ud *UtilsDataFetcher) CompareHashPassword(hashedPassword, requestPassword string) error {
 	// パスワードの文字列をハッシュ化して、既に登録されているハッシュ化したパスワードと比較します
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(requestPassword)); err != nil {
 		return err
 	}
 	return nil
+}
+
+// トークンの検証
+func (ud *UtilsDataFetcher) ParseWithClaims(validationToken string) (*jwt.Token, error) {
+	resultToken, err := jwt.ParseWithClaims(validationToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return JwtSecret, nil
+	})
+	return resultToken, err
+}
+
+// クレームからユーザー情報を取得
+func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (jwt.MapClaims, bool) {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	return claims, ok
 }

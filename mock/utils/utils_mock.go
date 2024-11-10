@@ -7,6 +7,7 @@ package mock_utils
 import (
 	reflect "reflect"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -77,6 +78,21 @@ func (mr *MockUtilsFetcherMockRecorder) GenerateJWT(UserId, ExpirationDate inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateJWT", reflect.TypeOf((*MockUtilsFetcher)(nil).GenerateJWT), UserId, ExpirationDate)
 }
 
+// MapClaims mocks base method.
+func (m *MockUtilsFetcher) MapClaims(token *jwt.Token) (jwt.MapClaims, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MapClaims", token)
+	ret0, _ := ret[0].(jwt.MapClaims)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// MapClaims indicates an expected call of MapClaims.
+func (mr *MockUtilsFetcherMockRecorder) MapClaims(token interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MapClaims", reflect.TypeOf((*MockUtilsFetcher)(nil).MapClaims), token)
+}
+
 // NewToken mocks base method.
 func (m *MockUtilsFetcher) NewToken(UserId, ExpirationDate int) (string, error) {
 	m.ctrl.T.Helper()
@@ -90,6 +106,21 @@ func (m *MockUtilsFetcher) NewToken(UserId, ExpirationDate int) (string, error) 
 func (mr *MockUtilsFetcherMockRecorder) NewToken(UserId, ExpirationDate interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewToken", reflect.TypeOf((*MockUtilsFetcher)(nil).NewToken), UserId, ExpirationDate)
+}
+
+// ParseWithClaims mocks base method.
+func (m *MockUtilsFetcher) ParseWithClaims(validationToken string) (*jwt.Token, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ParseWithClaims", validationToken)
+	ret0, _ := ret[0].(*jwt.Token)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ParseWithClaims indicates an expected call of ParseWithClaims.
+func (mr *MockUtilsFetcherMockRecorder) ParseWithClaims(validationToken interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseWithClaims", reflect.TypeOf((*MockUtilsFetcher)(nil).ParseWithClaims), validationToken)
 }
 
 // RefreshToken mocks base method.
