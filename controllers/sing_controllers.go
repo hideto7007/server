@@ -12,6 +12,7 @@ import (
 	"server/validation"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type (
@@ -189,7 +190,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	}
 
 	refreshToken, err := c.Cookie(utils.RefreshAuthToken)
-	if err != nil || refreshToken == "" {
+	if err != nil {
 		response := utils.ResponseWithSlice[RequestRefreshToken]{
 			ErrorMsg: "リフレッシュトークンがありません。再ログインしてください。",
 		}
@@ -199,7 +200,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 
 	// リフレッシュトークンの検証
 	token, err := af.UtilsFetcher.ParseWithClaims(refreshToken)
-	if err != nil || !token.Valid {
+	if err != nil {
 		response := utils.ResponseWithSlice[RequestRefreshToken]{
 			ErrorMsg: "リフレッシュトークンが無効です。再ログインしてください。",
 		}
@@ -208,10 +209,10 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	}
 
 	// クレームからユーザー情報を取得
-	_, ok := af.UtilsFetcher.MapClaims(token)
-	if !ok || !token.Valid {
+	_, ok := af.UtilsFetcher.MapClaims(token.(*jwt.Token))
+	if !ok {
 		response := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "無効なリフレッシュトークン",
+			ErrorMsg: "無効なリフレッシュトークン。",
 		}
 		c.JSON(http.StatusUnauthorized, response)
 		return
@@ -222,7 +223,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	newToken, err := af.UtilsFetcher.NewToken(userId, utils.RefreshAuthTokenHour)
 	if err != nil {
 		response := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "新しいアクセストークンの生成に失敗しました",
+			ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
@@ -243,7 +244,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 
 	// リフレッシュトークン成功のレスポンス
 	response := utils.ResponseWithSingle[string]{
-		Result: "新しいアクセストークンが発行されました",
+		Result: "新しいアクセストークンが発行されました。",
 	}
 	c.JSON(http.StatusOK, response)
 }

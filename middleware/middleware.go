@@ -10,9 +10,9 @@ import (
 
 	"server/utils"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
@@ -46,7 +46,8 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 		}
 
 		// トークンのクレームを取得して、有効期限を確認
-		if claims, ok := utilsFetcher.MapClaims(token); ok {
+		if claimsInterface, ok := utilsFetcher.MapClaims(token); ok {
+			claims, _ := claimsInterface.(jwt.MapClaims)
 			if exp, ok := claims["exp"].(float64); ok {
 				if time.Unix(int64(exp), 0).Before(time.Now()) {
 					response := utils.ResponseWithSingle[string]{

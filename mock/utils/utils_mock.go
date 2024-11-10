@@ -7,7 +7,7 @@ package mock_utils
 import (
 	reflect "reflect"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt/v5"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -79,10 +79,10 @@ func (mr *MockUtilsFetcherMockRecorder) GenerateJWT(UserId, ExpirationDate inter
 }
 
 // MapClaims mocks base method.
-func (m *MockUtilsFetcher) MapClaims(token *jwt.Token) (jwt.MapClaims, bool) {
+func (m *MockUtilsFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MapClaims", token)
-	ret0, _ := ret[0].(jwt.MapClaims)
+	ret0, _ := ret[0].(interface{})
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -109,10 +109,10 @@ func (mr *MockUtilsFetcherMockRecorder) NewToken(UserId, ExpirationDate interfac
 }
 
 // ParseWithClaims mocks base method.
-func (m *MockUtilsFetcher) ParseWithClaims(validationToken string) (*jwt.Token, error) {
+func (m *MockUtilsFetcher) ParseWithClaims(validationToken string) (interface{}, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ParseWithClaims", validationToken)
-	ret0, _ := ret[0].(*jwt.Token)
+	ret0, _ := ret[0].(interface{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

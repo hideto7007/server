@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,8 +16,8 @@ type UtilsFetcher interface {
 	RefreshToken(UserId int, ExpirationDate int) (string, error)
 	EncryptPassword(password string) (string, error)
 	CompareHashPassword(hashedPassword, requestPassword string) error
-	ParseWithClaims(validationToken string) (*jwt.Token, error)
-	MapClaims(token *jwt.Token) (jwt.MapClaims, bool)
+	ParseWithClaims(validationToken string) (interface{}, error)
+	MapClaims(token *jwt.Token) (interface{}, bool)
 }
 
 type UtilsDataFetcher struct {
@@ -127,15 +127,20 @@ func (ud *UtilsDataFetcher) CompareHashPassword(hashedPassword, requestPassword 
 }
 
 // トークンの検証
-func (ud *UtilsDataFetcher) ParseWithClaims(validationToken string) (*jwt.Token, error) {
-	resultToken, err := jwt.ParseWithClaims(validationToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+// テストの都合上、*jwt.Tokenだと厳密チェックができないためinterfaceで対応
+func (ud *UtilsDataFetcher) ParseWithClaims(validationToken string) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(validationToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return JwtSecret, nil
 	})
-	return resultToken, err
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
 }
 
 // クレームからユーザー情報を取得
-func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (jwt.MapClaims, bool) {
+// テストの都合上、jwt.MapClaimsだと厳密チェックができないためinterfaceで対応
+func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	return claims, ok
 }
