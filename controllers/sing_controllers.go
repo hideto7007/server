@@ -2,7 +2,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"server/common"
@@ -240,7 +239,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	// // リフレッシュトークンも更新しておく
 	// c.SetCookie(utils.RefreshAuthToken, newToken, 2*60*60, "/", domain, secure, true)
 
-	log.Println("INFO: ", newToken)
+	// log.Println("INFO: ", newToken)
 
 	// リフレッシュトークン成功のレスポンス
 	response := utils.ResponseWithSingle[string]{
