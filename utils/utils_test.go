@@ -6,6 +6,7 @@ import (
 
 	mock_utils "server/mock/utils"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -105,5 +106,52 @@ func TestCompareHashPassword(t *testing.T) {
 		// ハッシュ化されたパスワードと元の平文パスワードを比較
 		err := utilsFetcher.CompareHashPassword(val, val)
 		assert.NotNil(t, err)
+	})
+}
+
+func TestParseWithClaims(t *testing.T) {
+	t.Run("ParseWithClaims トークンが返されること", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+		token, _ := utilsFetcher.NewToken(1, 3)
+
+		_, err := utilsFetcher.ParseWithClaims(token)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, token)
+	})
+	t.Run("ParseWithClaims エラーが発生されること", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+
+		token, err := utilsFetcher.ParseWithClaims("token")
+
+		assert.Error(t, err)
+		assert.Empty(t, token)
+	})
+}
+
+func TestMapClaims(t *testing.T) {
+	t.Run("MapClaims クレームが返されて、trueが返ってくること", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+		token, _ := utilsFetcher.NewToken(1, 3)
+
+		token1, _ := utilsFetcher.ParseWithClaims(token)
+
+		claims, ok := utilsFetcher.MapClaims(token1.(*jwt.Token))
+
+		assert.Equal(t, ok, true)
+		assert.NotEmpty(t, claims)
+	})
+	t.Run("MapClaims クレームが空で、falseが返ってくること", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+
+		var token *jwt.Token // nil トークンを渡す
+
+		// クレームを取得
+		claims, ok := utilsFetcher.MapClaims(token)
+
+		// ok が false であることを確認
+		assert.Equal(t, false, ok)
+		// claims が空であることを確認
+		assert.Empty(t, claims)
 	})
 }
