@@ -141,6 +141,9 @@ func (ud *UtilsDataFetcher) ParseWithClaims(validationToken string) (interface{}
 // クレームからユーザー情報を取得
 // テストの都合上、jwt.MapClaimsだと厳密チェックができないためinterfaceで対応
 func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
+	if token == nil {
+		return nil, false
+	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	return claims, ok
 }
