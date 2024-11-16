@@ -88,6 +88,7 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	var requestData requestSingInData
 	var secure bool = false
 	var domain string = "localhost"
+	var httpOnly bool = false
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		response := utils.ResponseWithSlice[requestSingInData]{
 			ErrorMsg: err.Error(),
@@ -145,10 +146,11 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	if os.Getenv("ENV") != "local" {
 		domain = os.Getenv("DOMAIN")
 		secure = true
+		httpOnly = true
 	}
 
-	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, true)
-	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, true)
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 
 	// サインイン成功のレスポンス
 	response := utils.ResponseWithSlice[SingInResult]{
@@ -174,6 +176,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	var common common.CommonFetcher = common.NewCommonFetcher()
 	var secure bool = false
 	var domain string = "localhost"
+	var httpOnly bool = false
 	// パラメータからユーザー情報取得
 	userIdCheck := c.Query("user_id")
 	validator := validation.RequestRefreshTokenData{
@@ -232,10 +235,11 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	if os.Getenv("ENV") != "local" {
 		domain = os.Getenv("DOMAIN")
 		secure = true
+		httpOnly = true
 	}
 
 	// 新しいアクセストークンをクッキーとしてセット（またはJSONとして返す）
-	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, true)
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 	// // リフレッシュトークンも更新しておく
 	// c.SetCookie(utils.RefreshAuthToken, newToken, 2*60*60, "/", domain, secure, true)
 
