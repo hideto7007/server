@@ -1222,7 +1222,7 @@ func TestPostSingUpApi(t *testing.T) {
 		assert.NoError(t, err)
 
 		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
-			ErrorMsg: "サインアップに失敗しました。",
+			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})

@@ -289,7 +289,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	)
 	if err := dbFetcher.PostSingUp(requestData.Data[0]); err != nil {
 		response := utils.ResponseWithSlice[string]{
-			ErrorMsg: "サインアップに失敗しました。",
+			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
 		c.JSON(http.StatusUnauthorized, response)
 		return
