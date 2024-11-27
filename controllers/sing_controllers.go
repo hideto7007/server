@@ -291,7 +291,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 		response := utils.ResponseWithSlice[string]{
 			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		c.JSON(http.StatusConflict, response)
 		return
 	}
 

@@ -1215,7 +1215,7 @@ func TestPostSingUpApi(t *testing.T) {
 		}
 		fetcher.PostSingUpApi(c)
 
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusConflict, w.Code)
 
 		var responseBody utils.ResponseWithSlice[requestSingInData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
