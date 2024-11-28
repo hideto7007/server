@@ -44,6 +44,7 @@ type RequestSingUpData struct {
 type RequestRetryAuthEmail struct {
 	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	NickName string `json:"nick_name" valid:"required~ニックネームは必須です。"`
+	RedisKey string `json:"redis_key" valid:"required~Redisキーは必須です。"`
 }
 
 type RequestSingInEditData struct {

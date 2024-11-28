@@ -147,7 +147,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 	return result, nil
 }
 
-// SingUp サインイン情報を新規登録API
+// SingUp サインアップ情報を新規登録API
 //
 // 引数:
 //   - data: { user_name: string, user_password: string, nick_name: string }
@@ -187,7 +187,7 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 
 	if _, err = tx.Exec(singUp,
 		data.UserName,
-		hashPassword, // TBD:ここでハッシュ化して保存
+		hashPassword,
 		data.NickName,
 		createdAt,
 		data.NickName,
@@ -199,7 +199,7 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 	return nil
 }
 
-// SingUp サインイン情報を編集API
+// PutSingInEdit サイン情報を編集API
 //
 // 引数:
 //   - data: { user_id: int, user_name: string, user_password: string }

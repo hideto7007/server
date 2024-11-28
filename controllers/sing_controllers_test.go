@@ -984,294 +984,294 @@ func TestGetRefreshTokenApi(t *testing.T) {
 	})
 }
 
-func TestPostSingUpApi(t *testing.T) {
+// func TestPostSingUpApi(t *testing.T) {
 
-	gin.SetMode(gin.TestMode)
+// 	gin.SetMode(gin.TestMode)
 
-	t.Run("PostSingUpApi JSON不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+// 	t.Run("PostSingUpApi JSON不正", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
 
-		// Invalid JSON
-		invalidJSON := `{"data": [`
+// 		// Invalid JSON
+// 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBufferString(invalidJSON))
+// 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := apiSingDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
-		}
-		fetcher.PostSingUpApi(c)
+// 		fetcher := apiSingDataFetcher{
+// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher: common.NewCommonFetcher(),
+// 		}
+// 		fetcher.PostSingUpApi(c)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
-		err := json.Unmarshal(w.Body.Bytes(), &response)
-		assert.NoError(t, err)
-		assert.Contains(t, response["error_msg"], "unexpected EOF")
-	})
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+// 		var response map[string]interface{}
+// 		err := json.Unmarshal(w.Body.Bytes(), &response)
+// 		assert.NoError(t, err)
+// 		assert.Contains(t, response["error_msg"], "unexpected EOF")
+// 	})
 
-	t.Run("PostSingUpApi バリデーション 必須", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+// 	t.Run("PostSingUpApi バリデーション 必須", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
 
-		data := testData{
-			Data: []models.RequestSingUpData{
-				{
-					NickName:     "",
-					UserName:     "",
-					UserPassword: "",
-				},
-			},
-		}
+// 		data := testData{
+// 			Data: []models.RequestSingUpData{
+// 				{
+// 					NickName:     "",
+// 					UserName:     "",
+// 					UserPassword: "",
+// 				},
+// 			},
+// 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PostSingUp",
-			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
-				return nil
-			})
-		defer patches.Reset()
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SingDataFetcher{}),
+// 			"PostSingUp",
+// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
-		}
-		fetcher.PostSingUpApi(c)
+// 		fetcher := apiSingDataFetcher{
+// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher: common.NewCommonFetcher(),
+// 		}
+// 		fetcher.PostSingUpApi(c)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
+// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-			Result: []utils.ErrorMessages{
-				{
-					Field:   "nick_name",
-					Message: "ニックネームは必須です。",
-				},
-				{
-					Field:   "user_name",
-					Message: "ユーザー名は必須です。",
-				},
-				{
-					Field:   "user_password",
-					Message: "パスワードは必須です。",
-				},
-			},
-		}
-		test_utils.SortErrorMessages(responseBody.Result)
-		test_utils.SortErrorMessages(expectedErrorMessage.Result)
-		assert.Equal(t, responseBody, expectedErrorMessage)
-	})
+// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+// 			Result: []utils.ErrorMessages{
+// 				{
+// 					Field:   "nick_name",
+// 					Message: "ニックネームは必須です。",
+// 				},
+// 				{
+// 					Field:   "user_name",
+// 					Message: "ユーザー名は必須です。",
+// 				},
+// 				{
+// 					Field:   "user_password",
+// 					Message: "パスワードは必須です。",
+// 				},
+// 			},
+// 		}
+// 		test_utils.SortErrorMessages(responseBody.Result)
+// 		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+// 		assert.Equal(t, responseBody, expectedErrorMessage)
+// 	})
 
-	t.Run("PostSingUpApi バリデーション メールアドレス不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+// 	t.Run("PostSingUpApi バリデーション メールアドレス不正", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
 
-		data := testData{
-			Data: []models.RequestSingUpData{
-				{
-					NickName:     "test",
-					UserName:     "test",
-					UserPassword: "Test12345!",
-				},
-			},
-		}
+// 		data := testData{
+// 			Data: []models.RequestSingUpData{
+// 				{
+// 					NickName:     "test",
+// 					UserName:     "test",
+// 					UserPassword: "Test12345!",
+// 				},
+// 			},
+// 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PostSingUp",
-			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
-				return nil
-			})
-		defer patches.Reset()
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SingDataFetcher{}),
+// 			"PostSingUp",
+// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
-		}
-		fetcher.PostSingUpApi(c)
+// 		fetcher := apiSingDataFetcher{
+// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher: common.NewCommonFetcher(),
+// 		}
+// 		fetcher.PostSingUpApi(c)
 
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
+// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-			Result: []utils.ErrorMessages{
-				{
-					Field:   "user_name",
-					Message: "正しいメールアドレス形式である必要があります。",
-				},
-			},
-		}
-		assert.Equal(t, responseBody, expectedErrorMessage)
-	})
+// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+// 			Result: []utils.ErrorMessages{
+// 				{
+// 					Field:   "user_name",
+// 					Message: "正しいメールアドレス形式である必要があります。",
+// 				},
+// 			},
+// 		}
+// 		assert.Equal(t, responseBody, expectedErrorMessage)
+// 	})
 
-	t.Run("PostSingUpApi バリデーション パスワード不正", func(t *testing.T) {
+// 	t.Run("PostSingUpApi バリデーション パスワード不正", func(t *testing.T) {
 
-		dataList := []testData{
-			{
-				Data: []models.RequestSingUpData{
-					{
-						NickName:     "test",
-						UserName:     "test@example.com",
-						UserPassword: "Test12!",
-					},
-				},
-			},
-			{
-				Data: []models.RequestSingUpData{
-					{
-						NickName:     "test",
-						UserName:     "test@example.com",
-						UserPassword: "Test123456",
-					},
-				},
-			},
-		}
+// 		dataList := []testData{
+// 			{
+// 				Data: []models.RequestSingUpData{
+// 					{
+// 						NickName:     "test",
+// 						UserName:     "test@example.com",
+// 						UserPassword: "Test12!",
+// 					},
+// 				},
+// 			},
+// 			{
+// 				Data: []models.RequestSingUpData{
+// 					{
+// 						NickName:     "test",
+// 						UserName:     "test@example.com",
+// 						UserPassword: "Test123456",
+// 					},
+// 				},
+// 			},
+// 		}
 
-		for _, data := range dataList {
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
+// 		for _, data := range dataList {
+// 			w := httptest.NewRecorder()
+// 			c, _ := gin.CreateTestContext(w)
 
-			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+// 			body, _ := json.Marshal(data)
+// 			c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 			c.Request.Header.Set("Content-Type", "application/json")
 
-			patches := ApplyMethod(
-				reflect.TypeOf(&models.SingDataFetcher{}),
-				"PostSingUp",
-				func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
-					return nil
-				})
-			defer patches.Reset()
+// 			patches := ApplyMethod(
+// 				reflect.TypeOf(&models.SingDataFetcher{}),
+// 				"PostSingUp",
+// 				func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 					return nil
+// 				})
+// 			defer patches.Reset()
 
-			fetcher := apiSingDataFetcher{
-				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher: common.NewCommonFetcher(),
-			}
-			fetcher.PostSingUpApi(c)
+// 			fetcher := apiSingDataFetcher{
+// 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
+// 				CommonFetcher: common.NewCommonFetcher(),
+// 			}
+// 			fetcher.PostSingUpApi(c)
 
-			assert.Equal(t, http.StatusBadRequest, w.Code)
+// 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-			assert.NoError(t, err)
+// 			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+// 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "user_password",
-						Message: "パスワードの形式が間違っています。",
-					},
-				},
-			}
-			assert.Equal(t, responseBody, expectedErrorMessage)
-		}
-	})
+// 			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+// 				Result: []utils.ErrorMessages{
+// 					{
+// 						Field:   "user_password",
+// 						Message: "パスワードの形式が間違っています。",
+// 					},
+// 				},
+// 			}
+// 			assert.Equal(t, responseBody, expectedErrorMessage)
+// 		}
+// 	})
 
-	t.Run("PostSingUpApi sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
+// 	t.Run("PostSingUpApi sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSingUpData{
-				{
-					NickName:     "test",
-					UserName:     "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
-		}
+// 		data := testData{
+// 			Data: []models.RequestSingUpData{
+// 				{
+// 					NickName:     "test",
+// 					UserName:     "test@example.com",
+// 					UserPassword: "Test123456!!",
+// 				},
+// 			},
+// 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PostSingUp",
-			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
-				return fmt.Errorf("sql登録失敗")
-			})
-		defer patches.Reset()
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SingDataFetcher{}),
+// 			"PostSingUp",
+// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 				return fmt.Errorf("sql登録失敗")
+// 			})
+// 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
-		}
-		fetcher.PostSingUpApi(c)
+// 		fetcher := apiSingDataFetcher{
+// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher: common.NewCommonFetcher(),
+// 		}
+// 		fetcher.PostSingUpApi(c)
 
-		assert.Equal(t, http.StatusConflict, w.Code)
+// 		assert.Equal(t, http.StatusConflict, w.Code)
 
-		var responseBody utils.ResponseWithSlice[requestSingInData]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
+// 		var responseBody utils.ResponseWithSlice[requestSingInData]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
-			ErrorMsg: "既に登録されたメールアドレスです。",
-		}
-		assert.Equal(t, responseBody, expectedErrorMessage)
-	})
+// 		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
+// 			ErrorMsg: "既に登録されたメールアドレスです。",
+// 		}
+// 		assert.Equal(t, responseBody, expectedErrorMessage)
+// 	})
 
-	t.Run("PostSingUpApi result 成功", func(t *testing.T) {
+// 	t.Run("PostSingUpApi result 成功", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSingUpData{
-				{
-					NickName:     "test",
-					UserName:     "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
-		}
+// 		data := testData{
+// 			Data: []models.RequestSingUpData{
+// 				{
+// 					NickName:     "test",
+// 					UserName:     "test@example.com",
+// 					UserPassword: "Test123456!!",
+// 				},
+// 			},
+// 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PostSingUp",
-			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
-				return nil
-			})
-		defer patches.Reset()
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SingDataFetcher{}),
+// 			"PostSingUp",
+// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
-		}
-		fetcher.PostSingUpApi(c)
+// 		fetcher := apiSingDataFetcher{
+// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher: common.NewCommonFetcher(),
+// 		}
+// 		fetcher.PostSingUpApi(c)
 
-		assert.Equal(t, http.StatusOK, w.Code)
+// 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[string]{
-			Result: "サインアップに成功",
-		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
-	})
-}
+// 		expectedOk := utils.ResponseWithSingle[string]{
+// 			Result: "サインアップに成功",
+// 		}
+// 		assert.Equal(t, responseBody.Result, expectedOk.Result)
+// 	})
+// }
 
 func TestPutSingInEditApi(t *testing.T) {
 

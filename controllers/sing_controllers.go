@@ -38,6 +38,14 @@ type (
 		Data []models.RequestSingInData `json:"data"`
 	}
 
+	RequestRedisKeyData struct {
+		RedisKey string `json:"redis_key"`
+	}
+
+	requestRegisterSingUpData struct {
+		Data []RequestRedisKeyData `json:"data"`
+	}
+
 	requestSingUpData struct {
 		Data []models.RequestSingUpData `json:"data"`
 	}
@@ -54,6 +62,18 @@ type (
 		UserId       int    `json:"user_id"`
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
+	}
+
+	TemporayPostSingUpResult struct {
+		RedisKey string `json:"redis_key"`
+		UserName string `json:"user_name"`
+		NickName string `json:"nick_name"`
+	}
+
+	RetryAuthEmailResult struct {
+		RedisKey string `json:"redis_key"`
+		UserName string `json:"user_name"`
+		NickName string `json:"nick_name"`
 	}
 
 	RequestRefreshToken struct {
@@ -272,7 +292,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 	var requestData requestSingUpData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -298,7 +318,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 	uid := uuid.New().String()
 	confirmCode, err := rand.Int(rand.Reader, big.NewInt(10000))
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -309,14 +329,14 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 	// redisに登録する際のvalue
 	userInfo := [...]string{
 		requestData.Data[0].UserName,
-		requestData.Data[0].NickName,
 		hashPassword,
+		requestData.Data[0].NickName,
 	}
 	value := strings.Join(userInfo[:], ",") // 配列をカンマ区切りの文字列に変換
 
 	// 保存
 	if err = config.RedisSet(key, value, time.Hour); err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -325,7 +345,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 
 	subject, body, err := templates.TemporayPostSingUpTemplate(requestData.Data[0].NickName, confirmCode)
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
 			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -334,7 +354,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body); err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
 			ErrorMsg: "メール送信エラー: " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -342,8 +362,12 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 	}
 
 	// サインアップ仮登録成功のレスポンス
-	response := utils.ResponseWithSingle[string]{
-		Result: "サインアップ仮登録成功。\n登録したメールアドレスの認証コード4桁を入力してください。",
+	response := utils.ResponseWithSingle[TemporayPostSingUpResult]{
+		Result: TemporayPostSingUpResult{
+			RedisKey: key,
+			UserName: requestData.Data[0].UserName,
+			NickName: requestData.Data[0].NickName,
+		},
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -357,10 +381,12 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 	UserName := c.Query("user_name")
 	NickName := c.Query("nick_name")
+	RedisKey := c.Query("redis_key")
 
 	validator := validation.RequestRetryAuthEmail{
 		UserName: UserName,
 		NickName: NickName,
+		RedisKey: RedisKey,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -371,18 +397,50 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 		return
 	}
 
+	// サインアップ仮登録した情報を取得
+	redisGet, err := config.RedisGet(RedisKey)
+	if err != nil {
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	uid := uuid.New().String()
 	confirmCode, err := rand.Int(rand.Reader, big.NewInt(10000))
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
+	// redisに再登録する際のキー
+	newKey := fmt.Sprintf("%s:%s", fmt.Sprintf("%04d", confirmCode.Int64()), uid)
+
+	// 更新して保存
+	if err = config.RedisSet(newKey, redisGet, time.Hour); err != nil {
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// 前の情報は削除する
+	if err = config.RedisDel(RedisKey); err != nil {
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
 	subject, body, err := templates.TemporayPostSingUpTemplate(NickName, confirmCode)
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -391,7 +449,7 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(UserName, subject, body); err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: "メール送信エラー: " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -399,8 +457,12 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 	}
 
 	// メール再通知成功のレスポンス
-	response := utils.ResponseWithSingle[string]{
-		Result: "メール再通知成功。",
+	response := utils.ResponseWithSingle[RetryAuthEmailResult]{
+		Result: RetryAuthEmailResult{
+			RedisKey: newKey,
+			UserName: UserName,
+			NickName: NickName,
+		},
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -412,7 +474,7 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 //
 
 func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
-	var requestData requestSingUpData
+	var requestData requestRegisterSingUpData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
 		response := utils.ResponseWithSlice[singUpResult]{
@@ -422,10 +484,27 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 		return
 	}
 
+	// サインアップ仮登録した情報を取得
+	redisGet, err := config.RedisGet(requestData.Data[0].RedisKey)
+	if err != nil {
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// username,password,nicknameの順で文字列が連結されている
+	info := strings.Split(redisGet, ",")
+
+	userName := info[0]
+	userPassword := info[1]
+	nickName := info[2]
+
 	validator := validation.RequestSingUpData{
-		UserName:     requestData.Data[0].UserName,
-		UserPassword: requestData.Data[0].UserPassword,
-		NickName:     requestData.Data[0].NickName,
+		UserName:     userName,
+		UserPassword: userPassword,
+		NickName:     nickName,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -440,11 +519,30 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 		config.DataSourceName,
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	if err := dbFetcher.PostSingUp(requestData.Data[0]); err != nil {
+	// requestSingUpDataの構造体を流用してデータ構造作成
+	data := requestSingUpData{
+		Data: []models.RequestSingUpData{
+			{
+				UserName:     userName,
+				UserPassword: userPassword,
+				NickName:     nickName,
+			},
+		},
+	}
+	if err := dbFetcher.PostSingUp(data.Data[0]); err != nil {
 		response := utils.ResponseWithSlice[string]{
 			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
 		c.JSON(http.StatusConflict, response)
+		return
+	}
+
+	// 情報は削除する
+	if err = config.RedisDel(requestData.Data[0].RedisKey); err != nil {
+		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
