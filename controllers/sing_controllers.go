@@ -2,22 +2,32 @@
 package controllers
 
 import (
+	"crypto/rand"
+	"fmt"
+	"math/big"
 	"net/http"
 	"os"
 	"server/common"
 	"server/config"
 	"server/models" // モデルのインポート
+	"server/templates"
 	"server/utils"
 	"server/validation"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	// email_utils "github.com/hack-31/point-app-backend/utils/email"
 )
 
 type (
 	SingDataFetcher interface {
 		PostSingInApi(c *gin.Context)
 		GetRefreshTokenApi(c *gin.Context)
+		TemporayPostSingUpApi(c *gin.Context)
+		RetryAuthEmail(c *gin.Context)
 		PostSingUpApi(c *gin.Context)
 		PutSingInEditApi(c *gin.Context)
 		DeleteSingInApi(c *gin.Context)
@@ -248,6 +258,149 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	// リフレッシュトークン成功のレスポンス
 	response := utils.ResponseWithSingle[string]{
 		Result: "新しいアクセストークンが発行されました。",
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// TemporayPostSingUpApi はサインイン情報を仮登録API
+//
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
+	var requestData requestSingUpData
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	validator := validation.RequestSingUpData{
+		UserName:     requestData.Data[0].UserName,
+		UserPassword: requestData.Data[0].UserPassword,
+		NickName:     requestData.Data[0].NickName,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		response := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	// パスワードハッシュ化
+	hashPassword, _ := af.UtilsFetcher.EncryptPassword(requestData.Data[0].UserPassword)
+	uid := uuid.New().String()
+	confirmCode, err := rand.Int(rand.Reader, big.NewInt(10000))
+	if err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	// redisに登録する際のkey
+	key := fmt.Sprintf("%s:%s", fmt.Sprintf("%04d", confirmCode.Int64()), uid)
+	// redisに登録する際のvalue
+	userInfo := [...]string{
+		requestData.Data[0].UserName,
+		requestData.Data[0].NickName,
+		hashPassword,
+	}
+	value := strings.Join(userInfo[:], ",") // 配列をカンマ区切りの文字列に変換
+
+	// 保存
+	if err = config.RedisSet(key, value, time.Hour); err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	subject, body, err := templates.TemporayPostSingUpTemplate(requestData.Data[0].NickName, confirmCode)
+	if err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body); err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メール送信エラー: " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// サインアップ仮登録成功のレスポンス
+	response := utils.ResponseWithSingle[string]{
+		Result: "サインアップ仮登録成功。\n登録したメールアドレスの認証コード4桁を入力してください。",
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// RetryAuthEmail はAPIはメール認証を再通知するために使用
+//
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
+	UserName := c.Query("user_name")
+	NickName := c.Query("nick_name")
+
+	validator := validation.RequestRetryAuthEmail{
+		UserName: UserName,
+		NickName: NickName,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		response := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	confirmCode, err := rand.Int(rand.Reader, big.NewInt(10000))
+	if err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	subject, body, err := templates.TemporayPostSingUpTemplate(NickName, confirmCode)
+	if err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(UserName, subject, body); err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メール送信エラー: " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール再通知成功のレスポンス
+	response := utils.ResponseWithSingle[string]{
+		Result: "メール再通知成功。",
 	}
 	c.JSON(http.StatusOK, response)
 }

@@ -3,10 +3,12 @@ package utils
 
 import (
 	"os"
+	"server/common"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/gomail.v2"
 )
 
 // UtilsFetcher インターフェースの定義
@@ -18,6 +20,7 @@ type UtilsFetcher interface {
 	CompareHashPassword(hashedPassword, requestPassword string) error
 	ParseWithClaims(validationToken string) (interface{}, error)
 	MapClaims(token *jwt.Token) (interface{}, bool)
+	SendMail(toEmail, subject, body string) error
 }
 
 type UtilsDataFetcher struct {
@@ -146,4 +149,27 @@ func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	return claims, ok
+}
+
+// SendMail はメールを送信する関数
+func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string) error {
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	// SMTPサーバー情報
+	smtpHost := os.Getenv("SMTP_HOST")                     // SMTPサーバー
+	smtpPort, _ := common.StrToInt(os.Getenv("SMTP_PORT")) // SMTPポート
+	fromEmail := os.Getenv("FROMEMAIL")                    // 送信元メールアドレス
+	password := os.Getenv("PASSWORD")                      // 送信元メールのパスワード（またはアプリパスワード）
+
+	// メール設定
+	m := gomail.NewMessage()
+	m.SetHeader("From", fromEmail)  // 送信元
+	m.SetHeader("To", toEmail)      // 送信先
+	m.SetHeader("Subject", subject) // 件名
+	m.SetBody("text/plain", body)   // 本文
+
+	// ダイヤラー設定
+	d := gomail.NewDialer(smtpHost, smtpPort, fromEmail, password)
+
+	// メール送信
+	return d.DialAndSend(m)
 }

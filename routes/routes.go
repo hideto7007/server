@@ -28,6 +28,8 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		Routes.POST("/singin", singAPI.PostSingInApi)
 		Routes.GET("/refresh_token", singAPI.GetRefreshTokenApi)
+		Routes.POST("/temporay_singup", singAPI.TemporayPostSingUpApi)
+		Routes.GET("/retry_auth_email", singAPI.RetryAuthEmail)
 		Routes.POST("/singup", singAPI.PostSingUpApi)
 		Routes.PUT("/singin_edit", singAPI.PutSingInEditApi)
 		Routes.DELETE("/singin_delete", singAPI.DeleteSingInApi)

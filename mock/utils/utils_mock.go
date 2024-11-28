@@ -137,3 +137,17 @@ func (mr *MockUtilsFetcherMockRecorder) RefreshToken(UserId, ExpirationDate inte
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshToken", reflect.TypeOf((*MockUtilsFetcher)(nil).RefreshToken), UserId, ExpirationDate)
 }
+
+// SendMail mocks base method.
+func (m *MockUtilsFetcher) SendMail(toEmail, subject, body string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendMail", toEmail, subject, body)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendMail indicates an expected call of SendMail.
+func (mr *MockUtilsFetcherMockRecorder) SendMail(toEmail, subject, body interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMail", reflect.TypeOf((*MockUtilsFetcher)(nil).SendMail), toEmail, subject, body)
+}

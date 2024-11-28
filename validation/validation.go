@@ -41,6 +41,11 @@ type RequestSingUpData struct {
 	NickName     string `json:"nick_name" valid:"required~ニックネームは必須です。"`
 }
 
+type RequestRetryAuthEmail struct {
+	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	NickName string `json:"nick_name" valid:"required~ニックネームは必須です。"`
+}
+
 type RequestSingInEditData struct {
 	UserId       string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 	UserName     string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります。"`
@@ -199,6 +204,24 @@ func (data RequestRefreshTokenData) Validate() (bool, []utils.ErrorMessages) {
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestRetryAuthEmail) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
 	}
 
 	return valid, errorMessagesList
