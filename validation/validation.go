@@ -35,6 +35,12 @@ type RequestSingInData struct {
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 }
 
+type TemporayRequestSingUpData struct {
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
+	NickName     string `json:"nick_name" valid:"required~ニックネームは必須です。"`
+}
+
 type RequestSingUpData struct {
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
@@ -43,8 +49,8 @@ type RequestSingUpData struct {
 
 type RequestRetryAuthEmail struct {
 	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
-	NickName string `json:"nick_name" valid:"required~ニックネームは必須です。"`
 	RedisKey string `json:"redis_key" valid:"required~Redisキーは必須です。"`
+	NickName string `json:"nick_name" valid:"required~ニックネームは必須です。"`
 }
 
 type RequestSingInEditData struct {
@@ -228,7 +234,7 @@ func (data RequestRetryAuthEmail) Validate() (bool, []utils.ErrorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
+func (data TemporayRequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -259,6 +265,24 @@ func (data RequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
 			})
 		}
 		valid = false
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
 	}
 
 	return valid, errorMessagesList

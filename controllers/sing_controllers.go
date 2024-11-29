@@ -39,14 +39,15 @@ type (
 	}
 
 	RequestRedisKeyData struct {
-		RedisKey string `json:"redis_key"`
+		RedisKey      string `json:"redis_key"`
+		AuthEmailCode string `json:"auth_email_code"`
 	}
 
 	requestRegisterSingUpData struct {
 		Data []RequestRedisKeyData `json:"data"`
 	}
 
-	requestSingUpData struct {
+	requesTemporaySingUpData struct {
 		Data []models.RequestSingUpData `json:"data"`
 	}
 
@@ -289,7 +290,7 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 //
 
 func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
-	var requestData requestSingUpData
+	var requestData requesTemporaySingUpData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
 		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
@@ -299,7 +300,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 		return
 	}
 
-	validator := validation.RequestSingUpData{
+	validator := validation.TemporayRequestSingUpData{
 		UserName:     requestData.Data[0].UserName,
 		UserPassword: requestData.Data[0].UserPassword,
 		NickName:     requestData.Data[0].NickName,
@@ -484,10 +485,20 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 		return
 	}
 
+	// 認証コード取得
+	auth := strings.Split(requestData.Data[0].RedisKey, ":")
+	if auth[0] != requestData.Data[0].AuthEmailCode {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メール認証コードが間違っています。",
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
 	// サインアップ仮登録した情報を取得
 	redisGet, err := config.RedisGet(requestData.Data[0].RedisKey)
 	if err != nil {
-		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
+		response := utils.ResponseWithSlice[singUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -519,8 +530,8 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 		config.DataSourceName,
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	// requestSingUpDataの構造体を流用してデータ構造作成
-	data := requestSingUpData{
+	// requesTemporaySingUpDataの構造体を流用してデータ構造作成
+	data := requesTemporaySingUpData{
 		Data: []models.RequestSingUpData{
 			{
 				UserName:     userName,
@@ -539,7 +550,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 
 	// 情報は削除する
 	if err = config.RedisDel(requestData.Data[0].RedisKey); err != nil {
-		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
+		response := utils.ResponseWithSlice[singUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
