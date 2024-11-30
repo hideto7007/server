@@ -61,6 +61,7 @@ var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 var AuthToken = "AuthToken"
 var RefreshAuthToken = "RefreshAuthToken"
+var UserId = "UserId"
 var AuthTokenHour = 1
 
 // 推奨：90日間だが、一旦12時間で設定

@@ -180,6 +180,7 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		httpOnly = true
 	}
 
+	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result[0].UserId), 0, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 
@@ -219,6 +220,21 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 			Result: errMsgList,
 		}
 		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	signInUserId, err := c.Cookie(utils.UserId)
+	if err != nil {
+		response := utils.ResponseWithSlice[RequestRefreshToken]{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	} else if signInUserId != userIdCheck {
+		response := utils.ResponseWithSlice[RequestRefreshToken]{
+			ErrorMsg: "サインインユーザーが異なっています。",
+		}
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
@@ -626,6 +642,9 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 
 func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	var requestData requestSingInDeleteData
+	var secure bool = false
+	var domain string = "localhost"
+	var httpOnly bool = false
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
 		response := utils.ResponseWithSlice[singInDeleteResult]{
@@ -661,6 +680,18 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
+
+	// ローカルの場合
+	if os.Getenv("ENV") != "local" {
+		domain = os.Getenv("DOMAIN")
+		secure = true
+		httpOnly = true
+	}
+
+	// Cookie無効化
+	c.SetCookie(utils.UserId, "", 0, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
 
 	// サインイン削除の成功レスポンス
 	response := utils.ResponseWithSingle[string]{
