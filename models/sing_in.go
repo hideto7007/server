@@ -183,11 +183,9 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 
 	singUp := DB.PostSingUpSyntax
 
-	hashPassword, _ := pf.UtilsFetcher.EncryptPassword(data.UserPassword)
-
 	if _, err = tx.Exec(singUp,
 		data.UserName,
-		hashPassword,
+		data.UserPassword,
 		data.NickName,
 		createdAt,
 		data.NickName,
