@@ -326,7 +326,8 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 		return
 	}
 	// redisに登録する際のkey
-	key := fmt.Sprintf("%s:%s", fmt.Sprintf("%04d", confirmCode.Int64()), uid)
+	confirmCodeStr := fmt.Sprintf("%04d", confirmCode.Int64())
+	key := fmt.Sprintf("%s:%s", confirmCodeStr, uid)
 	// redisに登録する際のvalue
 	userInfo := [...]string{
 		requestData.Data[0].UserName,
@@ -344,7 +345,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := templates.TemporayPostSingUpTemplate(requestData.Data[0].NickName, confirmCode)
+	subject, body, err := templates.TemporayPostSingUpTemplate(requestData.Data[0].NickName, confirmCodeStr)
 	if err != nil {
 		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
 			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),
@@ -419,7 +420,8 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 	}
 
 	// redisに再登録する際のキー
-	newKey := fmt.Sprintf("%s:%s", fmt.Sprintf("%04d", confirmCode.Int64()), uid)
+	confirmCodeStr := fmt.Sprintf("%04d", confirmCode.Int64())
+	newKey := fmt.Sprintf("%s:%s", confirmCodeStr, uid)
 
 	// 更新して保存
 	if err = config.RedisSet(newKey, redisGet, time.Hour); err != nil {
@@ -439,7 +441,7 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := templates.TemporayPostSingUpTemplate(NickName, confirmCode)
+	subject, body, err := templates.TemporayPostSingUpTemplate(NickName, confirmCodeStr)
 	if err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),

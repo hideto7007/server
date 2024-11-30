@@ -2,7 +2,6 @@ package templates
 
 import (
 	"bytes"
-	"math/big"
 	"text/template"
 )
 
@@ -10,7 +9,7 @@ type (
 	// データ構造体
 	TemporayPostSingUpEmailData struct {
 		Name        string
-		ConfirmCode *big.Int
+		ConfirmCode string
 	}
 )
 
@@ -25,7 +24,7 @@ var temporayPostSingUpTemplate = template.Must(template.New("auth_email").Parse(
 この確認コードの有効期限は1時間です。
 `))
 
-func TemporayPostSingUpTemplate(Name string, ConfirmCode *big.Int) (string, string, error) {
+func TemporayPostSingUpTemplate(Name string, ConfirmCode string) (string, string, error) {
 	subject := "【ファイナンスアプリ】本登録を完了してください"
 	// メールテンプレート定義
 
