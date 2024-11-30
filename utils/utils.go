@@ -20,7 +20,8 @@ type UtilsFetcher interface {
 	CompareHashPassword(hashedPassword, requestPassword string) error
 	ParseWithClaims(validationToken string) (interface{}, error)
 	MapClaims(token *jwt.Token) (interface{}, bool)
-	SendMail(toEmail, subject, body string) error
+	SendMail(toEmail, subject, body string, isHTML bool) error
+	DateTimeStr(t time.Time, format string) string
 }
 
 type UtilsDataFetcher struct {
@@ -153,7 +154,7 @@ func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 }
 
 // SendMail はメールを送信する関数
-func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string) error {
+func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string, isHTML bool) error {
 	var common common.CommonFetcher = common.NewCommonFetcher()
 	// SMTPサーバー情報
 	smtpHost := os.Getenv("SMTP_HOST")                     // SMTPサーバー
@@ -166,11 +167,21 @@ func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string) error {
 	m.SetHeader("From", fromEmail)  // 送信元
 	m.SetHeader("To", toEmail)      // 送信先
 	m.SetHeader("Subject", subject) // 件名
-	m.SetBody("text/plain", body)   // 本文
+
+	// メール本文を設定 (HTMLまたはプレーンテキスト)
+	if isHTML {
+		m.SetBody("text/html", body) // HTML形式の本文
+	} else {
+		m.SetBody("text/plain", body) // プレーンテキスト形式の本文
+	}
 
 	// ダイヤラー設定
 	d := gomail.NewDialer(smtpHost, smtpPort, fromEmail, password)
 
 	// メール送信
 	return d.DialAndSend(m)
+}
+
+func (ud *UtilsDataFetcher) DateTimeStr(t time.Time, format string) string {
+	return t.Format(format)
 }

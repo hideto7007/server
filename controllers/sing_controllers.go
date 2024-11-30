@@ -184,6 +184,27 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 
+	subject, body, err := templates.PostSingInTemplate(
+		result[0].UserName,
+		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ResponseWithSlice[requestSingInData]{
+			ErrorMsg: "メールテンプレート生成エラー(サインイン): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(result[0].UserName, subject, body, true); err != nil {
+		response := utils.ResponseWithSlice[requestSingInData]{
+			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
 	// サインイン成功のレスポンス
 	response := utils.ResponseWithSlice[SingInResult]{
 		// Token: token,
@@ -364,16 +385,16 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 	subject, body, err := templates.TemporayPostSingUpTemplate(requestData.Data[0].NickName, confirmCodeStr)
 	if err != nil {
 		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
-			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),
+			ErrorMsg: "メールテンプレート生成エラー(仮登録): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body); err != nil {
+	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, false); err != nil {
 		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
-			ErrorMsg: "メール送信エラー: " + err.Error(),
+			ErrorMsg: "メール仮登録送信エラー(仮登録): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
@@ -460,16 +481,16 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 	subject, body, err := templates.TemporayPostSingUpTemplate(NickName, confirmCodeStr)
 	if err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
-			ErrorMsg: "メールテンプレート生成エラー: " + err.Error(),
+			ErrorMsg: "メールテンプレート生成エラー(メール再通知): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(UserName, subject, body); err != nil {
+	if err := af.UtilsFetcher.SendMail(UserName, subject, body, false); err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
-			ErrorMsg: "メール送信エラー: " + err.Error(),
+			ErrorMsg: "メール送信エラー(メール再通知): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
@@ -570,6 +591,28 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	if err = config.RedisDel(requestData.Data[0].RedisKey); err != nil {
 		response := utils.ResponseWithSlice[singUpResult]{
 			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	subject, body, err := templates.PostSingUpTemplate(
+		data.Data[0].NickName,
+		data.Data[0].UserName,
+		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メールテンプレート生成エラー(登録): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(data.Data[0].UserName, subject, body, true); err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return

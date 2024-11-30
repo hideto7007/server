@@ -6,6 +6,7 @@ package mock_utils
 
 import (
 	reflect "reflect"
+	time "time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	gomock "github.com/golang/mock/gomock"
@@ -46,6 +47,20 @@ func (m *MockUtilsFetcher) CompareHashPassword(hashedPassword, requestPassword s
 func (mr *MockUtilsFetcherMockRecorder) CompareHashPassword(hashedPassword, requestPassword interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompareHashPassword", reflect.TypeOf((*MockUtilsFetcher)(nil).CompareHashPassword), hashedPassword, requestPassword)
+}
+
+// DateTimeStr mocks base method.
+func (m *MockUtilsFetcher) DateTimeStr(t time.Time, format string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DateTimeStr", t, format)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// DateTimeStr indicates an expected call of DateTimeStr.
+func (mr *MockUtilsFetcherMockRecorder) DateTimeStr(t, format interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DateTimeStr", reflect.TypeOf((*MockUtilsFetcher)(nil).DateTimeStr), t, format)
 }
 
 // EncryptPassword mocks base method.
@@ -139,15 +154,15 @@ func (mr *MockUtilsFetcherMockRecorder) RefreshToken(UserId, ExpirationDate inte
 }
 
 // SendMail mocks base method.
-func (m *MockUtilsFetcher) SendMail(toEmail, subject, body string) error {
+func (m *MockUtilsFetcher) SendMail(toEmail, subject, body string, isHTML bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendMail", toEmail, subject, body)
+	ret := m.ctrl.Call(m, "SendMail", toEmail, subject, body, isHTML)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendMail indicates an expected call of SendMail.
-func (mr *MockUtilsFetcherMockRecorder) SendMail(toEmail, subject, body interface{}) *gomock.Call {
+func (mr *MockUtilsFetcherMockRecorder) SendMail(toEmail, subject, body, isHTML interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMail", reflect.TypeOf((*MockUtilsFetcher)(nil).SendMail), toEmail, subject, body)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMail", reflect.TypeOf((*MockUtilsFetcher)(nil).SendMail), toEmail, subject, body, isHTML)
 }
