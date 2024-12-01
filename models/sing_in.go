@@ -40,7 +40,8 @@ type (
 	}
 
 	RequestSingInDeleteData struct {
-		UserId interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserId   interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
+		UserName string      `json:"user_name"`
 	}
 
 	SingInData struct {

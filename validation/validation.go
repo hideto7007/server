@@ -60,7 +60,8 @@ type RequestSingInEditData struct {
 }
 
 type RequestSingInDeleteData struct {
-	UserId string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
+	UserId   string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
+	UserName string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります。"`
 }
 
 type RequestRefreshTokenData struct {

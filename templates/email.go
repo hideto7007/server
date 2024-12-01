@@ -14,7 +14,7 @@ type (
 		ConfirmCode string
 	}
 
-	PostSingEmailData struct {
+	SingEmailData struct {
 		Style    string
 		Name     string
 		UserName string
@@ -85,6 +85,20 @@ body {
 	&copy; {{.Year}} ファイナンスアプリ. All rights reserved.
 </div>
 {{end}}
+
+{{define "Support"}}
+<div style="padding: 20px; background-color: #e8f5e9; border-radius: 5px; margin-top: 20px; text-align: center;">
+	<hr style="border: 1px solid #ddd; margin: 20px 0;">
+	<p style="margin: 0; font-size: 14px; color: #666;">ご不明点やご質問がございましたら、以下のサポート窓口までお問い合わせください。</p>
+	<div style="margin-top: 10px;">
+		<h5 style="margin: 0; font-size: 16px; color: #333;">カスタマーサポート</h5>
+		<p style="margin: 5px 0; font-size: 14px; color: #007bff;">
+			Email: <a href="mailto:finance.1128.th@gmail.com" style="text-decoration: none; color: #007bff;">finance.1128.th@gmail.com</a>
+		</p>
+	</div>
+	<hr style="border: 1px solid #ddd; margin: 20px 0;">
+</div>
+{{end}}
 `))
 
 var temporayPostSingUpTemplate = template.Must(template.New("auth_email").Parse(`
@@ -125,6 +139,7 @@ var postSingUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 						<p>{{.DateTime}}</p>
 					</div>
 					<p>今後ともよろしくお願いいたします。</p>
+					{{template "Support"}}
 				</div>
 				{{template "Footer" .}}
 			</div>
@@ -152,10 +167,45 @@ var postSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 					<div class="info-section">
 						<h4>登録ユーザ名</h4>
 						<p>{{.UserName}}</p>
-						<h4>登録日時</h4>
+						<h4>実行日時</h4>
 						<p>{{.DateTime}}</p>
 					</div>
 					<p>こちらはご登録ユーザーでサインインした際に通知されますので、ご自身で実行された場合は無視してください。</p>
+					{{template "Support"}}
+				</div>
+				{{template "Footer" .}}
+			</div>
+		</body>
+	</html>
+`))
+
+var deleteSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+	{{template "Style"}}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>削除完了通知</title>
+		</head>
+		<body>
+			<div class="container">
+				<div class="header">
+					ファイナンスアプリ<br>
+					アカウント削除完了のお知らせ
+				</div>
+				<div class="body">
+					<p>{{.UserName}}さん、この度はファイナンスアプリをご利用いただき、誠にありがとうございました。</p>
+					<p>以下の内容でアカウントの削除が完了しました。</p>
+
+					<div class="info-section">
+						<h4>削除ユーザ名</h4>
+						<p>{{.UserName}}</p>
+						<h4>削除日時</h4>
+						<p>{{.DateTime}}</p>
+					</div>
+
+					<p>アカウント削除に伴い、関連するすべてのデータが安全に削除されたことをお知らせいたします。</p>
+					<p>また、いつでもファイナンスアプリをご利用いただけるよう準備しておりますので、再度のご利用を心よりお待ちしております。</p>
+					{{template "Support"}}
 				</div>
 				{{template "Footer" .}}
 			</div>
@@ -189,7 +239,7 @@ func PostSingUpTemplate(Name, UserName, DateTime string) (string, string, error)
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 
 	// テンプレートに渡すデータを作成
-	data := PostSingEmailData{
+	data := SingEmailData{
 		Name:     Name,
 		UserName: UserName,
 		DateTime: DateTime,
@@ -211,7 +261,7 @@ func PostSingInTemplate(UserName, DateTime string) (string, string, error) {
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
-	data := PostSingEmailData{
+	data := SingEmailData{
 		UserName: UserName,
 		DateTime: DateTime,
 		Year:     year,
@@ -220,6 +270,27 @@ func PostSingInTemplate(UserName, DateTime string) (string, string, error) {
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
 	if err := postSingInTemplate.Execute(&body, data); err != nil {
+		return "", "", err // エラー時に空の件名と本文を返す
+	}
+
+	return subject, body.String(), nil
+}
+
+func DeleteSingInTemplate(UserName, DateTime string) (string, string, error) {
+	subject := "【ファイナンスアプリ】アカウント削除完了のお知らせ"
+	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
+	// メールテンプレート定義
+
+	// テンプレートに渡すデータを作成
+	data := SingEmailData{
+		UserName: UserName,
+		DateTime: DateTime,
+		Year:     year,
+	}
+
+	// テンプレートの実行と結果の取得
+	var body bytes.Buffer
+	if err := deleteSingInTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 

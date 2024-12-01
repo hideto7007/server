@@ -700,7 +700,8 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
 
 	validator := validation.RequestSingInDeleteData{
-		UserId: userIdCheck,
+		UserId:   userIdCheck,
+		UserName: requestData.Data[0].UserName,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -735,6 +736,27 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	c.SetCookie(utils.UserId, "", 0, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
+
+	subject, body, err := templates.DeleteSingInTemplate(
+		requestData.Data[0].UserName,
+		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メールテンプレート生成エラー(削除): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, true); err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
 
 	// サインイン削除の成功レスポンス
 	response := utils.ResponseWithSingle[string]{
