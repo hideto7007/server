@@ -1,4 +1,4 @@
-// models/signin.go
+// models/sign.go
 package models
 
 import (
