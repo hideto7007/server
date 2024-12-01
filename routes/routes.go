@@ -33,6 +33,7 @@ func SetupRoutes(r *gin.Engine) {
 		Routes.POST("/singup", singAPI.PostSingUpApi)
 		Routes.PUT("/singin_edit", singAPI.PutSingInEditApi)
 		Routes.DELETE("/singin_delete", singAPI.DeleteSingInApi)
+		Routes.GET("/signout", singAPI.SignOutApi)
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")

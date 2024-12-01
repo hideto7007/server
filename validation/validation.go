@@ -55,17 +55,21 @@ type RequestRetryAuthEmail struct {
 
 type RequestSingInEditData struct {
 	UserId       string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
-	UserName     string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります。"`
+	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password"`
 }
 
 type RequestSingInDeleteData struct {
 	UserId   string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
-	UserName string `json:"user_name" valid:"email~正しいメールアドレス形式である必要があります。"`
+	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 }
 
 type RequestRefreshTokenData struct {
 	UserId string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
+}
+
+type RequestSignOutData struct {
+	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 }
 
 type RequestPriceManagementData struct {
@@ -362,6 +366,25 @@ func (data RequestSingInDeleteData) Validate() (bool, []utils.ErrorMessages) {
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
+	}
+
+	return valid, errorMessagesList
+}
+
+
+func (data RequestSignOutData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
 	}
 
 	return valid, errorMessagesList

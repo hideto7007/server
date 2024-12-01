@@ -213,6 +213,38 @@ var deleteSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).P
 	</html>
 `))
 
+var deleteSignOutTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+	{{template "Style"}}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>サインアウト通知</title>
+		</head>
+		<body>
+			<div class="container">
+				<div class="header">
+					たくわえる<br>
+					Webブラウザからサインアウトされました
+				</div>
+				<div class="body">
+					<p>いつもたくわえるをご利用いただき、誠にありがとうございます。</p>
+					<p>お客様がご利用中の登録ユーザーで、サインアウトがありました。</p>
+
+					<div class="info-section">
+						<h4>登録ユーザ名</h4>
+						<p>{{.UserName}}</p>
+						<h4>実行日時</h4>
+						<p>{{.DateTime}}</p>
+					</div>
+					<p>こちらはご登録ユーザーでサインアウトした際に通知されますので、ご自身で実行された場合は無視してください。</p>
+					{{template "Support"}}
+				</div>
+				{{template "Footer" .}}
+			</div>
+		</body>
+	</html>
+`))
+
 func TemporayPostSingUpTemplate(Name, ConfirmCode string) (string, string, error) {
 	subject := "【たくわえる】本登録を完了してください"
 	// メールテンプレート定義
@@ -291,6 +323,27 @@ func DeleteSingInTemplate(UserName, DateTime string) (string, string, error) {
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
 	if err := deleteSingInTemplate.Execute(&body, data); err != nil {
+		return "", "", err // エラー時に空の件名と本文を返す
+	}
+
+	return subject, body.String(), nil
+}
+
+func SignOutTemplate(UserName, DateTime string) (string, string, error) {
+	subject := "【たくわえる】サインアウトのお知らせ"
+	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
+	// メールテンプレート定義
+
+	// テンプレートに渡すデータを作成
+	data := SingEmailData{
+		UserName: UserName,
+		DateTime: DateTime,
+		Year:     year,
+	}
+
+	// テンプレートの実行と結果の取得
+	var body bytes.Buffer
+	if err := deleteSignOutTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 

@@ -31,6 +31,7 @@ type (
 		PostSingUpApi(c *gin.Context)
 		PutSingInEditApi(c *gin.Context)
 		DeleteSingInApi(c *gin.Context)
+		SignOutApi(c *gin.Context)
 	}
 
 	// JSONデータを受け取るための構造体を定義
@@ -761,6 +762,71 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	// サインイン削除の成功レスポンス
 	response := utils.ResponseWithSingle[string]{
 		Result: "サインイン削除に成功",
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// SignOutApi はサインアウトAPI
+//
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiSingDataFetcher) SignOutApi(c *gin.Context) {
+	var secure bool = false
+	var domain string = "localhost"
+	var httpOnly bool = false
+
+	// パラメータからユーザー情報取得
+	userName := c.Query("user_name")
+	validator := validation.RequestSignOutData{
+		UserName: userName,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		response := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: errMsgList,
+		}
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	// ローカルの場合
+	if os.Getenv("ENV") != "local" {
+		domain = os.Getenv("DOMAIN")
+		secure = true
+		httpOnly = true
+	}
+
+	// Cookie無効化
+	c.SetCookie(utils.UserId, "", 0, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
+
+	subject, body, err := templates.SignOutTemplate(
+		userName,
+		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メールテンプレート生成エラー(サインアウト): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(userName, subject, body, true); err != nil {
+		response := utils.ResponseWithSlice[singUpResult]{
+			ErrorMsg: "メール送信エラー(サインアウト): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// サインイン削除の成功レスポンス
+	response := utils.ResponseWithSingle[string]{
+		Result: "サインアウトに成功",
 	}
 	c.JSON(http.StatusOK, response)
 }
