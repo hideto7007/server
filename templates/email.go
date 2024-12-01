@@ -82,7 +82,7 @@ body {
 
 {{define "Footer"}}
 <div class="footer">
-	&copy; {{.Year}} ファイナンスアプリ. All rights reserved.
+	&copy; {{.Year}} たくわえる. All rights reserved.
 </div>
 {{end}}
 
@@ -104,7 +104,7 @@ body {
 var temporayPostSingUpTemplate = template.Must(template.New("auth_email").Parse(`
 {{.Name}}さん！
 
-ファイナンスアプリをご利用いただきありがとうございます。
+たくわえるをご利用いただきありがとうございます。
 
 
 確認コードは {{.ConfirmCode}} です。
@@ -123,12 +123,12 @@ var postSingUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 		<body>
 			<div class="container">
 				<div class="header">
-					ファイナンスアプリ<br>
+					たくわえる<br>
 					ご登録完了のお知らせ
 				</div>
 				<div class="body">
 					<h4>{{.Name}}さん！</h4>
-					<p>ファイナンスアプリのご登録が完了しました。誠にありがとうございます。</p>
+					<p>たくわえるのご登録が完了しました。誠にありがとうございます。</p>
 					<p>{{.Name}}さんにとって、より良い資産管理が出来ることを祈っております。</p>
 					</br>
 
@@ -157,11 +157,11 @@ var postSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 		<body>
 			<div class="container">
 				<div class="header">
-					ファイナンスアプリ<br>
+					たくわえる<br>
 					Webブラウザから新たなサインインがありました
 				</div>
 				<div class="body">
-					<p>いつもファイナンスアプリをご利用いただき、誠にありがとうございます。</p>
+					<p>いつもたくわえるをご利用いただき、誠にありがとうございます。</p>
 					<p>お客様がご利用中の登録ユーザーで、新たなサインインがありました。</p>
 
 					<div class="info-section">
@@ -189,11 +189,11 @@ var deleteSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).P
 		<body>
 			<div class="container">
 				<div class="header">
-					ファイナンスアプリ<br>
+					たくわえる<br>
 					アカウント削除完了のお知らせ
 				</div>
 				<div class="body">
-					<p>{{.UserName}}さん、この度はファイナンスアプリをご利用いただき、誠にありがとうございました。</p>
+					<p>{{.UserName}}さん、この度はたくわえるをご利用いただき、誠にありがとうございました。</p>
 					<p>以下の内容でアカウントの削除が完了しました。</p>
 
 					<div class="info-section">
@@ -204,7 +204,7 @@ var deleteSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).P
 					</div>
 
 					<p>アカウント削除に伴い、関連するすべてのデータが安全に削除されたことをお知らせいたします。</p>
-					<p>また、いつでもファイナンスアプリをご利用いただけるよう準備しておりますので、再度のご利用を心よりお待ちしております。</p>
+					<p>また、いつでもたくわえるをご利用いただけるよう準備しておりますので、再度のご利用を心よりお待ちしております。</p>
 					{{template "Support"}}
 				</div>
 				{{template "Footer" .}}
@@ -214,7 +214,7 @@ var deleteSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).P
 `))
 
 func TemporayPostSingUpTemplate(Name, ConfirmCode string) (string, string, error) {
-	subject := "【ファイナンスアプリ】本登録を完了してください"
+	subject := "【たくわえる】本登録を完了してください"
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
@@ -233,7 +233,7 @@ func TemporayPostSingUpTemplate(Name, ConfirmCode string) (string, string, error
 }
 
 func PostSingUpTemplate(Name, UserName, DateTime string) (string, string, error) {
-	subject := "【ファイナンスアプリ】登録を完了致しました"
+	subject := "【たくわえる】登録を完了致しました"
 	// メールテンプレート定義
 
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
@@ -256,7 +256,7 @@ func PostSingUpTemplate(Name, UserName, DateTime string) (string, string, error)
 }
 
 func PostSingInTemplate(UserName, DateTime string) (string, string, error) {
-	subject := "【ファイナンスアプリ】サインイン致しました"
+	subject := "【たくわえる】サインイン致しました"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
@@ -277,7 +277,7 @@ func PostSingInTemplate(UserName, DateTime string) (string, string, error) {
 }
 
 func DeleteSingInTemplate(UserName, DateTime string) (string, string, error) {
-	subject := "【ファイナンスアプリ】アカウント削除完了のお知らせ"
+	subject := "【たくわえる】アカウント削除完了のお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
