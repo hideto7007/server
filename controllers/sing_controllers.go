@@ -23,20 +23,20 @@ import (
 )
 
 type (
-	SingDataFetcher interface {
-		PostSingInApi(c *gin.Context)
+	SignDataFetcher interface {
+		PostSignInApi(c *gin.Context)
 		GetRefreshTokenApi(c *gin.Context)
-		TemporayPostSingUpApi(c *gin.Context)
+		TemporayPostSignUpApi(c *gin.Context)
 		RetryAuthEmail(c *gin.Context)
-		PostSingUpApi(c *gin.Context)
-		PutSingInEditApi(c *gin.Context)
-		DeleteSingInApi(c *gin.Context)
+		PostSignUpApi(c *gin.Context)
+		PutSignInEditApi(c *gin.Context)
+		DeleteSignInApi(c *gin.Context)
 		SignOutApi(c *gin.Context)
 	}
 
 	// JSONデータを受け取るための構造体を定義
-	requestSingInData struct {
-		Data []models.RequestSingInData `json:"data"`
+	requestSignInData struct {
+		Data []models.RequestSignInData `json:"data"`
 	}
 
 	RequestRedisKeyData struct {
@@ -44,29 +44,29 @@ type (
 		AuthEmailCode string `json:"auth_email_code"`
 	}
 
-	requestRegisterSingUpData struct {
+	requestRegisterSignUpData struct {
 		Data []RequestRedisKeyData `json:"data"`
 	}
 
-	requesTemporaySingUpData struct {
-		Data []models.RequestSingUpData `json:"data"`
+	requesTemporaySignUpData struct {
+		Data []models.RequestSignUpData `json:"data"`
 	}
 
-	requestSingInEditData struct {
-		Data []models.RequestSingInEditData `json:"data"`
+	requestSignInEditData struct {
+		Data []models.RequestSignInEditData `json:"data"`
 	}
 
-	requestSingInDeleteData struct {
-		Data []models.RequestSingInDeleteData `json:"data"`
+	requestSignInDeleteData struct {
+		Data []models.RequestSignInDeleteData `json:"data"`
 	}
 
-	SingInResult struct {
+	SignInResult struct {
 		UserId       int    `json:"user_id"`
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
 	}
 
-	TemporayPostSingUpResult struct {
+	TemporayPostSignUpResult struct {
 		RedisKey string `json:"redis_key"`
 		UserName string `json:"user_name"`
 		NickName string `json:"nick_name"`
@@ -82,54 +82,54 @@ type (
 		UserId int `json:"user_id"`
 	}
 
-	singUpResult struct{}
+	signUpResult struct{}
 
-	singInEditResult struct{}
+	signInEditResult struct{}
 
-	singInDeleteResult struct{}
+	signInDeleteResult struct{}
 
 	refreshTokenDataResponse struct {
 		Token    string `json:"token,omitempty"`
 		ErrorMsg string `json:"error_msg,omitempty"`
 	}
 
-	apiSingDataFetcher struct {
+	apiSignDataFetcher struct {
 		UtilsFetcher  utils.UtilsFetcher
 		CommonFetcher common.CommonFetcher
 	}
 )
 
-func NewSingDataFetcher(
+func NewSignDataFetcher(
 	tokenFetcher utils.UtilsFetcher,
 	CommonFetcher common.CommonFetcher,
-) SingDataFetcher {
-	return &apiSingDataFetcher{
+) SignDataFetcher {
+	return &apiSignDataFetcher{
 		UtilsFetcher:  tokenFetcher,
 		CommonFetcher: CommonFetcher,
 	}
 }
 
-// PostSingInApi はサインイン情報を返すAPI
+// PostSignInApi はサインイン情報を返すAPI
 //
 // 引数:
 //   - c: Ginコンテキスト
 //   - tokenFetcher utils.UtilsFetcher: tokenフィーチャー構造体
 //
 
-func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
-	var requestData requestSingInData
+func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
+	var requestData requestSignInData
 	var secure bool = false
 	var domain string = "localhost"
 	var httpOnly bool = false
 	if err := c.ShouldBindJSON(&requestData); err != nil {
-		response := utils.ResponseWithSlice[requestSingInData]{
+		response := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
-	validator := validation.RequestSingInData{
+	validator := validation.RequestSignInData{
 		UserName:     requestData.Data[0].UserName,
 		UserPassword: requestData.Data[0].UserPassword,
 	}
@@ -142,13 +142,13 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(
+	dbFetcher, _, _ := models.NewSignDataFetcher(
 		config.DataSourceName,
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := dbFetcher.GetSingIn(requestData.Data[0])
+	result, err := dbFetcher.GetSignIn(requestData.Data[0])
 	if err != nil {
-		response := utils.ResponseWithSlice[requestSingInData]{
+		response := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusUnauthorized, response)
@@ -158,7 +158,7 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	// UtilsFetcher を使用してトークンを生成
 	newToken, err := af.UtilsFetcher.NewToken(result[0].UserId, utils.AuthTokenHour)
 	if err != nil {
-		response := utils.ResponseWithSlice[requestSingInData]{
+		response := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: "新規トークンの生成に失敗しました。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -185,12 +185,12 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 
-	subject, body, err := templates.PostSingInTemplate(
+	subject, body, err := templates.PostSignInTemplate(
 		result[0].UserName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ResponseWithSlice[requestSingInData]{
+		response := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: "メールテンプレート生成エラー(サインイン): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -199,7 +199,7 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(result[0].UserName, subject, body, true); err != nil {
-		response := utils.ResponseWithSlice[requestSingInData]{
+		response := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -207,9 +207,9 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 	}
 
 	// サインイン成功のレスポンス
-	response := utils.ResponseWithSlice[SingInResult]{
+	response := utils.ResponseWithSlice[SignInResult]{
 		// Token: token,
-		Result: []SingInResult{
+		Result: []SignInResult{
 			{
 				UserId:       result[0].UserId,
 				UserName:     result[0].UserName,
@@ -226,7 +226,7 @@ func (af *apiSingDataFetcher) PostSingInApi(c *gin.Context) {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
+func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	var common common.CommonFetcher = common.NewCommonFetcher()
 	var secure bool = false
 	var domain string = "localhost"
@@ -321,24 +321,24 @@ func (af *apiSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// TemporayPostSingUpApi はサインイン情報を仮登録API
+// TemporayPostSignUpApi はサインイン情報を仮登録API
 //
 // 引数:
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
-	var requestData requesTemporaySingUpData
+func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
+	var requestData requesTemporaySignUpData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
-	validator := validation.TemporayRequestSingUpData{
+	validator := validation.TemporayRequestSignUpData{
 		UserName:     requestData.Data[0].UserName,
 		UserPassword: requestData.Data[0].UserPassword,
 		NickName:     requestData.Data[0].NickName,
@@ -357,7 +357,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 	uid := uuid.New().String()
 	confirmCode, err := rand.Int(rand.Reader, big.NewInt(10000))
 	if err != nil {
-		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -376,16 +376,16 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 
 	// 保存
 	if err = config.RedisSet(key, value, time.Hour); err != nil {
-		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	subject, body, err := templates.TemporayPostSingUpTemplate(requestData.Data[0].NickName, confirmCodeStr)
+	subject, body, err := templates.TemporayPostSignUpTemplate(requestData.Data[0].NickName, confirmCodeStr)
 	if err != nil {
-		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
 			ErrorMsg: "メールテンプレート生成エラー(仮登録): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -394,7 +394,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, false); err != nil {
-		response := utils.ResponseWithSlice[TemporayPostSingUpResult]{
+		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
 			ErrorMsg: "メール仮登録送信エラー(仮登録): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -402,8 +402,8 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 	}
 
 	// サインアップ仮登録成功のレスポンス
-	response := utils.ResponseWithSingle[TemporayPostSingUpResult]{
-		Result: TemporayPostSingUpResult{
+	response := utils.ResponseWithSingle[TemporayPostSignUpResult]{
+		Result: TemporayPostSignUpResult{
 			RedisKey: key,
 			UserName: requestData.Data[0].UserName,
 			NickName: requestData.Data[0].NickName,
@@ -418,7 +418,7 @@ func (af *apiSingDataFetcher) TemporayPostSingUpApi(c *gin.Context) {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
+func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	UserName := c.Query("user_name")
 	NickName := c.Query("nick_name")
 	RedisKey := c.Query("redis_key")
@@ -479,7 +479,7 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := templates.TemporayPostSingUpTemplate(NickName, confirmCodeStr)
+	subject, body, err := templates.TemporayPostSignUpTemplate(NickName, confirmCodeStr)
 	if err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: "メールテンプレート生成エラー(メール再通知): " + err.Error(),
@@ -508,17 +508,17 @@ func (af *apiSingDataFetcher) RetryAuthEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// PostSingUpApi はサインイン情報を新規登録API
+// PostSignUpApi はサインイン情報を新規登録API
 //
 // 引数:
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
-	var requestData requestRegisterSingUpData
+func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
+	var requestData requestRegisterSignUpData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -528,7 +528,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	// 認証コード取得
 	auth := strings.Split(requestData.Data[0].RedisKey, ":")
 	if auth[0] != requestData.Data[0].AuthEmailCode {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: "メール認証コードが間違っています。",
 		}
 		c.JSON(http.StatusUnauthorized, response)
@@ -538,7 +538,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	// サインアップ仮登録した情報を取得
 	redisGet, err := config.RedisGet(requestData.Data[0].RedisKey)
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -552,7 +552,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	userPassword := info[1]
 	nickName := info[2]
 
-	validator := validation.RequestSingUpData{
+	validator := validation.RequestSignUpData{
 		UserName:     userName,
 		UserPassword: userPassword,
 		NickName:     nickName,
@@ -566,13 +566,13 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(
+	dbFetcher, _, _ := models.NewSignDataFetcher(
 		config.DataSourceName,
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	// requesTemporaySingUpDataの構造体を流用してデータ構造作成
-	data := requesTemporaySingUpData{
-		Data: []models.RequestSingUpData{
+	// requesTemporaySignUpDataの構造体を流用してデータ構造作成
+	data := requesTemporaySignUpData{
+		Data: []models.RequestSignUpData{
 			{
 				UserName:     userName,
 				UserPassword: userPassword,
@@ -580,7 +580,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 			},
 		},
 	}
-	if err := dbFetcher.PostSingUp(data.Data[0]); err != nil {
+	if err := dbFetcher.PostSignUp(data.Data[0]); err != nil {
 		response := utils.ResponseWithSlice[string]{
 			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
@@ -590,20 +590,20 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 
 	// 情報は削除する
 	if err = config.RedisDel(requestData.Data[0].RedisKey); err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	subject, body, err := templates.PostSingUpTemplate(
+	subject, body, err := templates.PostSignUpTemplate(
 		data.Data[0].NickName,
 		data.Data[0].UserName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: "メールテンプレート生成エラー(登録): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -612,7 +612,7 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(data.Data[0].UserName, subject, body, true); err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -626,17 +626,17 @@ func (af *apiSingDataFetcher) PostSingUpApi(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// PutSingInEditApi はサインイン情報を編集API
+// PutSignInEditApi はサインイン情報を編集API
 //
 // 引数:
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
-	var requestData requestSingInEditData
+func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
+	var requestData requestSignInEditData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ResponseWithSlice[singInEditResult]{
+		response := utils.ResponseWithSlice[signInEditResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -645,7 +645,7 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 
 	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
 
-	validator := validation.RequestSingInEditData{
+	validator := validation.RequestSignInEditData{
 		UserId:       userIdCheck,
 		UserName:     requestData.Data[0].UserName,
 		UserPassword: requestData.Data[0].UserPassword,
@@ -659,11 +659,11 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(
+	dbFetcher, _, _ := models.NewSignDataFetcher(
 		config.DataSourceName,
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	if err := dbFetcher.PutSingInEdit(requestData.Data[0]); err != nil {
+	if err := dbFetcher.PutSignInEdit(requestData.Data[0]); err != nil {
 		response := utils.ResponseWithSlice[string]{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
 		}
@@ -678,20 +678,20 @@ func (af *apiSingDataFetcher) PutSingInEditApi(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// DeleteSingInApi はサインイン情報を削除API
+// DeleteSignInApi はサインイン情報を削除API
 //
 // 引数:
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
-	var requestData requestSingInDeleteData
+func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
+	var requestData requestSignInDeleteData
 	var secure bool = false
 	var domain string = "localhost"
 	var httpOnly bool = false
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ResponseWithSlice[singInDeleteResult]{
+		response := utils.ResponseWithSlice[signInDeleteResult]{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusBadRequest, response)
@@ -700,7 +700,7 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 
 	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
 
-	validator := validation.RequestSingInDeleteData{
+	validator := validation.RequestSignInDeleteData{
 		UserId:   userIdCheck,
 		UserName: requestData.Data[0].UserName,
 	}
@@ -713,11 +713,11 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 		return
 	}
 
-	dbFetcher, _, _ := models.NewSingDataFetcher(
+	dbFetcher, _, _ := models.NewSignDataFetcher(
 		config.DataSourceName,
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	err := dbFetcher.DeleteSingIn(requestData.Data[0])
+	err := dbFetcher.DeleteSignIn(requestData.Data[0])
 	if err != nil {
 		response := utils.ResponseWithSlice[string]{
 			ErrorMsg: "サインインの削除に失敗しました。",
@@ -738,12 +738,12 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
 
-	subject, body, err := templates.DeleteSingInTemplate(
+	subject, body, err := templates.DeleteSignInTemplate(
 		requestData.Data[0].UserName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: "メールテンプレート生成エラー(削除): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -752,7 +752,7 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, true); err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -772,7 +772,7 @@ func (af *apiSingDataFetcher) DeleteSingInApi(c *gin.Context) {
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSingDataFetcher) SignOutApi(c *gin.Context) {
+func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 	var secure bool = false
 	var domain string = "localhost"
 	var httpOnly bool = false
@@ -808,7 +808,7 @@ func (af *apiSingDataFetcher) SignOutApi(c *gin.Context) {
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: "メールテンプレート生成エラー(サインアウト): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -817,7 +817,7 @@ func (af *apiSingDataFetcher) SignOutApi(c *gin.Context) {
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(userName, subject, body, true); err != nil {
-		response := utils.ResponseWithSlice[singUpResult]{
+		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: "メール送信エラー(サインアウト): " + err.Error(),
 		}
 		c.JSON(http.StatusInternalServerError, response)

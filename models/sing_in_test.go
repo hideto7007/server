@@ -14,10 +14,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestGetSingIn(t *testing.T) {
-	t.Run("GetSingIn クエリー実行時エラー", func(t *testing.T) {
+func TestGetSignIn(t *testing.T) {
+	t.Run("GetSignIn クエリー実行時エラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -26,27 +26,27 @@ func TestGetSingIn(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		requestData := RequestSingInData{
+		requestData := RequestSignInData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// クエリ実行時にエラーを返すようにモックを設定
-		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
 			WithArgs(requestData.UserName).
 			WillReturnError(fmt.Errorf("クエリの実行に失敗しました"))
 
 		// テストを実行
-		_, err = dbFetcher.GetSingIn(requestData)
+		_, err = dbFetcher.GetSignIn(requestData)
 
 		// クエリエラーが発生したことを確認
 		assert.Error(t, err)
 		assert.EqualError(t, err, "クエリの実行に失敗しました")
 	})
 
-	t.Run("GetSingIn rows.Scan時にエラー発生 UserIdで検証", func(t *testing.T) {
+	t.Run("GetSignIn rows.Scan時にエラー発生 UserIdで検証", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -55,7 +55,7 @@ func TestGetSingIn(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		requestData := RequestSingInData{
+		requestData := RequestSignInData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -70,20 +70,20 @@ func TestGetSingIn(t *testing.T) {
 		)
 
 		// クエリ実行時にエラーを返すようにモックを設定
-		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
 			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
-		_, err = dbFetcher.GetSingIn(requestData)
+		_, err = dbFetcher.GetSignIn(requestData)
 
 		// クエリエラーが発生したことを確認
 		assert.Error(t, err)
 	})
 
-	t.Run("GetSingIn rows.Err()にエラー発生", func(t *testing.T) {
+	t.Run("GetSignIn rows.Err()にエラー発生", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -92,7 +92,7 @@ func TestGetSingIn(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		requestData := RequestSingInData{
+		requestData := RequestSignInData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -110,21 +110,21 @@ func TestGetSingIn(t *testing.T) {
 		rows.RowError(0, fmt.Errorf("forced row error"))
 
 		// クエリ実行時にエラーを返すようにモックを設定
-		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
 			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
-		_, err = dbFetcher.GetSingIn(requestData)
+		_, err = dbFetcher.GetSignIn(requestData)
 
 		// クエリエラーが発生したことを確認
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "forced row error")
 	})
 
-	t.Run("GetSingIn 成功", func(t *testing.T) {
+	t.Run("GetSignIn 成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -133,7 +133,7 @@ func TestGetSingIn(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		requestData := RequestSingInData{
+		requestData := RequestSignInData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -144,7 +144,7 @@ func TestGetSingIn(t *testing.T) {
 			t.Fatalf("Error hashing password: %v", err)
 		}
 
-		mockData := []SingInData{
+		mockData := []SignInData{
 			{
 				UserId:       1,
 				UserName:     "test@exmple.com",
@@ -167,12 +167,12 @@ func TestGetSingIn(t *testing.T) {
 			)
 		}
 
-		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
 			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
-		result, err := dbFetcher.GetSingIn(requestData)
+		result, err := dbFetcher.GetSignIn(requestData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -187,9 +187,9 @@ func TestGetSingIn(t *testing.T) {
 		}
 	})
 
-	t.Run("GetSingIn 存在しないユーザー名です", func(t *testing.T) {
+	t.Run("GetSignIn 存在しないユーザー名です", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -198,7 +198,7 @@ func TestGetSingIn(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		requestData := RequestSingInData{
+		requestData := RequestSignInData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -210,12 +210,12 @@ func TestGetSingIn(t *testing.T) {
 			"user_id", "user_name", "user_password",
 		})
 
-		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
 			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
-		result, err := dbFetcher.GetSingIn(requestData)
+		result, err := dbFetcher.GetSignIn(requestData)
 
 		// 取得したデータが期待値と一致することを検証
 		assert.Empty(t, result)
@@ -227,9 +227,9 @@ func TestGetSingIn(t *testing.T) {
 		}
 	})
 
-	t.Run("GetSingIn パスワードが一致しません。", func(t *testing.T) {
+	t.Run("GetSignIn パスワードが一致しません。", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -238,12 +238,12 @@ func TestGetSingIn(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		requestData := RequestSingInData{
+		requestData := RequestSignInData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
-		mockData := []SingInData{
+		mockData := []SignInData{
 			{
 				UserId:       1,
 				UserName:     "test@exmple.com",
@@ -266,12 +266,12 @@ func TestGetSingIn(t *testing.T) {
 			)
 		}
 
-		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSingInSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
 			WithArgs(requestData.UserName).
 			WillReturnRows(rows)
 
 		// テストを実行
-		result, err := dbFetcher.GetSingIn(requestData)
+		result, err := dbFetcher.GetSignIn(requestData)
 
 		// 取得したデータが期待値と一致することを検証
 		assert.Empty(t, result)
@@ -284,10 +284,10 @@ func TestGetSingIn(t *testing.T) {
 	})
 }
 
-func TestPostSingUp(t *testing.T) {
-	t.Run("PostSingUp 登録成功", func(t *testing.T) {
+func TestPostSignUp(t *testing.T) {
+	t.Run("PostSignUp 登録成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -295,7 +295,7 @@ func TestPostSingUp(t *testing.T) {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
-		testData := RequestSingUpData{
+		testData := RequestSignUpData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 			NickName:     "test",
@@ -303,7 +303,7 @@ func TestPostSingUp(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.PostSingUpSyntax)).
+		mock.ExpectExec(regexp.QuoteMeta(DB.PostSignUpSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
@@ -317,14 +317,14 @@ func TestPostSingUp(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PostSingUp(testData)
+		err = dbFetcher.PostSignUp(testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
 	})
-	t.Run("PostSingUp 失敗", func(t *testing.T) {
+	t.Run("PostSignUp 失敗", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -333,7 +333,7 @@ func TestPostSingUp(t *testing.T) {
 		}
 
 		// テストデータを作成
-		testData := RequestSingUpData{
+		testData := RequestSignUpData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 			NickName:     "test",
@@ -341,7 +341,7 @@ func TestPostSingUp(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.PostSingUpSyntax)).
+		mock.ExpectExec(regexp.QuoteMeta(DB.PostSignUpSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
@@ -355,17 +355,17 @@ func TestPostSingUp(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PostSingUp(testData)
+		err = dbFetcher.PostSignUp(testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "insert failed")
 
-		t.Log("error PostSingUp log", err)
+		t.Log("error PostSignUp log", err)
 	})
-	t.Run("PostSingUp トランザクションエラー", func(t *testing.T) {
+	t.Run("PostSignUp トランザクションエラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -377,27 +377,27 @@ func TestPostSingUp(t *testing.T) {
 		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
 
 		// テストデータを作成
-		testData := RequestSingUpData{
+		testData := RequestSignUpData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 			NickName:     "test",
 		}
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PostSingUp(testData)
+		err = dbFetcher.PostSignUp(testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "transaction begin error")
 
-		t.Log("transaction begin error PostSingUp log", err)
+		t.Log("transaction begin error PostSignUp log", err)
 	})
 }
 
-func TestPutSingInEdit(t *testing.T) {
-	t.Run("PutSingInEdit 登録成功 1", func(t *testing.T) {
+func TestPutSignInEdit(t *testing.T) {
+	t.Run("PutSignInEdit 登録成功 1", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -405,7 +405,7 @@ func TestPutSingInEdit(t *testing.T) {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
-		testData := RequestSingInEditData{
+		testData := RequestSignInEditData{
 			UserName:     "",
 			UserPassword: "Test12345!",
 			UserId:       1,
@@ -413,7 +413,7 @@ func TestPutSingInEdit(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.PutSingInEditSyntax)).
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutSignInEditSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
@@ -424,14 +424,14 @@ func TestPutSingInEdit(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSingInEdit(testData)
+		err = dbFetcher.PutSignInEdit(testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
 	})
-	t.Run("PutSingInEdit 登録成功 2", func(t *testing.T) {
+	t.Run("PutSignInEdit 登録成功 2", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -439,7 +439,7 @@ func TestPutSingInEdit(t *testing.T) {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
-		testData := RequestSingInEditData{
+		testData := RequestSignInEditData{
 			UserName:     "test@exmple.com",
 			UserPassword: "",
 			UserId:       1,
@@ -447,7 +447,7 @@ func TestPutSingInEdit(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.PutSingInEditSyntax)).
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutSignInEditSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
@@ -458,14 +458,14 @@ func TestPutSingInEdit(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSingInEdit(testData)
+		err = dbFetcher.PutSignInEdit(testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
 	})
-	t.Run("PutSingInEdit 失敗", func(t *testing.T) {
+	t.Run("PutSignInEdit 失敗", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -474,7 +474,7 @@ func TestPutSingInEdit(t *testing.T) {
 		}
 
 		// テストデータを作成
-		testData := RequestSingInEditData{
+		testData := RequestSignInEditData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 			UserId:       1,
@@ -482,7 +482,7 @@ func TestPutSingInEdit(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.PutSingInEditSyntax)).
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutSignInEditSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
@@ -493,17 +493,17 @@ func TestPutSingInEdit(t *testing.T) {
 		mock.ExpectRollback() // エラー発生時にはロールバックを期待
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSingInEdit(testData)
+		err = dbFetcher.PutSignInEdit(testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "update failed")
 
-		t.Log("error PutSingInEdit log", err)
+		t.Log("error PutSignInEdit log", err)
 	})
-	t.Run("PutSingInEdit トランザクションエラー", func(t *testing.T) {
+	t.Run("PutSignInEdit トランザクションエラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -515,27 +515,27 @@ func TestPutSingInEdit(t *testing.T) {
 		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
 
 		// テストデータを作成
-		testData := RequestSingInEditData{
+		testData := RequestSignInEditData{
 			UserName:     "test@exmple.com",
 			UserPassword: "Test12345!",
 			UserId:       1,
 		}
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSingInEdit(testData)
+		err = dbFetcher.PutSignInEdit(testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "transaction begin error")
 
-		t.Log("transaction begin error PutSingInEdit log", err)
+		t.Log("transaction begin error PutSignInEdit log", err)
 	})
 }
 
-func TestDeleteSingIn(t *testing.T) {
-	t.Run("DeleteSingIn 登録成功", func(t *testing.T) {
+func TestDeleteSignIn(t *testing.T) {
+	t.Run("DeleteSignIn 登録成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -543,13 +543,13 @@ func TestDeleteSingIn(t *testing.T) {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
-		testData := RequestSingInDeleteData{
+		testData := RequestSignInDeleteData{
 			UserId: 1,
 		}
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSingInSyntax)).
+		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSignInSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 			).
@@ -557,14 +557,14 @@ func TestDeleteSingIn(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSingIn(testData)
+		err = dbFetcher.DeleteSignIn(testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
 	})
-	t.Run("DeleteSingIn 失敗", func(t *testing.T) {
+	t.Run("DeleteSignIn 失敗", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -573,13 +573,13 @@ func TestDeleteSingIn(t *testing.T) {
 		}
 
 		// テストデータを作成
-		testData := RequestSingInDeleteData{
+		testData := RequestSignInDeleteData{
 			UserId: 1,
 		}
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSingInSyntax)).
+		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSignInSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 			).
@@ -587,17 +587,17 @@ func TestDeleteSingIn(t *testing.T) {
 		mock.ExpectRollback() // エラー発生時にはロールバックを期待
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSingIn(testData)
+		err = dbFetcher.DeleteSignIn(testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "delete failed")
 
-		t.Log("error DeleteSingIn log", err)
+		t.Log("error DeleteSignIn log", err)
 	})
-	t.Run("DeleteSingIn トランザクションエラー", func(t *testing.T) {
+	t.Run("DeleteSignIn トランザクションエラー", func(t *testing.T) {
 		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSingDataFetcher(
+		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
 			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
@@ -609,17 +609,17 @@ func TestDeleteSingIn(t *testing.T) {
 		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
 
 		// テストデータを作成
-		testData := RequestSingInDeleteData{
+		testData := RequestSignInDeleteData{
 			UserId: 1,
 		}
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSingIn(testData)
+		err = dbFetcher.DeleteSignIn(testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "transaction begin error")
 
-		t.Log("transaction begin error DeleteSingIn log", err)
+		t.Log("transaction begin error DeleteSignIn log", err)
 	})
 }

@@ -48,19 +48,19 @@ const DeleteIncomeSyntax = `
 			WHERE income_forecast_id = $1;
 			`
 
-const GetSingInSyntax = `
+const GetSignInSyntax = `
 			SELECT user_id, user_name, user_password
 			FROM users
 			WHERE user_name = $1;
 			`
 
-const PostSingUpSyntax = `
+const PostSignUpSyntax = `
 			INSERT INTO users
 			(user_name, user_password, create_user, create_at, update_user, update_at, delete_flag)
 			VALUES ($1, $2, $3, $4, $5, $6, $7);
 			`
 
-const PutSingInEditSyntax = `
+const PutSignInEditSyntax = `
 			UPDATE users
 			SET
 				user_name = coalesce($1, user_name),
@@ -70,7 +70,7 @@ const PutSingInEditSyntax = `
 				user_id = $4;
 			`
 
-const DeleteSingInSyntax = `
+const DeleteSignInSyntax = `
 			DELETE FROM users
 			WHERE user_id = $1;
 			`

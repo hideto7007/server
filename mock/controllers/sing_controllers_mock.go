@@ -11,85 +11,85 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockSingDataFetcher is a mock of SingDataFetcher interface.
-type MockSingDataFetcher struct {
+// MockSignDataFetcher is a mock of SignDataFetcher interface.
+type MockSignDataFetcher struct {
 	ctrl     *gomock.Controller
-	recorder *MockSingDataFetcherMockRecorder
+	recorder *MockSignDataFetcherMockRecorder
 }
 
-// MockSingDataFetcherMockRecorder is the mock recorder for MockSingDataFetcher.
-type MockSingDataFetcherMockRecorder struct {
-	mock *MockSingDataFetcher
+// MockSignDataFetcherMockRecorder is the mock recorder for MockSignDataFetcher.
+type MockSignDataFetcherMockRecorder struct {
+	mock *MockSignDataFetcher
 }
 
-// NewMockSingDataFetcher creates a new mock instance.
-func NewMockSingDataFetcher(ctrl *gomock.Controller) *MockSingDataFetcher {
-	mock := &MockSingDataFetcher{ctrl: ctrl}
-	mock.recorder = &MockSingDataFetcherMockRecorder{mock}
+// NewMockSignDataFetcher creates a new mock instance.
+func NewMockSignDataFetcher(ctrl *gomock.Controller) *MockSignDataFetcher {
+	mock := &MockSignDataFetcher{ctrl: ctrl}
+	mock.recorder = &MockSignDataFetcherMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSingDataFetcher) EXPECT() *MockSingDataFetcherMockRecorder {
+func (m *MockSignDataFetcher) EXPECT() *MockSignDataFetcherMockRecorder {
 	return m.recorder
 }
 
-// DeleteSingInApi mocks base method.
-func (m *MockSingDataFetcher) DeleteSingInApi(c *gin.Context) {
+// DeleteSignInApi mocks base method.
+func (m *MockSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "DeleteSingInApi", c)
+	m.ctrl.Call(m, "DeleteSignInApi", c)
 }
 
-// DeleteSingInApi indicates an expected call of DeleteSingInApi.
-func (mr *MockSingDataFetcherMockRecorder) DeleteSingInApi(c interface{}) *gomock.Call {
+// DeleteSignInApi indicates an expected call of DeleteSignInApi.
+func (mr *MockSignDataFetcherMockRecorder) DeleteSignInApi(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSingInApi", reflect.TypeOf((*MockSingDataFetcher)(nil).DeleteSingInApi), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSignInApi", reflect.TypeOf((*MockSignDataFetcher)(nil).DeleteSignInApi), c)
 }
 
 // GetRefreshTokenApi mocks base method.
-func (m *MockSingDataFetcher) GetRefreshTokenApi(c *gin.Context) {
+func (m *MockSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "GetRefreshTokenApi", c)
 }
 
 // GetRefreshTokenApi indicates an expected call of GetRefreshTokenApi.
-func (mr *MockSingDataFetcherMockRecorder) GetRefreshTokenApi(c interface{}) *gomock.Call {
+func (mr *MockSignDataFetcherMockRecorder) GetRefreshTokenApi(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshTokenApi", reflect.TypeOf((*MockSingDataFetcher)(nil).GetRefreshTokenApi), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRefreshTokenApi", reflect.TypeOf((*MockSignDataFetcher)(nil).GetRefreshTokenApi), c)
 }
 
-// PostSingInApi mocks base method.
-func (m *MockSingDataFetcher) PostSingInApi(c *gin.Context) {
+// PostSignInApi mocks base method.
+func (m *MockSignDataFetcher) PostSignInApi(c *gin.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PostSingInApi", c)
+	m.ctrl.Call(m, "PostSignInApi", c)
 }
 
-// PostSingInApi indicates an expected call of PostSingInApi.
-func (mr *MockSingDataFetcherMockRecorder) PostSingInApi(c interface{}) *gomock.Call {
+// PostSignInApi indicates an expected call of PostSignInApi.
+func (mr *MockSignDataFetcherMockRecorder) PostSignInApi(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSingInApi", reflect.TypeOf((*MockSingDataFetcher)(nil).PostSingInApi), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSignInApi", reflect.TypeOf((*MockSignDataFetcher)(nil).PostSignInApi), c)
 }
 
-// PostSingUpApi mocks base method.
-func (m *MockSingDataFetcher) PostSingUpApi(c *gin.Context) {
+// PostSignUpApi mocks base method.
+func (m *MockSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PostSingUpApi", c)
+	m.ctrl.Call(m, "PostSignUpApi", c)
 }
 
-// PostSingUpApi indicates an expected call of PostSingUpApi.
-func (mr *MockSingDataFetcherMockRecorder) PostSingUpApi(c interface{}) *gomock.Call {
+// PostSignUpApi indicates an expected call of PostSignUpApi.
+func (mr *MockSignDataFetcherMockRecorder) PostSignUpApi(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSingUpApi", reflect.TypeOf((*MockSingDataFetcher)(nil).PostSingUpApi), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSignUpApi", reflect.TypeOf((*MockSignDataFetcher)(nil).PostSignUpApi), c)
 }
 
-// PutSingInEditApi mocks base method.
-func (m *MockSingDataFetcher) PutSingInEditApi(c *gin.Context) {
+// PutSignInEditApi mocks base method.
+func (m *MockSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PutSingInEditApi", c)
+	m.ctrl.Call(m, "PutSignInEditApi", c)
 }
 
-// PutSingInEditApi indicates an expected call of PutSingInEditApi.
-func (mr *MockSingDataFetcherMockRecorder) PutSingInEditApi(c interface{}) *gomock.Call {
+// PutSignInEditApi indicates an expected call of PutSignInEditApi.
+func (mr *MockSignDataFetcherMockRecorder) PutSignInEditApi(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutSingInEditApi", reflect.TypeOf((*MockSingDataFetcher)(nil).PutSingInEditApi), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutSignInEditApi", reflect.TypeOf((*MockSignDataFetcher)(nil).PutSignInEditApi), c)
 }

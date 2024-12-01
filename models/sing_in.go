@@ -1,4 +1,4 @@
-// models/singin.go
+// models/signin.go
 package models
 
 import (
@@ -15,77 +15,77 @@ import (
 )
 
 type (
-	SingInFetcher interface {
-		GetSingIn(data RequestSingInData) (SingInData, error)
-		PostSingUp(data RequestSingUpData) error
-		PutSingInEdit(data RequestSingInEditData) error
-		DeleteSingIn(data RequestSingInDeleteData) error
+	SignInFetcher interface {
+		GetSignIn(data RequestSignInData) (SignInData, error)
+		PostSignUp(data RequestSignUpData) error
+		PutSignInEdit(data RequestSignInEditData) error
+		DeleteSignIn(data RequestSignInDeleteData) error
 	}
 
-	RequestSingInData struct {
+	RequestSignInData struct {
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
 	}
 
-	RequestSingUpData struct {
+	RequestSignUpData struct {
 		UserName     string `json:"user_name"`
 		UserPassword string `json:"user_password"`
 		NickName     string `json:"nick_name"`
 	}
 
-	RequestSingInEditData struct {
+	RequestSignInEditData struct {
 		UserId       interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
 		UserName     string      `json:"user_name"`
 		UserPassword string      `json:"user_password"`
 	}
 
-	RequestSingInDeleteData struct {
+	RequestSignInDeleteData struct {
 		UserId   interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
 		UserName string      `json:"user_name"`
 	}
 
-	SingInData struct {
+	SignInData struct {
 		UserId       int
 		UserName     string
 		UserPassword string
 	}
 
-	SingUpData struct {
+	SignUpData struct {
 		UserName     string
 		UserPassword string
 	}
 
-	SingInEditData struct {
+	SignInEditData struct {
 		UserId       int
 		UserName     string
 		UserPassword string
 	}
 
-	SingInDeleteData struct {
+	SignInDeleteData struct {
 		UserId interface{}
 	}
 
-	SingDataFetcher struct {
+	SignDataFetcher struct {
 		db           *sql.DB
 		UtilsFetcher utils.UtilsFetcher
 	}
 )
 
-func NewSingDataFetcher(dataSourceName string, UtilsFetcher utils.UtilsFetcher) (*SingDataFetcher, sqlmock.Sqlmock, error) {
+func NewSignDataFetcher(dataSourceName string, UtilsFetcher utils.UtilsFetcher) (*SignDataFetcher, sqlmock.Sqlmock, error) {
 	if dataSourceName == "test" {
 		db, mock, err := sqlmock.New()
-		return &SingDataFetcher{db: db, UtilsFetcher: UtilsFetcher}, mock, err
+		return &SignDataFetcher{db: db, UtilsFetcher: UtilsFetcher}, mock, err
 	} else {
 		// test実行時に以下のカバレッジは無視する
 		db, err := sql.Open("postgres", dataSourceName)
 		if err != nil {
 			log.Printf("sql.Open error %s", err)
 		}
-		return &SingDataFetcher{db: db, UtilsFetcher: UtilsFetcher}, nil, nil
+		return &SignDataFetcher{db: db, UtilsFetcher: UtilsFetcher}, nil, nil
 	}
 }
 
-// SingIn サインイン情報を返す
+// SignIn サインイン情報を返す
 //
 // 引数:
 //   - data: { user_id: int, user_name: string, user_password: string }
@@ -96,13 +96,13 @@ func NewSingDataFetcher(dataSourceName string, UtilsFetcher utils.UtilsFetcher) 
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, error) {
+func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, error) {
 
-	var result []SingInData
+	var result []SignInData
 	var err error
 
 	// データベースクエリを実行
-	rows, err := pf.db.Query(DB.GetSingInSyntax, data.UserName)
+	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserName)
 
 	if err != nil {
 		fmt.Printf("Query failed: %v\n", err)
@@ -118,7 +118,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 	// fmt.Println(rows.Next())
 
 	for rows.Next() {
-		var record SingInData
+		var record SignInData
 		err := rows.Scan(
 			&record.UserId,
 			&record.UserName,
@@ -148,7 +148,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 	return result, nil
 }
 
-// SingUp サインアップ情報を新規登録API
+// SignUp サインアップ情報を新規登録API
 //
 // 引数:
 //   - data: { user_name: string, user_password: string, nick_name: string }
@@ -158,7 +158,7 @@ func (pf *SingDataFetcher) GetSingIn(data RequestSingInData) ([]SingInData, erro
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
+func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 
 	var err error
 	createdAt := time.Now()
@@ -182,9 +182,9 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 		}
 	}()
 
-	singUp := DB.PostSingUpSyntax
+	signUp := DB.PostSignUpSyntax
 
-	if _, err = tx.Exec(singUp,
+	if _, err = tx.Exec(signUp,
 		data.UserName,
 		data.UserPassword,
 		data.NickName,
@@ -198,7 +198,7 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 	return nil
 }
 
-// PutSingInEdit サイン情報を編集API
+// PutSignInEdit サイン情報を編集API
 //
 // 引数:
 //   - data: { user_id: int, user_name: string, user_password: string }
@@ -208,7 +208,7 @@ func (pf *SingDataFetcher) PostSingUp(data RequestSingUpData) error {
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
+func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 
 	var err error
 	createdAt := time.Now()
@@ -246,9 +246,9 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 		userPassword = &hashPassword
 	}
 
-	singInEdit := DB.PutSingInEditSyntax
+	signInEdit := DB.PutSignInEditSyntax
 
-	if _, err = tx.Exec(singInEdit,
+	if _, err = tx.Exec(signInEdit,
 		userName,
 		userPassword,
 		createdAt,
@@ -259,7 +259,7 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 	return nil
 }
 
-// DeleteSingIn サインイン情報を削除API
+// DeleteSignIn サインイン情報を削除API
 //
 // 引数:
 //   - data: { user_id: int}
@@ -269,7 +269,7 @@ func (pf *SingDataFetcher) PutSingInEdit(data RequestSingInEditData) error {
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SingDataFetcher) DeleteSingIn(data RequestSingInDeleteData) error {
+func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 
 	var err error
 
@@ -292,9 +292,9 @@ func (pf *SingDataFetcher) DeleteSingIn(data RequestSingInDeleteData) error {
 		}
 	}()
 
-	singInDelete := DB.DeleteSingInSyntax
+	signInDelete := DB.DeleteSignInSyntax
 
-	if _, err = tx.Exec(singInDelete,
+	if _, err = tx.Exec(signInDelete,
 		data.UserId); err != nil {
 		return err
 	}

@@ -9,7 +9,7 @@ import (
 
 type (
 	// データ構造体
-	TemporayPostSingUpEmailData struct {
+	TemporayPostSignUpEmailData struct {
 		Name        string
 		ConfirmCode string
 	}
@@ -101,7 +101,7 @@ body {
 {{end}}
 `))
 
-var temporayPostSingUpTemplate = template.Must(template.New("auth_email").Parse(`
+var temporayPostSignUpTemplate = template.Must(template.New("auth_email").Parse(`
 {{.Name}}さん！
 
 たくわえるをご利用いただきありがとうございます。
@@ -112,7 +112,7 @@ var temporayPostSingUpTemplate = template.Must(template.New("auth_email").Parse(
 この確認コードの有効期限は1時間です。
 `))
 
-var postSingUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+var postSignUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
 	{{template "Style"}}
 	<!DOCTYPE html>
 	<html>
@@ -147,7 +147,7 @@ var postSingUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 	</html>
 `))
 
-var postSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+var postSignInTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
 	{{template "Style"}}
 	<!DOCTYPE html>
 	<html>
@@ -179,7 +179,7 @@ var postSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 	</html>
 `))
 
-var deleteSingInTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+var deleteSignInTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
 	{{template "Style"}}
 	<!DOCTYPE html>
 	<html>
@@ -245,26 +245,26 @@ var deleteSignOutTemplate = template.Must(template.Must(commonTemplate.Clone()).
 	</html>
 `))
 
-func TemporayPostSingUpTemplate(Name, ConfirmCode string) (string, string, error) {
+func TemporayPostSignUpTemplate(Name, ConfirmCode string) (string, string, error) {
 	subject := "【たくわえる】本登録を完了してください"
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
-	data := TemporayPostSingUpEmailData{
+	data := TemporayPostSignUpEmailData{
 		Name:        Name,
 		ConfirmCode: ConfirmCode,
 	}
 
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
-	if err := temporayPostSingUpTemplate.Execute(&body, data); err != nil {
+	if err := temporayPostSignUpTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 
 	return subject, body.String(), nil
 }
 
-func PostSingUpTemplate(Name, UserName, DateTime string) (string, string, error) {
+func PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】登録を完了致しました"
 	// メールテンプレート定義
 
@@ -280,14 +280,14 @@ func PostSingUpTemplate(Name, UserName, DateTime string) (string, string, error)
 
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
-	if err := postSingUpTemplate.Execute(&body, data); err != nil {
+	if err := postSignUpTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 
 	return subject, body.String(), nil
 }
 
-func PostSingInTemplate(UserName, DateTime string) (string, string, error) {
+func PostSignInTemplate(UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】サインイン致しました"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
@@ -301,14 +301,14 @@ func PostSingInTemplate(UserName, DateTime string) (string, string, error) {
 
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
-	if err := postSingInTemplate.Execute(&body, data); err != nil {
+	if err := postSignInTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 
 	return subject, body.String(), nil
 }
 
-func DeleteSingInTemplate(UserName, DateTime string) (string, string, error) {
+func DeleteSignInTemplate(UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】アカウント削除完了のお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
@@ -322,7 +322,7 @@ func DeleteSingInTemplate(UserName, DateTime string) (string, string, error) {
 
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
-	if err := deleteSingInTemplate.Execute(&body, data); err != nil {
+	if err := deleteSignInTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 

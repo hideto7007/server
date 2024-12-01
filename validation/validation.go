@@ -1,4 +1,4 @@
-// validation/singin_validation.go
+// validation/signin_validation.go
 package validation
 
 import (
@@ -14,34 +14,34 @@ import (
 const UserPassword = "user_password"
 
 // type (
-// 	singInValidationFetcher interface {
+// 	signInValidationFetcher interface {
 // 		intCheck(val interface{}) error
 // 		Validate() error
 // 	}
 
 // 	SinginValidation struct {
-// 		models.RequestSingInData
+// 		models.RequestSignInData
 // 	}
 
-// 	singInValidation struct{}
+// 	signInValidation struct{}
 // )
 
-// func NewSingInValidationFetcher() singInValidationFetcher {
-// 	return &singInValidation{}
+// func NewSignInValidationFetcher() signInValidationFetcher {
+// 	return &signInValidation{}
 // }
 
-type RequestSingInData struct {
+type RequestSignInData struct {
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 }
 
-type TemporayRequestSingUpData struct {
+type TemporayRequestSignUpData struct {
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 	NickName     string `json:"nick_name" valid:"required~ニックネームは必須です。"`
 }
 
-type RequestSingUpData struct {
+type RequestSignUpData struct {
 	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 	NickName     string `json:"nick_name" valid:"required~ニックネームは必須です。"`
@@ -53,13 +53,13 @@ type RequestRetryAuthEmail struct {
 	NickName string `json:"nick_name" valid:"required~ニックネームは必須です。"`
 }
 
-type RequestSingInEditData struct {
+type RequestSignInEditData struct {
 	UserId       string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
-	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password"`
 }
 
-type RequestSingInDeleteData struct {
+type RequestSignInDeleteData struct {
 	UserId   string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
 	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 }
@@ -151,7 +151,7 @@ func validInt(val string) bool {
 	return intCase
 }
 
-func (data RequestSingInData) Validate() (bool, []utils.ErrorMessages) {
+func (data RequestSignInData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 	validArray := [2]bool{true, true}
 
@@ -239,7 +239,7 @@ func (data RequestRetryAuthEmail) Validate() (bool, []utils.ErrorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data TemporayRequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
+func (data TemporayRequestSignUpData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -275,7 +275,7 @@ func (data TemporayRequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
+func (data RequestSignUpData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)
@@ -293,7 +293,7 @@ func (data RequestSingUpData) Validate() (bool, []utils.ErrorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingInEditData) Validate() (bool, []utils.ErrorMessages) {
+func (data RequestSignInEditData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 	validArray := [2]bool{true, true}
 
@@ -344,7 +344,7 @@ func (data RequestSingInEditData) Validate() (bool, []utils.ErrorMessages) {
 	return valid, errorMessagesList
 }
 
-func (data RequestSingInDeleteData) Validate() (bool, []utils.ErrorMessages) {
+func (data RequestSignInDeleteData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 	var valid bool = true
 
@@ -370,7 +370,6 @@ func (data RequestSingInDeleteData) Validate() (bool, []utils.ErrorMessages) {
 
 	return valid, errorMessagesList
 }
-
 
 func (data RequestSignOutData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
@@ -651,7 +650,7 @@ func (data RequestDeleteIncomeData) Validate() (bool, []utils.ErrorMessages) {
 	return valid, errorMessagesList
 }
 
-// func (data SingInValidation) Validate() error {
+// func (data SignInValidation) Validate() error {
 // 	//NOTE: 日本語のエラー文が不要で、デフォルトの英語のエラー文で必要十分である場合、`.Error("xxx")`は不要でOK
 // 	return validation.ValidateStruct(&data,
 // 		validation.Field(

@@ -12,7 +12,7 @@ import (
 func SetupRoutes(r *gin.Engine) {
 
 	// APiインターフェイスのインスタンス定義
-	var singAPI controllers.SingDataFetcher = controllers.NewSingDataFetcher(
+	var signAPI controllers.SignDataFetcher = controllers.NewSignDataFetcher(
 		utils.NewUtilsFetcher(utils.JwtSecret),
 		common.NewCommonFetcher(),
 	)
@@ -26,14 +26,14 @@ func SetupRoutes(r *gin.Engine) {
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.POST("/singin", singAPI.PostSingInApi)
-		Routes.GET("/refresh_token", singAPI.GetRefreshTokenApi)
-		Routes.POST("/temporay_singup", singAPI.TemporayPostSingUpApi)
-		Routes.GET("/retry_auth_email", singAPI.RetryAuthEmail)
-		Routes.POST("/singup", singAPI.PostSingUpApi)
-		Routes.PUT("/singin_edit", singAPI.PutSingInEditApi)
-		Routes.DELETE("/singin_delete", singAPI.DeleteSingInApi)
-		Routes.GET("/signout", singAPI.SignOutApi)
+		Routes.POST("/signin", signAPI.PostSignInApi)
+		Routes.GET("/refresh_token", signAPI.GetRefreshTokenApi)
+		Routes.POST("/temporay_signup", signAPI.TemporayPostSignUpApi)
+		Routes.GET("/retry_auth_email", signAPI.RetryAuthEmail)
+		Routes.POST("/signup", signAPI.PostSignUpApi)
+		Routes.PUT("/signin_edit", signAPI.PutSignInEditApi)
+		Routes.DELETE("/signin_delete", signAPI.DeleteSignInApi)
+		Routes.GET("/signout", signAPI.SignOutApi)
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")

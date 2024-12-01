@@ -27,25 +27,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostSingInApi(t *testing.T) {
+func TestPostSignInApi(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	t.Run("TestPostSingInApi JSON不正", func(t *testing.T) {
+	t.Run("TestPostSignInApi JSON不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PostSingInApi(c)
+		fetcher.PostSignInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
@@ -54,12 +54,12 @@ func TestPostSingInApi(t *testing.T) {
 		assert.Contains(t, response["error_msg"], "unexpected EOF")
 	})
 
-	t.Run("TestPostSingInApi バリデーション 必須", func(t *testing.T) {
+	t.Run("TestPostSignInApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
-			Data: []models.RequestSingInData{
+			Data: []models.RequestSignInData{
 				{
 					UserName:     "",
 					UserPassword: "",
@@ -67,7 +67,7 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SingInData{
+		resMock := []models.SignInData{
 			{
 				UserId:       3,
 				UserName:     "test@example.com",
@@ -76,22 +76,22 @@ func TestPostSingInApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"GetSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PostSingInApi(c)
+		fetcher.PostSignInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -116,12 +116,12 @@ func TestPostSingInApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TestPostSingInApi バリデーション メールアドレス不正", func(t *testing.T) {
+	t.Run("TestPostSignInApi バリデーション メールアドレス不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
-			Data: []models.RequestSingInData{
+			Data: []models.RequestSignInData{
 				{
 					UserName:     "test",
 					UserPassword: "Test12345!",
@@ -129,7 +129,7 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SingInData{
+		resMock := []models.SignInData{
 			{
 				UserId:       3,
 				UserName:     "test@example.com",
@@ -138,22 +138,22 @@ func TestPostSingInApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"GetSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PostSingInApi(c)
+		fetcher.PostSignInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -172,11 +172,11 @@ func TestPostSingInApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TestPostSingInApi バリデーション パスワード不正", func(t *testing.T) {
+	t.Run("TestPostSignInApi バリデーション パスワード不正", func(t *testing.T) {
 
 		dataList := []testData{
 			{
-				Data: []models.RequestSingInData{
+				Data: []models.RequestSignInData{
 					{
 						UserName:     "test@example.com",
 						UserPassword: "Test12!",
@@ -184,7 +184,7 @@ func TestPostSingInApi(t *testing.T) {
 				},
 			},
 			{
-				Data: []models.RequestSingInData{
+				Data: []models.RequestSignInData{
 					{
 						UserName:     "test@example.com",
 						UserPassword: "Test123456",
@@ -193,7 +193,7 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SingInData{
+		resMock := []models.SignInData{
 			{
 				UserId:       3,
 				UserName:     "test@example.com",
@@ -206,22 +206,22 @@ func TestPostSingInApi(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.SingDataFetcher{}),
-				"GetSingIn",
-				func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+				reflect.TypeOf(&models.SignDataFetcher{}),
+				"GetSignIn",
+				func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 					return resMock, nil
 				})
 			defer patches.Reset()
 
-			fetcher := apiSingDataFetcher{
+			fetcher := apiSignDataFetcher{
 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
-			fetcher.PostSingInApi(c)
+			fetcher.PostSignInApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -242,10 +242,10 @@ func TestPostSingInApi(t *testing.T) {
 	})
 
 	// 処理削除したのでスキップ
-	// t.Run("TestPostSingInApi result件数0件", func(t *testing.T) {
+	// t.Run("TestPostSignInApi result件数0件", func(t *testing.T) {
 
 	// 	data := testData{
-	// 		Data: []models.RequestSingInData{
+	// 		Data: []models.RequestSignInData{
 	// 			{
 	// 				UserName:     "test@example.com",
 	// 				UserPassword: "Test123456!!",
@@ -253,45 +253,45 @@ func TestPostSingInApi(t *testing.T) {
 	// 		},
 	// 	}
 
-	// 	resMock := []models.SingInData{}
+	// 	resMock := []models.SignInData{}
 
 	// 	w := httptest.NewRecorder()
 	// 	c, _ := gin.CreateTestContext(w)
 
 	// 	body, _ := json.Marshal(data)
-	// 	c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+	// 	c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 	// 	c.Request.Header.Set("Content-Type", "application/json")
 
 	// 	patches := ApplyMethod(
-	// 		reflect.TypeOf(&models.SingDataFetcher{}),
-	// 		"GetSingIn",
-	// 		func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+	// 		reflect.TypeOf(&models.SignDataFetcher{}),
+	// 		"GetSignIn",
+	// 		func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 	// 			return resMock, nil
 	// 		})
 	// 	defer patches.Reset()
 
-	// 	fetcher := apiSingDataFetcher{
+	// 	fetcher := apiSignDataFetcher{
 	// 		UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 	// 		CommonFetcher: common.NewCommonFetcher(),
 	// 	}
-	// 	fetcher.PostSingInApi(c)
+	// 	fetcher.PostSignInApi(c)
 
 	// 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-	// 	var responseBody utils.ResponseWithSlice[requestSingInData]
+	// 	var responseBody utils.ResponseWithSlice[requestSignInData]
 	// 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 	// 	assert.NoError(t, err)
 
-	// 	expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
+	// 	expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
 	// 		ErrorMsg: "サインインに失敗しました。",
 	// 	}
 	// 	assert.Equal(t, responseBody, expectedErrorMessage)
 	// })
 
-	t.Run("TestPostSingInApi result 成功", func(t *testing.T) {
+	t.Run("TestPostSignInApi result 成功", func(t *testing.T) {
 
 		data := testData{
-			Data: []models.RequestSingInData{
+			Data: []models.RequestSignInData{
 				{
 					UserName:     "test@example.com",
 					UserPassword: "Test123456!!",
@@ -299,7 +299,7 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SingInData{
+		resMock := []models.SignInData{
 			{
 				UserId:       3,
 				UserName:     "test@example.com",
@@ -311,33 +311,33 @@ func TestPostSingInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"GetSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PostSingInApi(c)
+		fetcher.PostSignInApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSlice[SingInResult]
+		var responseBody utils.ResponseWithSlice[SignInResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
 		// assert.Equal(t, len(responseBody.Token), 120)
 
-		expectedOk := utils.ResponseWithSlice[SingInResult]{
-			Result: []SingInResult{
+		expectedOk := utils.ResponseWithSlice[SignInResult]{
+			Result: []SignInResult{
 				{
 					UserId:       3,
 					UserName:     "test@example.com",
@@ -350,10 +350,10 @@ func TestPostSingInApi(t *testing.T) {
 		assert.Equal(t, responseBody.Result[0].UserPassword, expectedOk.Result[0].UserPassword)
 	})
 
-	t.Run("TestPostSingInApi sql取得失敗しエラー発生", func(t *testing.T) {
+	t.Run("TestPostSignInApi sql取得失敗しエラー発生", func(t *testing.T) {
 
 		data := testData{
-			Data: []models.RequestSingInData{
+			Data: []models.RequestSignInData{
 				{
 					UserName:     "test@example.com",
 					UserPassword: "Test123456!!",
@@ -361,44 +361,44 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SingInData{}
+		resMock := []models.SignInData{}
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"GetSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PostSingInApi(c)
+		fetcher.PostSignInApi(c)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ResponseWithSlice[SingInResult]
+		var responseBody utils.ResponseWithSlice[SignInResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSlice[SingInResult]{
+		expectedError := utils.ResponseWithSlice[SignInResult]{
 			ErrorMsg: "sql取得失敗",
 		}
 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
 	})
 
-	t.Run("TestPostSingInApi トークン生成に失敗 1", func(t *testing.T) {
+	t.Run("TestPostSignInApi トークン生成に失敗 1", func(t *testing.T) {
 		data := testData{
-			Data: []models.RequestSingInData{
+			Data: []models.RequestSignInData{
 				{
 					UserName:     "test@example.com",
 					UserPassword: "Test123456!!",
@@ -406,7 +406,7 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SingInData{
+		resMock := []models.SignInData{
 			{
 				UserId:       3,
 				UserName:     "test@example.com",
@@ -430,42 +430,42 @@ func TestPostSingInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		// GetSingIn のモック化
+		// GetSignIn のモック化
 		patches1 := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"GetSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches1.Reset()
 
 		// モックを使って API を呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PostSingInApi(c)
+		fetcher.PostSignInApi(c)
 
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[requestSingInData]
+		var responseBody utils.ResponseWithSlice[requestSignInData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
+		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: "新規トークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TestPostSingInApi トークン生成に失敗 2", func(t *testing.T) {
+	t.Run("TestPostSignInApi トークン生成に失敗 2", func(t *testing.T) {
 		data := testData{
-			Data: []models.RequestSingInData{
+			Data: []models.RequestSignInData{
 				{
 					UserName:     "test@example.com",
 					UserPassword: "Test123456!!",
@@ -473,7 +473,7 @@ func TestPostSingInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SingInData{
+		resMock := []models.SignInData{
 			{
 				UserId:       3,
 				UserName:     "test@example.com",
@@ -501,34 +501,34 @@ func TestPostSingInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		// GetSingIn のモック化
+		// GetSignIn のモック化
 		patches1 := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"GetSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInData) ([]models.SingInData, error) {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches1.Reset()
 
 		// モックを使って API を呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PostSingInApi(c)
+		fetcher.PostSignInApi(c)
 
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[requestSingInData]
+		var responseBody utils.ResponseWithSlice[requestSignInData]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
+		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
@@ -548,7 +548,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		// UtilsFetcher のモックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -573,7 +573,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TestPostSingInApi バリデーション 必須", func(t *testing.T) {
+	t.Run("TestPostSignInApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -582,7 +582,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		// UtilsFetcher のモックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -607,7 +607,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TestPostSingInApi バリデーション 必須", func(t *testing.T) {
+	t.Run("TestPostSignInApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -616,7 +616,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		// UtilsFetcher のモックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -641,7 +641,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TestPostSingInApi バリデーション 数値文字列以外", func(t *testing.T) {
+	t.Run("TestPostSignInApi バリデーション 数値文字列以外", func(t *testing.T) {
 
 		paramsList := [2]string{
 			"/api/refresh_token?user_id=test",
@@ -656,7 +656,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			// UtilsFetcher のモックを使ってAPIを呼び出し
-			fetcher := apiSingDataFetcher{
+			fetcher := apiSignDataFetcher{
 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
@@ -696,7 +696,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		})
 
 		// モックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -747,7 +747,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		})
 
 		// モックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -816,7 +816,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		})
 
 		// モックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -889,7 +889,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		})
 
 		// モックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -963,7 +963,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		})
 
 		// モックを使ってAPIを呼び出し
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  mockUtilsFetcher,
 			CommonFetcher: common.NewCommonFetcher(),
 		}
@@ -984,25 +984,25 @@ func TestGetRefreshTokenApi(t *testing.T) {
 	})
 }
 
-// func TestPostSingUpApi(t *testing.T) {
+// func TestPostSignUpApi(t *testing.T) {
 
 // 	gin.SetMode(gin.TestMode)
 
-// 	t.Run("PostSingUpApi JSON不正", func(t *testing.T) {
+// 	t.Run("PostSignUpApi JSON不正", func(t *testing.T) {
 // 		w := httptest.NewRecorder()
 // 		c, _ := gin.CreateTestContext(w)
 
 // 		// Invalid JSON
 // 		invalidJSON := `{"data": [`
 
-// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBufferString(invalidJSON))
+// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBufferString(invalidJSON))
 // 		c.Request.Header.Set("Content-Type", "application/json")
 
-// 		fetcher := apiSingDataFetcher{
+// 		fetcher := apiSignDataFetcher{
 // 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 // 			CommonFetcher: common.NewCommonFetcher(),
 // 		}
-// 		fetcher.PostSingUpApi(c)
+// 		fetcher.PostSignUpApi(c)
 
 // 		assert.Equal(t, http.StatusBadRequest, w.Code)
 // 		var response map[string]interface{}
@@ -1011,12 +1011,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		assert.Contains(t, response["error_msg"], "unexpected EOF")
 // 	})
 
-// 	t.Run("PostSingUpApi バリデーション 必須", func(t *testing.T) {
+// 	t.Run("PostSignUpApi バリデーション 必須", func(t *testing.T) {
 // 		w := httptest.NewRecorder()
 // 		c, _ := gin.CreateTestContext(w)
 
 // 		data := testData{
-// 			Data: []models.RequestSingUpData{
+// 			Data: []models.RequestSignUpData{
 // 				{
 // 					NickName:     "",
 // 					UserName:     "",
@@ -1026,22 +1026,22 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		}
 
 // 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 // 		c.Request.Header.Set("Content-Type", "application/json")
 
 // 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SingDataFetcher{}),
-// 			"PostSingUp",
-// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
 // 				return nil
 // 			})
 // 		defer patches.Reset()
 
-// 		fetcher := apiSingDataFetcher{
+// 		fetcher := apiSignDataFetcher{
 // 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 // 			CommonFetcher: common.NewCommonFetcher(),
 // 		}
-// 		fetcher.PostSingUpApi(c)
+// 		fetcher.PostSignUpApi(c)
 
 // 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1070,12 +1070,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		assert.Equal(t, responseBody, expectedErrorMessage)
 // 	})
 
-// 	t.Run("PostSingUpApi バリデーション メールアドレス不正", func(t *testing.T) {
+// 	t.Run("PostSignUpApi バリデーション メールアドレス不正", func(t *testing.T) {
 // 		w := httptest.NewRecorder()
 // 		c, _ := gin.CreateTestContext(w)
 
 // 		data := testData{
-// 			Data: []models.RequestSingUpData{
+// 			Data: []models.RequestSignUpData{
 // 				{
 // 					NickName:     "test",
 // 					UserName:     "test",
@@ -1085,22 +1085,22 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		}
 
 // 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 // 		c.Request.Header.Set("Content-Type", "application/json")
 
 // 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SingDataFetcher{}),
-// 			"PostSingUp",
-// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
 // 				return nil
 // 			})
 // 		defer patches.Reset()
 
-// 		fetcher := apiSingDataFetcher{
+// 		fetcher := apiSignDataFetcher{
 // 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 // 			CommonFetcher: common.NewCommonFetcher(),
 // 		}
-// 		fetcher.PostSingUpApi(c)
+// 		fetcher.PostSignUpApi(c)
 
 // 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1119,11 +1119,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		assert.Equal(t, responseBody, expectedErrorMessage)
 // 	})
 
-// 	t.Run("PostSingUpApi バリデーション パスワード不正", func(t *testing.T) {
+// 	t.Run("PostSignUpApi バリデーション パスワード不正", func(t *testing.T) {
 
 // 		dataList := []testData{
 // 			{
-// 				Data: []models.RequestSingUpData{
+// 				Data: []models.RequestSignUpData{
 // 					{
 // 						NickName:     "test",
 // 						UserName:     "test@example.com",
@@ -1132,7 +1132,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 				},
 // 			},
 // 			{
-// 				Data: []models.RequestSingUpData{
+// 				Data: []models.RequestSignUpData{
 // 					{
 // 						NickName:     "test",
 // 						UserName:     "test@example.com",
@@ -1147,22 +1147,22 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 			c, _ := gin.CreateTestContext(w)
 
 // 			body, _ := json.Marshal(data)
-// 			c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 			c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 // 			c.Request.Header.Set("Content-Type", "application/json")
 
 // 			patches := ApplyMethod(
-// 				reflect.TypeOf(&models.SingDataFetcher{}),
-// 				"PostSingUp",
-// 				func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 				reflect.TypeOf(&models.SignDataFetcher{}),
+// 				"PostSignUp",
+// 				func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
 // 					return nil
 // 				})
 // 			defer patches.Reset()
 
-// 			fetcher := apiSingDataFetcher{
+// 			fetcher := apiSignDataFetcher{
 // 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 // 				CommonFetcher: common.NewCommonFetcher(),
 // 			}
-// 			fetcher.PostSingUpApi(c)
+// 			fetcher.PostSignUpApi(c)
 
 // 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1182,10 +1182,10 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		}
 // 	})
 
-// 	t.Run("PostSingUpApi sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
+// 	t.Run("PostSignUpApi sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
 
 // 		data := testData{
-// 			Data: []models.RequestSingUpData{
+// 			Data: []models.RequestSignUpData{
 // 				{
 // 					NickName:     "test",
 // 					UserName:     "test@example.com",
@@ -1198,39 +1198,39 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		c, _ := gin.CreateTestContext(w)
 
 // 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 // 		c.Request.Header.Set("Content-Type", "application/json")
 
 // 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SingDataFetcher{}),
-// 			"PostSingUp",
-// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
 // 				return fmt.Errorf("sql登録失敗")
 // 			})
 // 		defer patches.Reset()
 
-// 		fetcher := apiSingDataFetcher{
+// 		fetcher := apiSignDataFetcher{
 // 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 // 			CommonFetcher: common.NewCommonFetcher(),
 // 		}
-// 		fetcher.PostSingUpApi(c)
+// 		fetcher.PostSignUpApi(c)
 
 // 		assert.Equal(t, http.StatusConflict, w.Code)
 
-// 		var responseBody utils.ResponseWithSlice[requestSingInData]
+// 		var responseBody utils.ResponseWithSlice[requestSignInData]
 // 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 // 		assert.NoError(t, err)
 
-// 		expectedErrorMessage := utils.ResponseWithSlice[requestSingInData]{
+// 		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
 // 			ErrorMsg: "既に登録されたメールアドレスです。",
 // 		}
 // 		assert.Equal(t, responseBody, expectedErrorMessage)
 // 	})
 
-// 	t.Run("PostSingUpApi result 成功", func(t *testing.T) {
+// 	t.Run("PostSignUpApi result 成功", func(t *testing.T) {
 
 // 		data := testData{
-// 			Data: []models.RequestSingUpData{
+// 			Data: []models.RequestSignUpData{
 // 				{
 // 					NickName:     "test",
 // 					UserName:     "test@example.com",
@@ -1243,22 +1243,22 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 		c, _ := gin.CreateTestContext(w)
 
 // 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/singup", bytes.NewBuffer(body))
+// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 // 		c.Request.Header.Set("Content-Type", "application/json")
 
 // 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SingDataFetcher{}),
-// 			"PostSingUp",
-// 			func(_ *models.SingDataFetcher, data models.RequestSingUpData) error {
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
 // 				return nil
 // 			})
 // 		defer patches.Reset()
 
-// 		fetcher := apiSingDataFetcher{
+// 		fetcher := apiSignDataFetcher{
 // 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 // 			CommonFetcher: common.NewCommonFetcher(),
 // 		}
-// 		fetcher.PostSingUpApi(c)
+// 		fetcher.PostSignUpApi(c)
 
 // 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -1273,25 +1273,25 @@ func TestGetRefreshTokenApi(t *testing.T) {
 // 	})
 // }
 
-func TestPutSingInEditApi(t *testing.T) {
+func TestPutSignInEditApi(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	t.Run("PutSingInEditApi JSON不正", func(t *testing.T) {
+	t.Run("PutSignInEditApi JSON不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/singin_edit", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PutSingInEditApi(c)
+		fetcher.PutSignInEditApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
@@ -1300,12 +1300,12 @@ func TestPutSingInEditApi(t *testing.T) {
 		assert.Contains(t, response["error_msg"], "unexpected EOF")
 	})
 
-	t.Run("PutSingInEditApi バリデーション 必須", func(t *testing.T) {
+	t.Run("PutSignInEditApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
-			Data: []models.RequestSingInEditData{
+			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "",
 					UserName:     "",
@@ -1315,22 +1315,22 @@ func TestPutSingInEditApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PutSingInEdit",
-			func(_ *models.SingDataFetcher, data models.RequestSingInEditData) error {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutSignInEdit",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PutSingInEditApi(c)
+		fetcher.PutSignInEditApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1351,11 +1351,11 @@ func TestPutSingInEditApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("PutSingInEditApi バリデーション 数値文字列以外", func(t *testing.T) {
+	t.Run("PutSignInEditApi バリデーション 数値文字列以外", func(t *testing.T) {
 
 		dataList := []testData{
 			{
-				Data: []models.RequestSingInEditData{
+				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "test",
 						UserName:     "",
@@ -1364,7 +1364,7 @@ func TestPutSingInEditApi(t *testing.T) {
 				},
 			},
 			{
-				Data: []models.RequestSingInEditData{
+				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "1.25",
 						UserName:     "",
@@ -1378,22 +1378,22 @@ func TestPutSingInEditApi(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/singin_edit", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.SingDataFetcher{}),
-				"PutSingInEdit",
-				func(_ *models.SingDataFetcher, data models.RequestSingInEditData) error {
+				reflect.TypeOf(&models.SignDataFetcher{}),
+				"PutSignInEdit",
+				func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 					return nil
 				})
 			defer patches.Reset()
 
-			fetcher := apiSingDataFetcher{
+			fetcher := apiSignDataFetcher{
 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
-			fetcher.PutSingInEditApi(c)
+			fetcher.PutSignInEditApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1415,12 +1415,12 @@ func TestPutSingInEditApi(t *testing.T) {
 		}
 	})
 
-	t.Run("PutSingInEditApi バリデーション メールアドレス不正", func(t *testing.T) {
+	t.Run("PutSignInEditApi バリデーション メールアドレス不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
-			Data: []models.RequestSingInEditData{
+			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
 					UserName:     "test",
@@ -1430,22 +1430,22 @@ func TestPutSingInEditApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PutSingInEdit",
-			func(_ *models.SingDataFetcher, data models.RequestSingInEditData) error {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutSignInEdit",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PutSingInEditApi(c)
+		fetcher.PutSignInEditApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1464,11 +1464,11 @@ func TestPutSingInEditApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("PutSingInEditApi バリデーション パスワード不正", func(t *testing.T) {
+	t.Run("PutSignInEditApi バリデーション パスワード不正", func(t *testing.T) {
 
 		dataList := []testData{
 			{
-				Data: []models.RequestSingInEditData{
+				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "1",
 						UserName:     "test@example.com",
@@ -1477,7 +1477,7 @@ func TestPutSingInEditApi(t *testing.T) {
 				},
 			},
 			{
-				Data: []models.RequestSingInEditData{
+				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "2",
 						UserName:     "test@example.com",
@@ -1492,22 +1492,22 @@ func TestPutSingInEditApi(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/singin_edit", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.SingDataFetcher{}),
-				"PutSingInEdit",
-				func(_ *models.SingDataFetcher, data models.RequestSingInEditData) error {
+				reflect.TypeOf(&models.SignDataFetcher{}),
+				"PutSignInEdit",
+				func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 					return nil
 				})
 			defer patches.Reset()
 
-			fetcher := apiSingDataFetcher{
+			fetcher := apiSignDataFetcher{
 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
-			fetcher.PutSingInEditApi(c)
+			fetcher.PutSignInEditApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1527,10 +1527,10 @@ func TestPutSingInEditApi(t *testing.T) {
 		}
 	})
 
-	t.Run("PutSingInEditApi sql取得で失敗しサインイン情報編集に失敗になる", func(t *testing.T) {
+	t.Run("PutSignInEditApi sql取得で失敗しサインイン情報編集に失敗になる", func(t *testing.T) {
 
 		data := testData{
-			Data: []models.RequestSingInEditData{
+			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
 					UserName:     "test@example.com",
@@ -1543,22 +1543,22 @@ func TestPutSingInEditApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PutSingInEdit",
-			func(_ *models.SingDataFetcher, data models.RequestSingInEditData) error {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutSignInEdit",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 				return fmt.Errorf("sql更新失敗")
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PutSingInEditApi(c)
+		fetcher.PutSignInEditApi(c)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
@@ -1572,10 +1572,10 @@ func TestPutSingInEditApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("PutSingInEditApi result 成功", func(t *testing.T) {
+	t.Run("PutSignInEditApi result 成功", func(t *testing.T) {
 
 		data := testData{
-			Data: []models.RequestSingInEditData{
+			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
 					UserName:     "test@example.com",
@@ -1588,22 +1588,22 @@ func TestPutSingInEditApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"PutSingInEdit",
-			func(_ *models.SingDataFetcher, data models.RequestSingInEditData) error {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutSignInEdit",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.PutSingInEditApi(c)
+		fetcher.PutSignInEditApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -1618,25 +1618,25 @@ func TestPutSingInEditApi(t *testing.T) {
 	})
 }
 
-func TestDeleteSingInApi(t *testing.T) {
+func TestDeleteSignInApi(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	t.Run("DeleteSingInApi JSON不正", func(t *testing.T) {
+	t.Run("DeleteSignInApi JSON不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/singin_delete", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.DeleteSingInApi(c)
+		fetcher.DeleteSignInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
@@ -1645,12 +1645,12 @@ func TestDeleteSingInApi(t *testing.T) {
 		assert.Contains(t, response["error_msg"], "unexpected EOF")
 	})
 
-	t.Run("DeleteSingInApi バリデーション 必須", func(t *testing.T) {
+	t.Run("DeleteSignInApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
-			Data: []models.RequestSingInDeleteData{
+			Data: []models.RequestSignInDeleteData{
 				{
 					UserId: "",
 				},
@@ -1658,22 +1658,22 @@ func TestDeleteSingInApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"DeleteSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInDeleteData) error {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.DeleteSingInApi(c)
+		fetcher.DeleteSignInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1694,18 +1694,18 @@ func TestDeleteSingInApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("DeleteSingInApi バリデーション 数値文字列以外", func(t *testing.T) {
+	t.Run("DeleteSignInApi バリデーション 数値文字列以外", func(t *testing.T) {
 
 		dataList := []testData{
 			{
-				Data: []models.RequestSingInDeleteData{
+				Data: []models.RequestSignInDeleteData{
 					{
 						UserId: "test",
 					},
 				},
 			},
 			{
-				Data: []models.RequestSingInDeleteData{
+				Data: []models.RequestSignInDeleteData{
 					{
 						UserId: "1.25",
 					},
@@ -1717,22 +1717,22 @@ func TestDeleteSingInApi(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/singin_delete", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.SingDataFetcher{}),
-				"DeleteSingIn",
-				func(_ *models.SingDataFetcher, data models.RequestSingInDeleteData) error {
+				reflect.TypeOf(&models.SignDataFetcher{}),
+				"DeleteSignIn",
+				func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
 					return nil
 				})
 			defer patches.Reset()
 
-			fetcher := apiSingDataFetcher{
+			fetcher := apiSignDataFetcher{
 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 				CommonFetcher: common.NewCommonFetcher(),
 			}
-			fetcher.DeleteSingInApi(c)
+			fetcher.DeleteSignInApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1754,10 +1754,10 @@ func TestDeleteSingInApi(t *testing.T) {
 		}
 	})
 
-	t.Run("DeleteSingInApi sql取得で失敗しサインインの削除失敗になる", func(t *testing.T) {
+	t.Run("DeleteSignInApi sql取得で失敗しサインインの削除失敗になる", func(t *testing.T) {
 
 		data := testData{
-			Data: []models.RequestSingInDeleteData{
+			Data: []models.RequestSignInDeleteData{
 				{
 					UserId: "1",
 				},
@@ -1768,22 +1768,22 @@ func TestDeleteSingInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"DeleteSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInDeleteData) error {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
 				return fmt.Errorf("sql削除失敗")
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.DeleteSingInApi(c)
+		fetcher.DeleteSignInApi(c)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
@@ -1797,10 +1797,10 @@ func TestDeleteSingInApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("DeleteSingInApi result 成功", func(t *testing.T) {
+	t.Run("DeleteSignInApi result 成功", func(t *testing.T) {
 
 		data := testData{
-			Data: []models.RequestSingInDeleteData{
+			Data: []models.RequestSignInDeleteData{
 				{
 					UserId: "1",
 				},
@@ -1811,22 +1811,22 @@ func TestDeleteSingInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/singin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.SingDataFetcher{}),
-			"DeleteSingIn",
-			func(_ *models.SingDataFetcher, data models.RequestSingInDeleteData) error {
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
 
-		fetcher := apiSingDataFetcher{
+		fetcher := apiSignDataFetcher{
 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher: common.NewCommonFetcher(),
 		}
-		fetcher.DeleteSingInApi(c)
+		fetcher.DeleteSignInApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
