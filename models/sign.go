@@ -19,6 +19,7 @@ type (
 		GetSignIn(data RequestSignInData) (SignInData, error)
 		PostSignUp(data RequestSignUpData) error
 		PutSignInEdit(data RequestSignInEditData) error
+		PutCheck(data RequestSignInEditData) (string, error)
 		DeleteSignIn(data RequestSignInDeleteData) error
 	}
 
@@ -257,6 +258,61 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 	}
 
 	return nil
+}
+
+// PutCheck サイン情報修正した際に、ユーザー名かパスワードどちらを更新したかチェックする
+//
+// 引数:
+//   - data: { user_id: int, user_name: string, user_password: string }
+//
+// 戻り値:
+//
+//	戻り値1: 文字列, nil(errorの場合error)
+//
+
+func (pf *SignDataFetcher) PutCheck(data RequestSignInEditData) (string, error) {
+
+	var err error
+	var result string
+
+	// データベースクエリを実行
+	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserName)
+	if err != nil {
+		fmt.Printf("Query failed: %v\n", err)
+		return "", err
+	}
+	defer rows.Close()
+
+	// `rows.Next()`で結果があるかを確認
+	if rows.Next() {
+		// 最初の行をスキャン（ユーザーネームが存在する）
+		var record SignInData
+		err := rows.Scan(
+			&record.UserId,
+			&record.UserName,
+			&record.UserPassword,
+		)
+		if err != nil {
+			return "", err
+		}
+
+		// パスワードの整合性を確認
+		err = pf.UtilsFetcher.CompareHashPassword(record.UserPassword, data.UserPassword)
+		if err != nil {
+			// パスワードが異なる場合（更新の必要あり）
+			result = "パスワード更新"
+		}
+	} else {
+		// ユーザーネームが存在しない場合
+		result = "ユーザー名更新"
+	}
+
+	// `rows.Err()`でカーソル操作中のエラーを確認
+	if err := rows.Err(); err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
 // DeleteSignIn サインイン情報を削除API

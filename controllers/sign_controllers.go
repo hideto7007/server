@@ -634,6 +634,8 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 
 func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 	var requestData requestSignInEditData
+	var updateValue string
+	var result string
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
 		response := utils.ResponseWithSlice[signInEditResult]{
@@ -663,6 +665,14 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		config.DataSourceName,
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
+	result, err := dbFetcher.PutCheck(requestData.Data[0])
+	if err != nil {
+		response := utils.ResponseWithSlice[string]{
+			ErrorMsg: "更新チェックエラー",
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
 	if err := dbFetcher.PutSignInEdit(requestData.Data[0]); err != nil {
 		response := utils.ResponseWithSlice[string]{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
@@ -671,9 +681,37 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		return
 	}
 
+	if result == "ユーザー名更新" {
+		updateValue = requestData.Data[0].UserName
+	} else {
+		updateValue = requestData.Data[0].UserPassword
+	}
+
+	subject, body, err := templates.PostSignInEditTemplate(
+		result,
+		updateValue,
+		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ResponseWithSlice[signUpResult]{
+			ErrorMsg: "メールテンプレート生成エラー(更新): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, true); err != nil {
+		response := utils.ResponseWithSlice[signUpResult]{
+			ErrorMsg: "メール送信エラー(更新): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
 	// サインイン編集の成功レスポンス
 	response := utils.ResponseWithSingle[string]{
-		Result: "サインイン編集に成功",
+		Result: fmt.Sprintf("%s:%s", "サインイン編集に成功", updateValue),
 	}
 	c.JSON(http.StatusOK, response)
 }

@@ -15,12 +15,14 @@ type (
 	}
 
 	SingEmailData struct {
-		Style    string
-		Name     string
-		UserName string
-		DateTime string
-		Footer   string
-		Year     string
+		Style       string
+		Name        string
+		UserName    string
+		DateTime    string
+		Footer      string
+		Year        string
+		Update      string
+		UpdateValue string
 	}
 )
 
@@ -136,6 +138,36 @@ var postSignUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 						<h4>登録ユーザ名</h4>
 						<p>{{.UserName}}</p>
 						<h4>登録日時</h4>
+						<p>{{.DateTime}}</p>
+					</div>
+					<p>今後ともよろしくお願いいたします。</p>
+					{{template "Support"}}
+				</div>
+				{{template "Footer" .}}
+			</div>
+		</body>
+	</html>
+`))
+
+var postSignInEditTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+	{{template "Style"}}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>登録情報編集のお知らせ</title>
+			{{.Style}}
+		</head>
+		<body>
+			<div class="container">
+				<div class="header">
+					たくわえる<br>
+					登録情報編集のお知らせ
+				</div>
+				<div class="body">
+					<div class="info-section">
+						<h4>{{.Update}}</h4>
+						<p>{{.UpdateValue}}</p>
+						<h4>更新日時</h4>
 						<p>{{.DateTime}}</p>
 					</div>
 					<p>今後ともよろしくお願いいたします。</p>
@@ -281,6 +313,29 @@ func PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error)
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
 	if err := postSignUpTemplate.Execute(&body, data); err != nil {
+		return "", "", err // エラー時に空の件名と本文を返す
+	}
+
+	return subject, body.String(), nil
+}
+
+func PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, string, error) {
+	subject := "【たくわえる】登録情報編集致しました"
+	// メールテンプレート定義
+
+	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
+
+	// テンプレートに渡すデータを作成
+	data := SingEmailData{
+		Update:      Update,
+		UpdateValue: UpdateValue,
+		DateTime:    DateTime,
+		Year:        year,
+	}
+
+	// テンプレートの実行と結果の取得
+	var body bytes.Buffer
+	if err := postSignInEditTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 
