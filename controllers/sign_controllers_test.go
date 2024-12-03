@@ -23,7 +23,7 @@ import (
 
 	. "github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -880,7 +880,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		}
 	})
 
-	t.Run("TestGetRefreshTokenApi リフレッシュトークンなし", func(t *testing.T) {
+	t.Run("TestGetRefreshTokenApi サインインユーザーが異なっています", func(t *testing.T) {
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -891,6 +891,10 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request.AddCookie(&http.Cookie{
 			Name:  "AuthToken",
 			Value: "dummy_token",
+		})
+		c.Request.AddCookie(&http.Cookie{
+			Name:  "UserId",
+			Value: "2",
 		})
 
 		// モックを使ってAPIを呼び出し
@@ -910,10 +914,90 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.NoError(t, err)
 
 		expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "リフレッシュトークンがありません。再ログインしてください。",
+			ErrorMsg: "サインインユーザーが異なっています。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
+
+	t.Run("TestGetRefreshTokenApi 新しいアクセストークンの生成に失敗しました。",
+		func(t *testing.T) {
+
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			// リクエストにパラメータを設定
+			c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
+			c.Request.Header.Set("Content-Type", "application/json")
+			c.Request.AddCookie(&http.Cookie{
+				Name:  "AuthToken",
+				Value: "dummy_token",
+			})
+			c.Request.AddCookie(&http.Cookie{
+				Name:  "ErrorUserId",
+				Value: "1",
+			})
+
+			// モックを使ってAPIを呼び出し
+			fetcher := apiSignDataFetcher{
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
+			}
+			fetcher.GetRefreshTokenApi(c)
+
+			// ステータスコードの確認
+			assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+			// レスポンスボディの確認
+			var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
+				ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		})
+
+	t.Run("TestGetRefreshTokenApi リフレッシュトークンがありません。再ログインしてください。",
+		func(t *testing.T) {
+
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			// リクエストにパラメータを設定
+			c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
+			c.Request.Header.Set("Content-Type", "application/json")
+			c.Request.AddCookie(&http.Cookie{
+				Name:  "ErrorAuthToken",
+				Value: "dummy_token",
+			})
+			c.Request.AddCookie(&http.Cookie{
+				Name:  "UserId",
+				Value: "1",
+			})
+
+			// モックを使ってAPIを呼び出し
+			fetcher := apiSignDataFetcher{
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
+			}
+			fetcher.GetRefreshTokenApi(c)
+
+			// ステータスコードの確認
+			assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+			// レスポンスボディの確認
+			var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
+				ErrorMsg: "リフレッシュトークンがありません。再ログインしてください。",
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		})
 
 	t.Run("TestGetRefreshTokenApi リフレッシュトークンが無効", func(t *testing.T) {
 		// gomock のコントローラを作成
@@ -943,6 +1027,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request.AddCookie(&http.Cookie{
 			Name:  "RefreshAuthToken",
 			Value: "dummy_token",
+		})
+
+		c.Request.AddCookie(&http.Cookie{
+			Name:  "UserId",
+			Value: "1",
 		})
 
 		// モックを使ってAPIを呼び出し
@@ -1013,6 +1102,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request.AddCookie(&http.Cookie{
 			Name:  "RefreshAuthToken",
 			Value: "dummy_token",
+		})
+
+		c.Request.AddCookie(&http.Cookie{
+			Name:  "UserId",
+			Value: "1",
 		})
 
 		// モックを使ってAPIを呼び出し
@@ -1089,6 +1183,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 			Value: "dummy_token",
 		})
 
+		c.Request.AddCookie(&http.Cookie{
+			Name:  "UserId",
+			Value: "1",
+		})
+
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         mockUtilsFetcher,
@@ -1162,6 +1261,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request.AddCookie(&http.Cookie{
 			Name:  "RefreshAuthToken",
 			Value: "dummy_token",
+		})
+
+		c.Request.AddCookie(&http.Cookie{
+			Name:  "UserId",
+			Value: "1",
 		})
 
 		// モックを使ってAPIを呼び出し
