@@ -4,6 +4,7 @@ import (
 	"server/common"
 	"server/controllers"
 	"server/middleware"
+	"server/templates"
 	"server/utils"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ func SetupRoutes(r *gin.Engine) {
 	var signAPI controllers.SignDataFetcher = controllers.NewSignDataFetcher(
 		utils.NewUtilsFetcher(utils.JwtSecret),
 		common.NewCommonFetcher(),
+		templates.NewEmailTemplateManager(),
 	)
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher(
 		common.NewCommonFetcher(),

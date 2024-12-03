@@ -93,3 +93,39 @@ func (mr *MockSignDataFetcherMockRecorder) PutSignInEditApi(c interface{}) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutSignInEditApi", reflect.TypeOf((*MockSignDataFetcher)(nil).PutSignInEditApi), c)
 }
+
+// RetryAuthEmail mocks base method.
+func (m *MockSignDataFetcher) RetryAuthEmail(c *gin.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "RetryAuthEmail", c)
+}
+
+// RetryAuthEmail indicates an expected call of RetryAuthEmail.
+func (mr *MockSignDataFetcherMockRecorder) RetryAuthEmail(c interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetryAuthEmail", reflect.TypeOf((*MockSignDataFetcher)(nil).RetryAuthEmail), c)
+}
+
+// SignOutApi mocks base method.
+func (m *MockSignDataFetcher) SignOutApi(c *gin.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SignOutApi", c)
+}
+
+// SignOutApi indicates an expected call of SignOutApi.
+func (mr *MockSignDataFetcherMockRecorder) SignOutApi(c interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignOutApi", reflect.TypeOf((*MockSignDataFetcher)(nil).SignOutApi), c)
+}
+
+// TemporayPostSignUpApi mocks base method.
+func (m *MockSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "TemporayPostSignUpApi", c)
+}
+
+// TemporayPostSignUpApi indicates an expected call of TemporayPostSignUpApi.
+func (mr *MockSignDataFetcherMockRecorder) TemporayPostSignUpApi(c interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TemporayPostSignUpApi", reflect.TypeOf((*MockSignDataFetcher)(nil).TemporayPostSignUpApi), c)
+}

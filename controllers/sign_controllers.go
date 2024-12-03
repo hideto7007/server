@@ -94,18 +94,21 @@ type (
 	}
 
 	apiSignDataFetcher struct {
-		UtilsFetcher  utils.UtilsFetcher
-		CommonFetcher common.CommonFetcher
+		UtilsFetcher         utils.UtilsFetcher
+		CommonFetcher        common.CommonFetcher
+		EmailTemplateService templates.EmailTemplateService
 	}
 )
 
 func NewSignDataFetcher(
 	tokenFetcher utils.UtilsFetcher,
 	CommonFetcher common.CommonFetcher,
+	EmailTemplateService templates.EmailTemplateService,
 ) SignDataFetcher {
 	return &apiSignDataFetcher{
-		UtilsFetcher:  tokenFetcher,
-		CommonFetcher: CommonFetcher,
+		UtilsFetcher:         tokenFetcher,
+		CommonFetcher:        CommonFetcher,
+		EmailTemplateService: EmailTemplateService,
 	}
 }
 
@@ -185,7 +188,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
 
-	subject, body, err := templates.PostSignInTemplate(
+	subject, body, err := af.EmailTemplateService.PostSignInTemplate(
 		result[0].UserName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
@@ -217,6 +220,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 			},
 		},
 	}
+	fmt.Println("result2", response)
 	c.JSON(http.StatusOK, response)
 }
 
@@ -248,7 +252,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	signInUserId, err := c.Cookie(utils.UserId)
 	if err != nil {
 		response := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: err.Error(),
+			ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
@@ -383,7 +387,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := templates.TemporayPostSignUpTemplate(requestData.Data[0].NickName, confirmCodeStr)
+	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(requestData.Data[0].NickName, confirmCodeStr)
 	if err != nil {
 		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
 			ErrorMsg: "メールテンプレート生成エラー(仮登録): " + err.Error(),
@@ -479,7 +483,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := templates.TemporayPostSignUpTemplate(NickName, confirmCodeStr)
+	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(NickName, confirmCodeStr)
 	if err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: "メールテンプレート生成エラー(メール再通知): " + err.Error(),
@@ -597,7 +601,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := templates.PostSignUpTemplate(
+	subject, body, err := af.EmailTemplateService.PostSignUpTemplate(
 		data.Data[0].NickName,
 		data.Data[0].UserName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
@@ -687,7 +691,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		updateValue = requestData.Data[0].UserPassword
 	}
 
-	subject, body, err := templates.PostSignInEditTemplate(
+	subject, body, err := af.EmailTemplateService.PostSignInEditTemplate(
 		result,
 		updateValue,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
@@ -776,7 +780,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
 
-	subject, body, err := templates.DeleteSignInTemplate(
+	subject, body, err := af.EmailTemplateService.DeleteSignInTemplate(
 		requestData.Data[0].UserName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
@@ -841,7 +845,7 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
 
-	subject, body, err := templates.SignOutTemplate(
+	subject, body, err := af.EmailTemplateService.SignOutTemplate(
 		userName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)

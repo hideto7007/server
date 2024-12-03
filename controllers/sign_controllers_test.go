@@ -13,15 +13,17 @@ import (
 
 	"server/common"
 	"server/models"
+	"server/templates"
 	"server/test_utils"
 	"server/utils"
 	"testing"
 
+	mock_templates "server/mock/templates"
 	mock_utils "server/mock/utils"
 
 	. "github.com/agiledragon/gomonkey/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -42,8 +44,9 @@ func TestPostSignInApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PostSignInApi(c)
 
@@ -88,8 +91,9 @@ func TestPostSignInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PostSignInApi(c)
 
@@ -150,8 +154,9 @@ func TestPostSignInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PostSignInApi(c)
 
@@ -218,8 +223,9 @@ func TestPostSignInApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSignDataFetcher{
-				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher: common.NewCommonFetcher(),
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
 			}
 			fetcher.PostSignInApi(c)
 
@@ -273,6 +279,7 @@ func TestPostSignInApi(t *testing.T) {
 	// 	fetcher := apiSignDataFetcher{
 	// 		UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
 	// 		CommonFetcher: common.NewCommonFetcher(),
+	// EmailTemplateService: templates.NewEmailTemplateManager(),
 	// 	}
 	// 	fetcher.PostSignInApi(c)
 
@@ -322,9 +329,34 @@ func TestPostSignInApi(t *testing.T) {
 			})
 		defer patches.Reset()
 
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("new_token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("refresh_token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PostSignInApi(c)
 
@@ -348,6 +380,165 @@ func TestPostSignInApi(t *testing.T) {
 		assert.Equal(t, responseBody.Result[0].UserId, expectedOk.Result[0].UserId)
 		assert.Equal(t, responseBody.Result[0].UserName, expectedOk.Result[0].UserName)
 		assert.Equal(t, responseBody.Result[0].UserPassword, expectedOk.Result[0].UserPassword)
+	})
+
+	t.Run("TestPostSignInApi メールテンプレート生成エラー(サインイン)", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInData{
+				{
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		resMock := []models.SignInData{
+			{
+				UserId:       3,
+				UserName:     "test@example.com",
+				UserPassword: "Test12345!",
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("new_token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("refresh_token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			PostSignInTemplate(gomock.Any(), gomock.Any()).
+			Return("", "", fmt.Errorf("テンプレート生成エラー"))
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+		}
+		fetcher.PostSignInApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[SignInResult]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// assert.Equal(t, len(responseBody.Token), 120)
+
+		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
+			ErrorMsg: "メールテンプレート生成エラー(サインイン): テンプレート生成エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("TestPostSignInApi メール送信エラー(サインイン)", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInData{
+				{
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		resMock := []models.SignInData{
+			{
+				UserId:       3,
+				UserName:     "test@example.com",
+				UserPassword: "Test12345!",
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("new_token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("refresh_token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		fetcher.PostSignInApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[SignInResult]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		// assert.Equal(t, len(responseBody.Token), 120)
+
+		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
+			ErrorMsg: "メール送信エラー(サインイン): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
 	})
 
 	t.Run("TestPostSignInApi sql取得失敗しエラー発生", func(t *testing.T) {
@@ -379,8 +570,9 @@ func TestPostSignInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PostSignInApi(c)
 
@@ -444,8 +636,9 @@ func TestPostSignInApi(t *testing.T) {
 
 		// モックを使って API を呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  mockUtilsFetcher,
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PostSignInApi(c)
 
@@ -515,8 +708,9 @@ func TestPostSignInApi(t *testing.T) {
 
 		// モックを使って API を呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  mockUtilsFetcher,
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PostSignInApi(c)
 
@@ -549,8 +743,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// UtilsFetcher のモックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -583,8 +778,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// UtilsFetcher のモックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -617,8 +813,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// UtilsFetcher のモックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -657,8 +854,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 			// UtilsFetcher のモックを使ってAPIを呼び出し
 			fetcher := apiSignDataFetcher{
-				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher: common.NewCommonFetcher(),
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
 			}
 			fetcher.GetRefreshTokenApi(c)
 
@@ -697,8 +895,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -748,8 +947,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  mockUtilsFetcher,
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -817,8 +1017,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  mockUtilsFetcher,
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -890,8 +1091,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  mockUtilsFetcher,
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -964,8 +1166,9 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		// モックを使ってAPIを呼び出し
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  mockUtilsFetcher,
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.GetRefreshTokenApi(c)
 
@@ -984,294 +1187,300 @@ func TestGetRefreshTokenApi(t *testing.T) {
 	})
 }
 
-// func TestPostSignUpApi(t *testing.T) {
+func TestPostSignUpApi(t *testing.T) {
 
-// 	gin.SetMode(gin.TestMode)
+	gin.SetMode(gin.TestMode)
 
-// 	t.Run("PostSignUpApi JSON不正", func(t *testing.T) {
-// 		w := httptest.NewRecorder()
-// 		c, _ := gin.CreateTestContext(w)
+	t.Run("PostSignUpApi JSON不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-// 		// Invalid JSON
-// 		invalidJSON := `{"data": [`
+		// Invalid JSON
+		invalidJSON := `{"data": [`
 
-// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBufferString(invalidJSON))
-// 		c.Request.Header.Set("Content-Type", "application/json")
+		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBufferString(invalidJSON))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-// 		fetcher := apiSignDataFetcher{
-// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-// 			CommonFetcher: common.NewCommonFetcher(),
-// 		}
-// 		fetcher.PostSignUpApi(c)
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		fetcher.PostSignUpApi(c)
 
-// 		assert.Equal(t, http.StatusBadRequest, w.Code)
-// 		var response map[string]interface{}
-// 		err := json.Unmarshal(w.Body.Bytes(), &response)
-// 		assert.NoError(t, err)
-// 		assert.Contains(t, response["error_msg"], "unexpected EOF")
-// 	})
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Contains(t, response["error_msg"], "unexpected EOF")
+	})
 
-// 	t.Run("PostSignUpApi バリデーション 必須", func(t *testing.T) {
-// 		w := httptest.NewRecorder()
-// 		c, _ := gin.CreateTestContext(w)
+	t.Run("PostSignUpApi バリデーション 必須", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-// 		data := testData{
-// 			Data: []models.RequestSignUpData{
-// 				{
-// 					NickName:     "",
-// 					UserName:     "",
-// 					UserPassword: "",
-// 				},
-// 			},
-// 		}
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					NickName:     "",
+					UserName:     "",
+					UserPassword: "",
+				},
+			},
+		}
 
-// 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
-// 		c.Request.Header.Set("Content-Type", "application/json")
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-// 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SignDataFetcher{}),
-// 			"PostSignUp",
-// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-// 				return nil
-// 			})
-// 		defer patches.Reset()
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return nil
+			})
+		defer patches.Reset()
 
-// 		fetcher := apiSignDataFetcher{
-// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-// 			CommonFetcher: common.NewCommonFetcher(),
-// 		}
-// 		fetcher.PostSignUpApi(c)
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		fetcher.PostSignUpApi(c)
 
-// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-// 		assert.NoError(t, err)
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
 
-// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-// 			Result: []utils.ErrorMessages{
-// 				{
-// 					Field:   "nick_name",
-// 					Message: "ニックネームは必須です。",
-// 				},
-// 				{
-// 					Field:   "user_name",
-// 					Message: "ユーザー名は必須です。",
-// 				},
-// 				{
-// 					Field:   "user_password",
-// 					Message: "パスワードは必須です。",
-// 				},
-// 			},
-// 		}
-// 		test_utils.SortErrorMessages(responseBody.Result)
-// 		test_utils.SortErrorMessages(expectedErrorMessage.Result)
-// 		assert.Equal(t, responseBody, expectedErrorMessage)
-// 	})
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "nick_name",
+					Message: "ニックネームは必須です。",
+				},
+				{
+					Field:   "user_name",
+					Message: "ユーザー名は必須です。",
+				},
+				{
+					Field:   "user_password",
+					Message: "パスワードは必須です。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
 
-// 	t.Run("PostSignUpApi バリデーション メールアドレス不正", func(t *testing.T) {
-// 		w := httptest.NewRecorder()
-// 		c, _ := gin.CreateTestContext(w)
+	t.Run("PostSignUpApi バリデーション メールアドレス不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-// 		data := testData{
-// 			Data: []models.RequestSignUpData{
-// 				{
-// 					NickName:     "test",
-// 					UserName:     "test",
-// 					UserPassword: "Test12345!",
-// 				},
-// 			},
-// 		}
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					NickName:     "test",
+					UserName:     "test",
+					UserPassword: "Test12345!",
+				},
+			},
+		}
 
-// 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
-// 		c.Request.Header.Set("Content-Type", "application/json")
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-// 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SignDataFetcher{}),
-// 			"PostSignUp",
-// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-// 				return nil
-// 			})
-// 		defer patches.Reset()
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return nil
+			})
+		defer patches.Reset()
 
-// 		fetcher := apiSignDataFetcher{
-// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-// 			CommonFetcher: common.NewCommonFetcher(),
-// 		}
-// 		fetcher.PostSignUpApi(c)
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		fetcher.PostSignUpApi(c)
 
-// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-// 		assert.NoError(t, err)
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
 
-// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-// 			Result: []utils.ErrorMessages{
-// 				{
-// 					Field:   "user_name",
-// 					Message: "正しいメールアドレス形式である必要があります。",
-// 				},
-// 			},
-// 		}
-// 		assert.Equal(t, responseBody, expectedErrorMessage)
-// 	})
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "正しいメールアドレス形式である必要があります。",
+				},
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
 
-// 	t.Run("PostSignUpApi バリデーション パスワード不正", func(t *testing.T) {
+	t.Run("PostSignUpApi バリデーション パスワード不正", func(t *testing.T) {
 
-// 		dataList := []testData{
-// 			{
-// 				Data: []models.RequestSignUpData{
-// 					{
-// 						NickName:     "test",
-// 						UserName:     "test@example.com",
-// 						UserPassword: "Test12!",
-// 					},
-// 				},
-// 			},
-// 			{
-// 				Data: []models.RequestSignUpData{
-// 					{
-// 						NickName:     "test",
-// 						UserName:     "test@example.com",
-// 						UserPassword: "Test123456",
-// 					},
-// 				},
-// 			},
-// 		}
+		dataList := []testData{
+			{
+				Data: []models.RequestSignUpData{
+					{
+						NickName:     "test",
+						UserName:     "test@example.com",
+						UserPassword: "Test12!",
+					},
+				},
+			},
+			{
+				Data: []models.RequestSignUpData{
+					{
+						NickName:     "test",
+						UserName:     "test@example.com",
+						UserPassword: "Test123456",
+					},
+				},
+			},
+		}
 
-// 		for _, data := range dataList {
-// 			w := httptest.NewRecorder()
-// 			c, _ := gin.CreateTestContext(w)
+		for _, data := range dataList {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
 
-// 			body, _ := json.Marshal(data)
-// 			c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
-// 			c.Request.Header.Set("Content-Type", "application/json")
+			body, _ := json.Marshal(data)
+			c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
+			c.Request.Header.Set("Content-Type", "application/json")
 
-// 			patches := ApplyMethod(
-// 				reflect.TypeOf(&models.SignDataFetcher{}),
-// 				"PostSignUp",
-// 				func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-// 					return nil
-// 				})
-// 			defer patches.Reset()
+			patches := ApplyMethod(
+				reflect.TypeOf(&models.SignDataFetcher{}),
+				"PostSignUp",
+				func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+					return nil
+				})
+			defer patches.Reset()
 
-// 			fetcher := apiSignDataFetcher{
-// 				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-// 				CommonFetcher: common.NewCommonFetcher(),
-// 			}
-// 			fetcher.PostSignUpApi(c)
+			fetcher := apiSignDataFetcher{
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
+			}
+			fetcher.PostSignUpApi(c)
 
-// 			assert.Equal(t, http.StatusBadRequest, w.Code)
+			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-// 			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-// 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-// 			assert.NoError(t, err)
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
 
-// 			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-// 				Result: []utils.ErrorMessages{
-// 					{
-// 						Field:   "user_password",
-// 						Message: "パスワードの形式が間違っています。",
-// 					},
-// 				},
-// 			}
-// 			assert.Equal(t, responseBody, expectedErrorMessage)
-// 		}
-// 	})
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "user_password",
+						Message: "パスワードの形式が間違っています。",
+					},
+				},
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		}
+	})
 
-// 	t.Run("PostSignUpApi sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
+	t.Run("PostSignUpApi sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
 
-// 		data := testData{
-// 			Data: []models.RequestSignUpData{
-// 				{
-// 					NickName:     "test",
-// 					UserName:     "test@example.com",
-// 					UserPassword: "Test123456!!",
-// 				},
-// 			},
-// 		}
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					NickName:     "test",
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
 
-// 		w := httptest.NewRecorder()
-// 		c, _ := gin.CreateTestContext(w)
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-// 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
-// 		c.Request.Header.Set("Content-Type", "application/json")
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-// 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SignDataFetcher{}),
-// 			"PostSignUp",
-// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-// 				return fmt.Errorf("sql登録失敗")
-// 			})
-// 		defer patches.Reset()
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return fmt.Errorf("sql登録失敗")
+			})
+		defer patches.Reset()
 
-// 		fetcher := apiSignDataFetcher{
-// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-// 			CommonFetcher: common.NewCommonFetcher(),
-// 		}
-// 		fetcher.PostSignUpApi(c)
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		fetcher.PostSignUpApi(c)
 
-// 		assert.Equal(t, http.StatusConflict, w.Code)
+		assert.Equal(t, http.StatusConflict, w.Code)
 
-// 		var responseBody utils.ResponseWithSlice[requestSignInData]
-// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-// 		assert.NoError(t, err)
+		var responseBody utils.ResponseWithSlice[requestSignInData]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
 
-// 		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-// 			ErrorMsg: "既に登録されたメールアドレスです。",
-// 		}
-// 		assert.Equal(t, responseBody, expectedErrorMessage)
-// 	})
+		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
+			ErrorMsg: "既に登録されたメールアドレスです。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
 
-// 	t.Run("PostSignUpApi result 成功", func(t *testing.T) {
+	t.Run("PostSignUpApi result 成功", func(t *testing.T) {
 
-// 		data := testData{
-// 			Data: []models.RequestSignUpData{
-// 				{
-// 					NickName:     "test",
-// 					UserName:     "test@example.com",
-// 					UserPassword: "Test123456!!",
-// 				},
-// 			},
-// 		}
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					NickName:     "test",
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
 
-// 		w := httptest.NewRecorder()
-// 		c, _ := gin.CreateTestContext(w)
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-// 		body, _ := json.Marshal(data)
-// 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
-// 		c.Request.Header.Set("Content-Type", "application/json")
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
 
-// 		patches := ApplyMethod(
-// 			reflect.TypeOf(&models.SignDataFetcher{}),
-// 			"PostSignUp",
-// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-// 				return nil
-// 			})
-// 		defer patches.Reset()
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return nil
+			})
+		defer patches.Reset()
 
-// 		fetcher := apiSignDataFetcher{
-// 			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-// 			CommonFetcher: common.NewCommonFetcher(),
-// 		}
-// 		fetcher.PostSignUpApi(c)
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		fetcher.PostSignUpApi(c)
 
-// 		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 
-// 		var responseBody utils.ResponseWithSingle[string]
-// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-// 		assert.NoError(t, err)
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
 
-// 		expectedOk := utils.ResponseWithSingle[string]{
-// 			Result: "サインアップに成功",
-// 		}
-// 		assert.Equal(t, responseBody.Result, expectedOk.Result)
-// 	})
-// }
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "サインアップに成功",
+		}
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
+	})
+}
 
 func TestPutSignInEditApi(t *testing.T) {
 
@@ -1288,8 +1497,9 @@ func TestPutSignInEditApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PutSignInEditApi(c)
 
@@ -1327,8 +1537,9 @@ func TestPutSignInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PutSignInEditApi(c)
 
@@ -1390,8 +1601,9 @@ func TestPutSignInEditApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSignDataFetcher{
-				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher: common.NewCommonFetcher(),
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
 			}
 			fetcher.PutSignInEditApi(c)
 
@@ -1442,8 +1654,9 @@ func TestPutSignInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PutSignInEditApi(c)
 
@@ -1504,8 +1717,9 @@ func TestPutSignInEditApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSignDataFetcher{
-				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher: common.NewCommonFetcher(),
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
 			}
 			fetcher.PutSignInEditApi(c)
 
@@ -1555,8 +1769,9 @@ func TestPutSignInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PutSignInEditApi(c)
 
@@ -1600,8 +1815,9 @@ func TestPutSignInEditApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.PutSignInEditApi(c)
 
@@ -1633,8 +1849,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.DeleteSignInApi(c)
 
@@ -1670,8 +1887,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.DeleteSignInApi(c)
 
@@ -1729,8 +1947,9 @@ func TestDeleteSignInApi(t *testing.T) {
 			defer patches.Reset()
 
 			fetcher := apiSignDataFetcher{
-				UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher: common.NewCommonFetcher(),
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
 			}
 			fetcher.DeleteSignInApi(c)
 
@@ -1780,8 +1999,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.DeleteSignInApi(c)
 
@@ -1823,8 +2043,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:  utils.NewUtilsFetcher(utils.JwtSecret),
-			CommonFetcher: common.NewCommonFetcher(),
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
 		}
 		fetcher.DeleteSignInApi(c)
 

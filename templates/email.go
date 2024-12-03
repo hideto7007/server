@@ -8,13 +8,21 @@ import (
 )
 
 type (
+	EmailTemplateService interface {
+		TemporayPostSignUpTemplate(Name, ConfirmCode string) (string, string, error)
+		PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error)
+		PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, string, error)
+		PostSignInTemplate(UserName, DateTime string) (string, string, error)
+		DeleteSignInTemplate(UserName, DateTime string) (string, string, error)
+		SignOutTemplate(UserName, DateTime string) (string, string, error)
+	}
 	// データ構造体
 	TemporayPostSignUpEmailData struct {
 		Name        string
 		ConfirmCode string
 	}
 
-	SingEmailData struct {
+	GenericEmailData struct {
 		Style       string
 		Name        string
 		UserName    string
@@ -24,7 +32,13 @@ type (
 		Update      string
 		UpdateValue string
 	}
+
+	EmailTemplateManager struct {}
 )
+
+func NewEmailTemplateManager() EmailTemplateService {
+	return &EmailTemplateManager{}
+}
 
 var commonTemplate = template.Must(template.New("common").Parse(`
 {{define "Style"}}
@@ -277,7 +291,7 @@ var deleteSignOutTemplate = template.Must(template.Must(commonTemplate.Clone()).
 	</html>
 `))
 
-func TemporayPostSignUpTemplate(Name, ConfirmCode string) (string, string, error) {
+func (et *EmailTemplateManager) TemporayPostSignUpTemplate(Name, ConfirmCode string) (string, string, error) {
 	subject := "【たくわえる】本登録を完了してください"
 	// メールテンプレート定義
 
@@ -296,14 +310,14 @@ func TemporayPostSignUpTemplate(Name, ConfirmCode string) (string, string, error
 	return subject, body.String(), nil
 }
 
-func PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】登録を完了致しました"
 	// メールテンプレート定義
 
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 
 	// テンプレートに渡すデータを作成
-	data := SingEmailData{
+	data := GenericEmailData{
 		Name:     Name,
 		UserName: UserName,
 		DateTime: DateTime,
@@ -319,14 +333,14 @@ func PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error)
 	return subject, body.String(), nil
 }
 
-func PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, string, error) {
 	subject := "【たくわえる】登録情報編集致しました"
 	// メールテンプレート定義
 
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 
 	// テンプレートに渡すデータを作成
-	data := SingEmailData{
+	data := GenericEmailData{
 		Update:      Update,
 		UpdateValue: UpdateValue,
 		DateTime:    DateTime,
@@ -342,13 +356,13 @@ func PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, strin
 	return subject, body.String(), nil
 }
 
-func PostSignInTemplate(UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) PostSignInTemplate(UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】サインイン致しました"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
-	data := SingEmailData{
+	data := GenericEmailData{
 		UserName: UserName,
 		DateTime: DateTime,
 		Year:     year,
@@ -363,13 +377,13 @@ func PostSignInTemplate(UserName, DateTime string) (string, string, error) {
 	return subject, body.String(), nil
 }
 
-func DeleteSignInTemplate(UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) DeleteSignInTemplate(UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】アカウント削除完了のお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
-	data := SingEmailData{
+	data := GenericEmailData{
 		UserName: UserName,
 		DateTime: DateTime,
 		Year:     year,
@@ -384,13 +398,13 @@ func DeleteSignInTemplate(UserName, DateTime string) (string, string, error) {
 	return subject, body.String(), nil
 }
 
-func SignOutTemplate(UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) SignOutTemplate(UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】サインアウトのお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
-	data := SingEmailData{
+	data := GenericEmailData{
 		UserName: UserName,
 		DateTime: DateTime,
 		Year:     year,
