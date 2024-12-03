@@ -11,6 +11,22 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type (
+	RedisService interface {
+		InitRedisClient() *redis.Client
+		RedisSet(key string, value interface{}, duration time.Duration) error
+		RedisGet(key string) (string, error)
+		RedisDel(key string) error
+	}
+
+	RedisManager struct {}
+)
+
+
+func NewRedisManager() RedisService {
+	return &RedisManager{}
+}
+
 // コンテキスト作成（Redis操作で必要）
 var (
 	Ctx = context.Background()
@@ -18,7 +34,7 @@ var (
 )
 
 // Redisクライアントの初期化
-func InitRedisClient() *redis.Client {
+func (rm *RedisManager) InitRedisClient() *redis.Client {
 	if rdb == nil {
 		rdb = redis.NewClient(&redis.Options{
 			Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_DOMAIN"), os.Getenv("REDIS_PORT")),
@@ -32,7 +48,7 @@ func InitRedisClient() *redis.Client {
 	return rdb
 }
 
-func RedisSet(key string, value interface{}, duration time.Duration) error {
+func (rm *RedisManager) RedisSet(key string, value interface{}, duration time.Duration) error {
 	var data string
 	switch v := value.(type) {
 	case string:
@@ -45,14 +61,14 @@ func RedisSet(key string, value interface{}, duration time.Duration) error {
 		data = string(bytes)
 	}
 
-	if err := InitRedisClient().Set(Ctx, key, data, duration).Err(); err != nil {
+	if err := rm.InitRedisClient().Set(Ctx, key, data, duration).Err(); err != nil {
 		return fmt.Errorf("保存エラー: %w", err)
 	}
 	return nil
 }
 
-func RedisGet(key string) (string, error) {
-	value, err := InitRedisClient().Get(Ctx, key).Result()
+func (rm *RedisManager) RedisGet(key string) (string, error) {
+	value, err := rm.InitRedisClient().Get(Ctx, key).Result()
 	if err == redis.Nil {
 		return "", fmt.Errorf("キーが存在しません: %s", key)
 	} else if err != nil {
@@ -61,8 +77,8 @@ func RedisGet(key string) (string, error) {
 	return value, nil
 }
 
-func RedisDel(key string) error {
-	deleted, err := InitRedisClient().Del(Ctx, key).Result()
+func (rm *RedisManager) RedisDel(key string) error {
+	deleted, err := rm.InitRedisClient().Del(Ctx, key).Result()
 	if err != nil {
 		return fmt.Errorf("削除エラー: %w", err)
 	}

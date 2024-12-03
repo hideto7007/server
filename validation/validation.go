@@ -276,6 +276,8 @@ func (data TemporayRequestSignUpData) Validate() (bool, []utils.ErrorMessages) {
 }
 
 func (data RequestSignUpData) Validate() (bool, []utils.ErrorMessages) {
+	// 本登録ではパスワーは必須のみチェック
+	// 理由はパスワードがハッシュで送られてくるので平文のパスワードチェックができないため
 	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)

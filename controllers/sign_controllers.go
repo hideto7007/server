@@ -97,6 +97,7 @@ type (
 		UtilsFetcher         utils.UtilsFetcher
 		CommonFetcher        common.CommonFetcher
 		EmailTemplateService templates.EmailTemplateService
+		RedisService         config.RedisService
 	}
 )
 
@@ -104,11 +105,13 @@ func NewSignDataFetcher(
 	tokenFetcher utils.UtilsFetcher,
 	CommonFetcher common.CommonFetcher,
 	EmailTemplateService templates.EmailTemplateService,
+	RedisService config.RedisService,
 ) SignDataFetcher {
 	return &apiSignDataFetcher{
 		UtilsFetcher:         tokenFetcher,
 		CommonFetcher:        CommonFetcher,
 		EmailTemplateService: EmailTemplateService,
+		RedisService:         RedisService,
 	}
 }
 
@@ -220,7 +223,6 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 			},
 		},
 	}
-	fmt.Println("result2", response)
 	c.JSON(http.StatusOK, response)
 }
 
@@ -379,7 +381,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 	value := strings.Join(userInfo[:], ",") // 配列をカンマ区切りの文字列に変換
 
 	// 保存
-	if err = config.RedisSet(key, value, time.Hour); err != nil {
+	if err = af.RedisService.RedisSet(key, value, time.Hour); err != nil {
 		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
 			ErrorMsg: err.Error(),
 		}
@@ -442,7 +444,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	}
 
 	// サインアップ仮登録した情報を取得
-	redisGet, err := config.RedisGet(RedisKey)
+	redisGet, err := af.RedisService.RedisGet(RedisKey)
 	if err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: err.Error(),
@@ -466,7 +468,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	newKey := fmt.Sprintf("%s:%s", confirmCodeStr, uid)
 
 	// 更新して保存
-	if err = config.RedisSet(newKey, redisGet, time.Hour); err != nil {
+	if err = af.RedisService.RedisSet(newKey, redisGet, time.Hour); err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: err.Error(),
 		}
@@ -475,7 +477,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	}
 
 	// 前の情報は削除する
-	if err = config.RedisDel(RedisKey); err != nil {
+	if err = af.RedisService.RedisDel(RedisKey); err != nil {
 		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
 			ErrorMsg: err.Error(),
 		}
@@ -540,7 +542,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	}
 
 	// サインアップ仮登録した情報を取得
-	redisGet, err := config.RedisGet(requestData.Data[0].RedisKey)
+	redisGet, err := af.RedisService.RedisGet(requestData.Data[0].RedisKey)
 	if err != nil {
 		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: err.Error(),
@@ -593,7 +595,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	}
 
 	// 情報は削除する
-	if err = config.RedisDel(requestData.Data[0].RedisKey); err != nil {
+	if err = af.RedisService.RedisDel(requestData.Data[0].RedisKey); err != nil {
 		response := utils.ResponseWithSlice[signUpResult]{
 			ErrorMsg: err.Error(),
 		}

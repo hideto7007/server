@@ -2,6 +2,7 @@ package routes
 
 import (
 	"server/common"
+	"server/config"
 	"server/controllers"
 	"server/middleware"
 	"server/templates"
@@ -17,6 +18,7 @@ func SetupRoutes(r *gin.Engine) {
 		utils.NewUtilsFetcher(utils.JwtSecret),
 		common.NewCommonFetcher(),
 		templates.NewEmailTemplateManager(),
+		config.NewRedisManager(),
 	)
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher(
 		common.NewCommonFetcher(),
