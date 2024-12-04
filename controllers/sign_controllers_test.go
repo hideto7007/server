@@ -2004,6 +2004,10 @@ func TestPutSignInEditApi(t *testing.T) {
 					Field:   "user_id",
 					Message: "ユーザーIDは必須です。",
 				},
+				{
+					Field:   "user_name",
+					Message: "ユーザー名は必須です。",
+				},
 			},
 		}
 		test_utils.SortErrorMessages(responseBody.Result)
@@ -2018,7 +2022,7 @@ func TestPutSignInEditApi(t *testing.T) {
 				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "test",
-						UserName:     "",
+						UserName:     "test@example.com",
 						UserPassword: "",
 					},
 				},
@@ -2027,7 +2031,7 @@ func TestPutSignInEditApi(t *testing.T) {
 				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "1.25",
-						UserName:     "",
+						UserName:     "test@example.com",
 						UserPassword: "",
 					},
 				},
@@ -2085,7 +2089,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test",
+					UserName:     "test@example",
 					UserPassword: "Test12345!",
 				},
 			},
@@ -2193,6 +2197,53 @@ func TestPutSignInEditApi(t *testing.T) {
 		}
 	})
 
+	t.Run("PutSignInEditApi 更新チェックエラー", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInEditData{
+				{
+					UserId:       "1",
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutCheck",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
+				return "", fmt.Errorf("sql失敗")
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.PutSignInEditApi(c)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "更新チェックエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
 	t.Run("PutSignInEditApi sql取得で失敗しサインイン情報編集に失敗になる", func(t *testing.T) {
 
 		data := testData{
@@ -2214,11 +2265,19 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutCheck",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
+				return "ユーザー名更新", nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
 			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 				return fmt.Errorf("sql更新失敗")
 			})
-		defer patches.Reset()
+		defer patches1.Reset()
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -2240,7 +2299,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("PutSignInEditApi result 成功", func(t *testing.T) {
+	t.Run("PutSignInEditApi メールテンプレート生成エラー(更新)", func(t *testing.T) {
 
 		data := testData{
 			Data: []models.RequestSignInEditData{
@@ -2255,22 +2314,199 @@ func TestPutSignInEditApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			PostSignInEditTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
 		body, _ := json.Marshal(data)
 		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutCheck",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
+				return "ユーザー名更新", nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
 			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
 				return nil
 			})
-		defer patches.Reset()
+		defer patches1.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			UtilsFetcher:         mockUtilsFetcher,
 			CommonFetcher:        common.NewCommonFetcher(),
-			EmailTemplateService: templates.NewEmailTemplateManager(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.PutSignInEditApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メールテンプレート生成エラー(更新): メールテンプレートエラー",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("PutSignInEditApi メール送信エラー(更新)", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInEditData{
+				{
+					UserId:       "1",
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			PostSignInEditTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutCheck",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
+				return "パスワード更新", nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutSignInEdit",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+				return nil
+			})
+		defer patches1.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.PutSignInEditApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メール送信エラー(更新): メール送信エラー",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("PutSignInEditApi result 成功 1", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInEditData{
+				{
+					UserId:       "1",
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			PostSignInEditTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutCheck",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
+				return "ユーザー名更新", nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutSignInEdit",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+				return nil
+			})
+		defer patches1.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
 			RedisService:         config.NewRedisManager(),
 		}
 		fetcher.PutSignInEditApi(c)
@@ -2281,10 +2517,86 @@ func TestPutSignInEditApi(t *testing.T) {
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[string]{
-			Result: "サインイン編集に成功",
+		expectedErrorOk := utils.ResponseWithSingle[string]{
+			Result: "サインイン編集に成功:test@example.com",
 		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
+		assert.Equal(t, responseBody.Result, expectedErrorOk.Result)
+	})
+
+	t.Run("PutSignInEditApi result 成功 2", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInEditData{
+				{
+					UserId:       "1",
+					UserName:     "test@example.com",
+					UserPassword: "Test123456!!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			PostSignInEditTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutCheck",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
+				return "パスワード更新", nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PutSignInEdit",
+			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+				return nil
+			})
+		defer patches1.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.PutSignInEditApi(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorOk := utils.ResponseWithSingle[string]{
+			Result: "サインイン編集に成功:Test123456!!",
+		}
+		assert.Equal(t, responseBody.Result, expectedErrorOk.Result)
 	})
 }
 
