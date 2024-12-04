@@ -335,6 +335,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 
 func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 	var requestData requesTemporaySignUpData
+	var err error
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
 		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
@@ -361,14 +362,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 	// パスワードハッシュ化
 	hashPassword, _ := af.UtilsFetcher.EncryptPassword(requestData.Data[0].UserPassword)
 	uid := uuid.New().String()
-	confirmCode, err := rand.Int(rand.Reader, big.NewInt(10000))
-	if err != nil {
-		response := utils.ResponseWithSlice[TemporayPostSignUpResult]{
-			ErrorMsg: err.Error(),
-		}
-		c.JSON(http.StatusBadRequest, response)
-		return
-	}
+	confirmCode, _ := rand.Int(rand.Reader, big.NewInt(10000))
 	// redisに登録する際のkey
 	confirmCodeStr := fmt.Sprintf("%04d", confirmCode.Int64())
 	key := fmt.Sprintf("%s:%s", confirmCodeStr, uid)

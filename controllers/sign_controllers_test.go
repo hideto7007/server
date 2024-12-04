@@ -1316,6 +1316,1060 @@ func TestGetRefreshTokenApi(t *testing.T) {
 	})
 }
 
+func TestTemporayPostSignUpApi(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	var UserName string = "test@example.com"
+	var UserPassword string = "Test12345!"
+	var NickName string = "test!"
+
+	t.Run("TemporayPostSignUpApi JSON不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// Invalid JSON
+		invalidJSON := `{"data": [`
+
+		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBufferString(invalidJSON))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.TemporayPostSignUpApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var response map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Contains(t, response["error_msg"], "unexpected EOF")
+	})
+
+	t.Run("TemporayPostSignUpApi バリデーション 必須", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					UserName:     "",
+					UserPassword: "",
+					NickName:     "",
+				},
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.TemporayPostSignUpApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "ユーザー名は必須です。",
+				},
+				{
+					Field:   "user_password",
+					Message: "パスワードは必須です。",
+				},
+				{
+					Field:   "nick_name",
+					Message: "ニックネームは必須です。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("TemporayPostSignUpApi バリデーション メールアドレス不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					UserName:     "test@example",
+					UserPassword: UserPassword,
+					NickName:     NickName,
+				},
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.TemporayPostSignUpApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "正しいメールアドレス形式である必要があります。",
+				},
+			},
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("TemporayPostSignUpApi バリデーション パスワード不正", func(t *testing.T) {
+
+		dataList := []testData{
+			{
+				Data: []models.RequestSignUpData{
+					{
+						UserName:     UserName,
+						UserPassword: "Test12!",
+						NickName:     NickName,
+					},
+				},
+			},
+			{
+				Data: []models.RequestSignUpData{
+					{
+						UserName:     UserName,
+						UserPassword: "Test123456",
+						NickName:     NickName,
+					},
+				},
+			},
+		}
+
+		for _, data := range dataList {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			body, _ := json.Marshal(data)
+			c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+			c.Request.Header.Set("Content-Type", "application/json")
+
+			fetcher := apiSignDataFetcher{
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
+				RedisService:         config.NewRedisManager(),
+			}
+			fetcher.TemporayPostSignUpApi(c)
+
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "user_password",
+						Message: "パスワードの形式が間違っています。",
+					},
+				},
+			}
+			assert.Equal(t, responseBody, expectedErrorMessage)
+		}
+	})
+
+	t.Run("TemporayPostSignUpApi redisエラー", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					UserName:     UserName,
+					UserPassword: "Test12345!",
+					NickName:     NickName,
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockRedisService := mock_config.NewMockRedisService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			EncryptPassword(gomock.Any()).
+			Return("hashPassword", nil)
+
+		mockRedisService.EXPECT().
+			RedisSet(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("redisエラー"))
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         mockRedisService,
+		}
+		fetcher.TemporayPostSignUpApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[TemporayPostSignUpResult]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSingle[TemporayPostSignUpResult]{
+			ErrorMsg: "redisエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("TemporayPostSignUpApi ールテンプレート生成エラー(仮登録))", func(t *testing.T) {
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockRedisService := mock_config.NewMockRedisService(ctrl)
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			EncryptPassword(gomock.Any()).
+			Return("hashPassword", nil)
+
+		mockRedisService.EXPECT().
+			RedisSet(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		mockEmailTemplateService.EXPECT().
+			TemporayPostSignUpTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					UserName:     UserName,
+					UserPassword: UserPassword,
+					NickName:     NickName,
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         mockRedisService,
+		}
+		fetcher.TemporayPostSignUpApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedError := utils.ResponseWithSingle[string]{
+			ErrorMsg: "メールテンプレート生成エラー(仮登録): メールテンプレートエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+	})
+
+	t.Run("TemporayPostSignUpApi メール送信エラー(仮登録)", func(t *testing.T) {
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockRedisService := mock_config.NewMockRedisService(ctrl)
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			EncryptPassword(gomock.Any()).
+			Return("hashPassword", nil)
+
+		mockRedisService.EXPECT().
+			RedisSet(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		mockEmailTemplateService.EXPECT().
+			TemporayPostSignUpTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					UserName:     UserName,
+					UserPassword: UserPassword,
+					NickName:     NickName,
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         mockRedisService,
+		}
+		fetcher.TemporayPostSignUpApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedError := utils.ResponseWithSingle[string]{
+			ErrorMsg: "メール仮登録送信エラー(仮登録): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+	})
+
+	t.Run("TemporayPostSignUpApi result 成功", func(t *testing.T) {
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockRedisService := mock_config.NewMockRedisService(ctrl)
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			EncryptPassword(gomock.Any()).
+			Return("hashPassword", nil)
+
+		mockRedisService.EXPECT().
+			RedisSet(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		mockEmailTemplateService.EXPECT().
+			TemporayPostSignUpTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		data := testData{
+			Data: []models.RequestSignUpData{
+				{
+					UserName:     UserName,
+					UserPassword: UserPassword,
+					NickName:     NickName,
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         mockRedisService,
+		}
+		fetcher.TemporayPostSignUpApi(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody utils.ResponseWithSingle[TemporayPostSignUpResult]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedOk := utils.ResponseWithSingle[TemporayPostSignUpResult]{
+			Result: TemporayPostSignUpResult{
+				RedisKey: "9355:71eb75e7-79b8-40d1-b581-d819d8470239",
+				UserName: UserName,
+				NickName: NickName,
+			},
+		}
+		// RedisKeyは認証コード:uuidが毎回変わるので文字数でチェック
+		assert.Equal(t, len(responseBody.Result.RedisKey), 41)
+		assert.Equal(t, responseBody.Result.UserName, expectedOk.Result.UserName)
+		assert.Equal(t, responseBody.Result.NickName, expectedOk.Result.NickName)
+	})
+}
+
+// func TestRetryAuthEmail(t *testing.T) {
+
+// 	gin.SetMode(gin.TestMode)
+
+// 	var redisKey string = "5492:672e1fed-0d7e-4735-a91c-f25dc6992eae"
+// 	var authEmailCode string = "5492"
+
+// 	t.Run("RetryAuthEmail JSON不正", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// Invalid JSON
+// 		invalidJSON := `{"data": [`
+
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBufferString(invalidJSON))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         config.NewRedisManager(),
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+// 		var response map[string]interface{}
+// 		err := json.Unmarshal(w.Body.Bytes(), &response)
+// 		assert.NoError(t, err)
+// 		assert.Contains(t, response["error_msg"], "unexpected EOF")
+// 	})
+
+// 	t.Run("RetryAuthEmail メール認証コードが間違っています。", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: "1234",
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         config.NewRedisManager(),
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "メール認証コードが間違っています。",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+// 	})
+
+// 	t.Run("RetryAuthEmail redis getエラー", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test_user,test_password,test_nickname", fmt.Errorf("redisエラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "redisエラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+// 	})
+
+// 	t.Run("RetryAuthEmail バリデーション 必須", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return(",,", nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+// 			Result: []utils.ErrorMessages{
+// 				{
+// 					Field:   "nick_name",
+// 					Message: "ニックネームは必須です。",
+// 				},
+// 				{
+// 					Field:   "user_name",
+// 					Message: "ユーザー名は必須です。",
+// 				},
+// 				{
+// 					Field:   "user_password",
+// 					Message: "パスワードは必須です。",
+// 				},
+// 			},
+// 		}
+// 		test_utils.SortErrorMessages(responseBody.Result)
+// 		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+// 		assert.Equal(t, responseBody, expectedErrorMessage)
+// 	})
+
+// 	t.Run("RetryAuthEmail バリデーション メールアドレス不正", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test_user,test_password,test_nickname", nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+// 			Result: []utils.ErrorMessages{
+// 				{
+// 					Field:   "user_name",
+// 					Message: "正しいメールアドレス形式である必要があります。",
+// 				},
+// 			},
+// 		}
+// 		assert.Equal(t, responseBody, expectedErrorMessage)
+// 	})
+
+// 	t.Run("RetryAuthEmail sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return fmt.Errorf("sql登録失敗")
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusConflict, w.Code)
+
+// 		var responseBody utils.ResponseWithSlice[requestSignInData]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
+// 			ErrorMsg: "既に登録されたメールアドレスです。",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+// 	})
+
+// 	t.Run("RetryAuthEmail redis 削除エラー", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(fmt.Errorf("redis削除エラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedError := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "redis削除エラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+// 	})
+
+// 	t.Run("RetryAuthEmail ールテンプレート生成エラー(登録)", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+// 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+// 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			DateTimeStr(gomock.Any(), gomock.Any()).
+// 			Return("2024年12月2日")
+
+// 		mockEmailTemplateService.EXPECT().
+// 			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         mockUtilsFetcher,
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: mockEmailTemplateService,
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedError := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "メールテンプレート生成エラー(登録): メールテンプレートエラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+// 	})
+
+// 	t.Run("RetryAuthEmail メール送信エラー(登録)", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+// 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+// 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			DateTimeStr(gomock.Any(), gomock.Any()).
+// 			Return("2024年12月2日")
+
+// 		mockEmailTemplateService.EXPECT().
+// 			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return("件名", "本文", nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return(fmt.Errorf("メール送信エラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         mockUtilsFetcher,
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: mockEmailTemplateService,
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedError := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "メール送信エラー(登録): メール送信エラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+// 	})
+
+// 	t.Run("RetryAuthEmail result 成功", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+// 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+// 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			DateTimeStr(gomock.Any(), gomock.Any()).
+// 			Return("2024年12月2日")
+
+// 		mockEmailTemplateService.EXPECT().
+// 			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return("件名", "本文", nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return(nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/retry_auth_email", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         mockUtilsFetcher,
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: mockEmailTemplateService,
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.RetryAuthEmail(c)
+
+// 		assert.Equal(t, http.StatusOK, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedOk := utils.ResponseWithSingle[string]{
+// 			Result: "サインアップに成功",
+// 		}
+// 		assert.Equal(t, responseBody.Result, expectedOk.Result)
+// 	})
+// }
+
 func TestPostSignUpApi(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
@@ -2867,7 +3921,6 @@ func TestDeleteSignInApi(t *testing.T) {
 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
 		// モックの挙動を定義
-
 		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
 			Return("2024年12月2日")
@@ -3046,3 +4099,616 @@ func TestDeleteSignInApi(t *testing.T) {
 		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
+
+// func TestSignOutApi(t *testing.T) {
+
+// 	gin.SetMode(gin.TestMode)
+
+// 	var redisKey string = "5492:672e1fed-0d7e-4735-a91c-f25dc6992eae"
+// 	var authEmailCode string = "5492"
+
+// 	t.Run("SignOutApi JSON不正", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// Invalid JSON
+// 		invalidJSON := `{"data": [`
+
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBufferString(invalidJSON))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         config.NewRedisManager(),
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+// 		var response map[string]interface{}
+// 		err := json.Unmarshal(w.Body.Bytes(), &response)
+// 		assert.NoError(t, err)
+// 		assert.Contains(t, response["error_msg"], "unexpected EOF")
+// 	})
+
+// 	t.Run("SignOutApi メール認証コードが間違っています。", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: "1234",
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         config.NewRedisManager(),
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "メール認証コードが間違っています。",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+// 	})
+
+// 	t.Run("SignOutApi redis getエラー", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test_user,test_password,test_nickname", fmt.Errorf("redisエラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "redisエラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+// 	})
+
+// 	t.Run("SignOutApi バリデーション 必須", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return(",,", nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+// 			Result: []utils.ErrorMessages{
+// 				{
+// 					Field:   "nick_name",
+// 					Message: "ニックネームは必須です。",
+// 				},
+// 				{
+// 					Field:   "user_name",
+// 					Message: "ユーザー名は必須です。",
+// 				},
+// 				{
+// 					Field:   "user_password",
+// 					Message: "パスワードは必須です。",
+// 				},
+// 			},
+// 		}
+// 		test_utils.SortErrorMessages(responseBody.Result)
+// 		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+// 		assert.Equal(t, responseBody, expectedErrorMessage)
+// 	})
+
+// 	t.Run("SignOutApi バリデーション メールアドレス不正", func(t *testing.T) {
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test_user,test_password,test_nickname", nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+// 		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+// 			Result: []utils.ErrorMessages{
+// 				{
+// 					Field:   "user_name",
+// 					Message: "正しいメールアドレス形式である必要があります。",
+// 				},
+// 			},
+// 		}
+// 		assert.Equal(t, responseBody, expectedErrorMessage)
+// 	})
+
+// 	t.Run("SignOutApi sql取得で失敗しサインアップ失敗になる", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// MockRedisService のモックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return fmt.Errorf("sql登録失敗")
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusConflict, w.Code)
+
+// 		var responseBody utils.ResponseWithSlice[requestSignInData]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
+// 			ErrorMsg: "既に登録されたメールアドレスです。",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+// 	})
+
+// 	t.Run("SignOutApi redis 削除エラー", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(fmt.Errorf("redis削除エラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: templates.NewEmailTemplateManager(),
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedError := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "redis削除エラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+// 	})
+
+// 	t.Run("SignOutApi ールテンプレート生成エラー(登録)", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+// 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+// 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			DateTimeStr(gomock.Any(), gomock.Any()).
+// 			Return("2024年12月2日")
+
+// 		mockEmailTemplateService.EXPECT().
+// 			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         mockUtilsFetcher,
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: mockEmailTemplateService,
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedError := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "メールテンプレート生成エラー(登録): メールテンプレートエラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+// 	})
+
+// 	t.Run("SignOutApi メール送信エラー(登録)", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+// 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+// 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			DateTimeStr(gomock.Any(), gomock.Any()).
+// 			Return("2024年12月2日")
+
+// 		mockEmailTemplateService.EXPECT().
+// 			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return("件名", "本文", nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return(fmt.Errorf("メール送信エラー"))
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         mockUtilsFetcher,
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: mockEmailTemplateService,
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedError := utils.ResponseWithSingle[string]{
+// 			ErrorMsg: "メール送信エラー(登録): メール送信エラー",
+// 		}
+// 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+// 	})
+
+// 	t.Run("SignOutApi result 成功", func(t *testing.T) {
+
+// 		// gomock のコントローラを作成
+// 		ctrl := gomock.NewController(t)
+// 		defer ctrl.Finish()
+
+// 		// 各モックを作成
+// 		mockRedisService := mock_config.NewMockRedisService(ctrl)
+// 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+// 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+// 		// モックの挙動を定義
+// 		mockRedisService.EXPECT().
+// 			RedisGet(gomock.Any()).
+// 			Return("test@example.com,Test12345!,test", nil)
+
+// 		mockRedisService.EXPECT().
+// 			RedisDel(gomock.Any()).
+// 			Return(nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			DateTimeStr(gomock.Any(), gomock.Any()).
+// 			Return("2024年12月2日")
+
+// 		mockEmailTemplateService.EXPECT().
+// 			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return("件名", "本文", nil)
+
+// 		mockUtilsFetcher.EXPECT().
+// 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+// 			Return(nil)
+
+// 		data := testData{
+// 			Data: []RequestRedisKeyData{
+// 				{
+// 					RedisKey:      redisKey,
+// 					AuthEmailCode: authEmailCode,
+// 				},
+// 			},
+// 		}
+
+// 		w := httptest.NewRecorder()
+// 		c, _ := gin.CreateTestContext(w)
+
+// 		body, _ := json.Marshal(data)
+// 		c.Request = httptest.NewRequest("POST", "/api/signout", bytes.NewBuffer(body))
+// 		c.Request.Header.Set("Content-Type", "application/json")
+
+// 		patches := ApplyMethod(
+// 			reflect.TypeOf(&models.SignDataFetcher{}),
+// 			"PostSignUp",
+// 			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+// 				return nil
+// 			})
+// 		defer patches.Reset()
+
+// 		fetcher := apiSignDataFetcher{
+// 			UtilsFetcher:         mockUtilsFetcher,
+// 			CommonFetcher:        common.NewCommonFetcher(),
+// 			EmailTemplateService: mockEmailTemplateService,
+// 			RedisService:         mockRedisService,
+// 		}
+// 		fetcher.SignOutApi(c)
+
+// 		assert.Equal(t, http.StatusOK, w.Code)
+
+// 		var responseBody utils.ResponseWithSingle[string]
+// 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 		assert.NoError(t, err)
+
+// 		expectedOk := utils.ResponseWithSingle[string]{
+// 			Result: "サインアップに成功",
+// 		}
+// 		assert.Equal(t, responseBody.Result, expectedOk.Result)
+// 	})
+// }
