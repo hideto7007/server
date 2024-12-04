@@ -423,6 +423,8 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	NickName := c.Query("nick_name")
 	RedisKey := c.Query("redis_key")
 
+	var err error
+
 	validator := validation.RequestRetryAuthEmail{
 		UserName: UserName,
 		NickName: NickName,
@@ -448,14 +450,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	}
 
 	uid := uuid.New().String()
-	confirmCode, err := rand.Int(rand.Reader, big.NewInt(10000))
-	if err != nil {
-		response := utils.ResponseWithSlice[RetryAuthEmailResult]{
-			ErrorMsg: err.Error(),
-		}
-		c.JSON(http.StatusBadRequest, response)
-		return
-	}
+	confirmCode, _ := rand.Int(rand.Reader, big.NewInt(10000))
 
 	// redisに再登録する際のキー
 	confirmCodeStr := fmt.Sprintf("%04d", confirmCode.Int64())
