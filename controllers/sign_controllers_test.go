@@ -2636,7 +2636,8 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId: "",
+					UserId:   "",
+					UserName: "",
 				},
 			},
 		}
@@ -2673,6 +2674,62 @@ func TestDeleteSignInApi(t *testing.T) {
 					Field:   "user_id",
 					Message: "ユーザーIDは必須です。",
 				},
+				{
+					Field:   "user_name",
+					Message: "ユーザー名は必須です。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("DeleteSignInApi バリデーション メールアドレス不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.RequestSignInDeleteData{
+				{
+					UserId:   "1",
+					UserName: "test@example",
+				},
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.DeleteSignInApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "正しいメールアドレス形式である必要があります。",
+				},
 			},
 		}
 		test_utils.SortErrorMessages(responseBody.Result)
@@ -2686,14 +2743,16 @@ func TestDeleteSignInApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInDeleteData{
 					{
-						UserId: "test",
+						UserId:   "test",
+						UserName: "test@example.com",
 					},
 				},
 			},
 			{
 				Data: []models.RequestSignInDeleteData{
 					{
-						UserId: "1.25",
+						UserId:   "1.25",
+						UserName: "test@example.com",
 					},
 				},
 			},
@@ -2747,7 +2806,8 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId: "1",
+					UserId:   "1",
+					UserName: "test@example.com",
 				},
 			},
 		}
@@ -2787,15 +2847,34 @@ func TestDeleteSignInApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("DeleteSignInApi result 成功", func(t *testing.T) {
+	t.Run("DeleteSignInApi メールテンプレート生成エラー", func(t *testing.T) {
 
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId: "1",
+					UserId:   "1",
+					UserName: "test@example.com",
 				},
 			},
 		}
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			DeleteSignInTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -2813,9 +2892,144 @@ func TestDeleteSignInApi(t *testing.T) {
 		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
-			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			UtilsFetcher:         mockUtilsFetcher,
 			CommonFetcher:        common.NewCommonFetcher(),
-			EmailTemplateService: templates.NewEmailTemplateManager(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.DeleteSignInApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メールテンプレート生成エラー(削除): メールテンプレートエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("DeleteSignInApi メール送信エラー(削除)", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInDeleteData{
+				{
+					UserId:   "1",
+					UserName: "test@example.com",
+				},
+			},
+		}
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			DeleteSignInTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.DeleteSignInApi(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メール送信エラー(削除): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("DeleteSignInApi result 成功", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestSignInDeleteData{
+				{
+					UserId:   "1",
+					UserName: "test@example.com",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			DeleteSignInTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
 			RedisService:         config.NewRedisManager(),
 		}
 		fetcher.DeleteSignInApi(c)
