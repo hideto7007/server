@@ -24,8 +24,27 @@ type UtilsFetcher interface {
 	DateTimeStr(t time.Time, format string) string
 }
 
+type MailDialer interface {
+	DialAndSend(m ...*gomail.Message) error
+}
+
+type SMTPMailDialer struct {
+	dialer *gomail.Dialer
+}
+
+func NewSMTPMailDialer(host string, port int, username, password string) MailDialer {
+	return &SMTPMailDialer{
+		dialer: gomail.NewDialer(host, port, username, password),
+	}
+}
+
+func (s *SMTPMailDialer) DialAndSend(m ...*gomail.Message) error {
+	return s.dialer.DialAndSend(m...)
+}
+
 type UtilsDataFetcher struct {
-	JwtSecret []byte
+	JwtSecret  []byte
+	MailDialer MailDialer
 }
 
 // ResponseWithSlice with slice Result
@@ -70,8 +89,15 @@ var RefreshAuthTokenHour = 12
 var SecondsInHour = 3600
 
 func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	smtpHost := os.Getenv("SMTP_HOST")                     // SMTPサーバー
+	smtpPort, _ := common.StrToInt(os.Getenv("SMTP_PORT")) // SMTPポート
+	fromEmail := os.Getenv("FROMEMAIL")                    // 送信元メールアドレス
+	password := os.Getenv("PASSWORD")                      // 送信元メールのパスワード（またはアプリパスワード）
+	mailDialer := NewSMTPMailDialer(smtpHost, smtpPort, fromEmail, password)
 	return &UtilsDataFetcher{
-		JwtSecret: JwtSecret,
+		JwtSecret:  JwtSecret,
+		MailDialer: mailDialer,
 	}
 }
 
@@ -155,12 +181,7 @@ func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 
 // SendMail はメールを送信する関数
 func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string, isHTML bool) error {
-	var common common.CommonFetcher = common.NewCommonFetcher()
-	// SMTPサーバー情報
-	smtpHost := os.Getenv("SMTP_HOST")                     // SMTPサーバー
-	smtpPort, _ := common.StrToInt(os.Getenv("SMTP_PORT")) // SMTPポート
-	fromEmail := os.Getenv("FROMEMAIL")                    // 送信元メールアドレス
-	password := os.Getenv("PASSWORD")                      // 送信元メールのパスワード（またはアプリパスワード）
+	fromEmail := os.Getenv("FROMEMAIL") // 送信元メールアドレス
 
 	// メール設定
 	m := gomail.NewMessage()
@@ -175,11 +196,8 @@ func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string, isHTML bool)
 		m.SetBody("text/plain", body) // プレーンテキスト形式の本文
 	}
 
-	// ダイヤラー設定
-	d := gomail.NewDialer(smtpHost, smtpPort, fromEmail, password)
-
 	// メール送信
-	return d.DialAndSend(m)
+	return ud.MailDialer.DialAndSend(m)
 }
 
 func (ud *UtilsDataFetcher) DateTimeStr(t time.Time, format string) string {
