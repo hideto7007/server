@@ -41,3 +41,22 @@ go build -o server main.go
   // <>の中は適宜変える
   mockgen -source=<./controllers/sing_controllers.go> -destination=<./mock_func/mock_controllers/sing_controllers_mock.go>
   ```
+
+  {
+  "data": [
+    {
+      "user_name": "ma_kux@icloud.com",
+      "user_password": "Test12345!",
+      "nick_name": "ひでと"
+    }
+  ]
+}
+
+{
+  "data": [
+    {
+      "user_name": "ma_kux@icloud.com",
+      "user_password": "Test12345!"
+    }
+  ]
+}

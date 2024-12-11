@@ -85,8 +85,10 @@ func CORSMiddleware() gin.HandlerFunc {
 			os.Getenv("REACT_CLIENT"),
 			os.Getenv("VUE_CLIENT"),
 			os.Getenv("DOCKER_CLIENT"),
-			os.Getenv("SWAGGER_CLIENT1"),
-			os.Getenv("SWAGGER_CLIENT2"),
+			os.Getenv("CORS_CLIENT1"),
+			os.Getenv("CORS_CLIENT2"),
+			os.Getenv("CORS_CLIENT3"),
+			os.Getenv("CORS_CLIENT4"),
 		},
 		AllowMethods: []string{
 			"GET",
