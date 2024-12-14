@@ -22,6 +22,7 @@ func SetupRoutes(r *gin.Engine) {
 	)
 	var googleApi controllers.GoogleService = controllers.NewGoogleService(
 		config.NewGoogleManager(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher(
 		common.NewCommonFetcher(),
@@ -31,8 +32,10 @@ func SetupRoutes(r *gin.Engine) {
 	)
 
 	// google認証
-	r.GET("auth/google/signin", googleApi.HandleGoogleSignIn)
-	r.GET("auth/google/callback", googleApi.HandleGoogleCallback)
+	r.GET("auth/google/signin", googleApi.GoogleSignIn)
+	r.GET("auth/google/signup", googleApi.GoogleSignUp)
+	r.GET("auth/google/signin/callback", googleApi.GoogleSignInCallback)
+	r.GET("auth/google/signup/callback", googleApi.GoogleSignUpCallback)
 
 	// ルートの設定
 	Routes := r.Group("/api")

@@ -835,6 +835,8 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 	c.SetCookie(utils.UserId, "", 0, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.GoogleToken, "", -1, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.InstagramToken, "", -1, "/", domain, secure, httpOnly)
 
 	subject, body, err := af.EmailTemplateService.SignOutTemplate(
 		userName,

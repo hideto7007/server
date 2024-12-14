@@ -12,7 +12,7 @@ import (
 
 type (
 	GoogleService interface {
-		GoogleAuthURL() string
+		GoogleAuthURL(RedirectURI string) string
 		GoogleOauth() *oauth2.Config
 	}
 
@@ -34,13 +34,7 @@ var (
 
 const OauthGoogleURLAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
 
-func (gm *GoogleManager) GoogleAuthURL() string {
-	// リダイレクトURLを環境によって切り替える
-	if os.Getenv("ENV") == "production" {
-		RedirectURI = fmt.Sprintf("%s/auth/google/callback", os.Getenv("DOMAIN"))
-	} else {
-		RedirectURI = "http://localhost:8080/auth/google/callback"
-	}
+func (gm *GoogleManager) GoogleAuthURL(RedirectURI string) string {
 	// 環境変数や設定から取得する
 	// これだとリダイレクトとScopesのurlパスがエンコードされないまま出力される
 	// GoogleOauthConfig = &oauth2.Config{

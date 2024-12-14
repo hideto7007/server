@@ -80,6 +80,8 @@ type ErrorMessages struct {
 var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 var AuthToken = "AuthToken"
+var GoogleToken = "GoogleToken"
+var InstagramToken = "InstagramTokenの"
 var RefreshAuthToken = "RefreshAuthToken"
 var UserId = "UserId"
 var AuthTokenHour = 1
