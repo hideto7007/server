@@ -2,8 +2,8 @@
 package utils
 
 import (
-	"os"
 	"server/common"
+	"server/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -77,7 +77,7 @@ type ErrorMessages struct {
 	Message string `json:"message"`
 }
 
-var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var JwtSecret = []byte(config.GlobalEnv.JwtSecret)
 
 var AuthToken = "AuthToken"
 var GoogleToken = "GoogleToken"
@@ -95,10 +95,10 @@ var SecondsInHour = 3600
 
 func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
 	var common common.CommonFetcher = common.NewCommonFetcher()
-	smtpHost := os.Getenv("SMTP_HOST")                     // SMTPサーバー
-	smtpPort, _ := common.StrToInt(os.Getenv("SMTP_PORT")) // SMTPポート
-	fromEmail := os.Getenv("FROMEMAIL")                    // 送信元メールアドレス
-	password := os.Getenv("PASSWORD")                      // 送信元メールのパスワード（またはアプリパスワード）
+	smtpHost := config.GlobalEnv.SmtpHost                     // SMTPサーバー
+	smtpPort, _ := common.StrToInt(config.GlobalEnv.SmtpPort) // SMTPポート
+	fromEmail := config.GlobalEnv.FromEmail                   // 送信元メールアドレス
+	password := config.GlobalEnv.EmailPassword                // 送信元メールのパスワード（またはアプリパスワード）
 	mailDialer := NewSMTPMailDialer(smtpHost, smtpPort, fromEmail, password)
 	return &UtilsDataFetcher{
 		JwtSecret:  JwtSecret,
@@ -186,7 +186,7 @@ func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 
 // SendMail はメールを送信する関数
 func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string, isHTML bool) error {
-	fromEmail := os.Getenv("FROMEMAIL") // 送信元メールアドレス
+	fromEmail := config.GlobalEnv.FromEmail // 送信元メールアドレス
 
 	// メール設定
 	m := gomail.NewMessage()

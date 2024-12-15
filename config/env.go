@@ -7,10 +7,34 @@ import (
 )
 
 type Env struct {
-	Domain      string
-	Secure      bool
-	HttpOnly    bool
-	RedirectURI string
+	Domain             string
+	Secure             bool
+	HttpOnly           bool
+	RedirectURI        string
+	PsqlUser           string
+	PsqlTestUser       string
+	PsqlDbname         string
+	PsqlPassword       string
+	PsqlHost           string
+	PsqlPort           string
+	PsqlSslModel       string
+	ReactClient        string
+	VueClient          string
+	DockerClient       string
+	SwaggerClient      string
+	GoogleAccounts     string
+	GoogleApis         string
+	JwtSecret          string
+	DomainURL          string
+	RedisPassword      string
+	RedisDomain        string
+	RedisPort          string
+	SmtpHost           string
+	SmtpPort           string
+	FromEmail          string
+	EmailPassword      string
+	GoogleClientID     string
+	GoogleClientSecret string
 }
 
 var (
@@ -44,10 +68,34 @@ func LeadEnv(env string, path string) Env {
 	}
 
 	EnvInfo := Env{
-		Domain:      domain,
-		Secure:      secure,
-		HttpOnly:    httpOnly,
-		RedirectURI: redirectURI,
+		Domain:             domain,
+		Secure:             secure,
+		HttpOnly:           httpOnly,
+		RedirectURI:        redirectURI,
+		PsqlUser:           os.Getenv("PSQL_USER"),
+		PsqlTestUser:       os.Getenv("PSQL_TEST_USER"),
+		PsqlDbname:         os.Getenv("PSQL_DBNAME"),
+		PsqlPassword:       os.Getenv("PSQL_PASSWORD"),
+		PsqlHost:           os.Getenv("PSQL_HOST"),
+		PsqlPort:           os.Getenv("PSQL_PORT"),
+		PsqlSslModel:       os.Getenv("PSQL_SSLMODEL"),
+		ReactClient:        os.Getenv("REACT_CLIENT"),
+		VueClient:          os.Getenv("VUE_CLIENT"),
+		DockerClient:       os.Getenv("DOCKER_CLIENT"),
+		SwaggerClient:      os.Getenv("SWAGGER_CLIENT"),
+		GoogleAccounts:     os.Getenv("GOOGLE_ACCOUNTS_CLIENT"),
+		GoogleApis:         os.Getenv("GOOGLEAPIS_CLIENT"),
+		JwtSecret:          os.Getenv("JWT_SECRET"),
+		DomainURL:          os.Getenv("DOMAIN"),
+		RedisPassword:      os.Getenv("REDIS_PASSWORD"),
+		RedisDomain:        os.Getenv("REDIS_DOMAIN"),
+		RedisPort:          os.Getenv("REDIS_PORT"),
+		SmtpHost:           os.Getenv("SMTP_HOST"),
+		SmtpPort:           os.Getenv("SMTP_PORT"),
+		FromEmail:          os.Getenv("FROMEMAIL"),
+		EmailPassword:      os.Getenv("PASSWORD"),
+		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 	}
 
 	return EnvInfo

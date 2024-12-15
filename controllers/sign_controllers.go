@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"os"
 	"server/common"
 	"server/config"
 	"server/models" // モデルのインポート
@@ -146,7 +145,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 	}
 
 	dbFetcher, _, _ := models.NewSignDataFetcher(
-		config.DataSourceName,
+		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	result, err := dbFetcher.GetSignIn(requestData.Data[0])
@@ -176,10 +175,6 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
-
-	var env config.Env = config.LeadEnv(os.Getenv(config.ENV), "")
-
-	fmt.Println(env)
 
 	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result[0].UserId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
@@ -547,7 +542,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	}
 
 	dbFetcher, _, _ := models.NewSignDataFetcher(
-		config.DataSourceName,
+		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	// requesTemporaySignUpDataの構造体を流用してデータ構造作成
@@ -642,7 +637,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 	}
 
 	dbFetcher, _, _ := models.NewSignDataFetcher(
-		config.DataSourceName,
+		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	result, err := dbFetcher.PutCheck(requestData.Data[0])
@@ -729,7 +724,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	}
 
 	dbFetcher, _, _ := models.NewSignDataFetcher(
-		config.DataSourceName,
+		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	err := dbFetcher.DeleteSignIn(requestData.Data[0])

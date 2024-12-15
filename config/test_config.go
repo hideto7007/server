@@ -27,10 +27,10 @@ func SetupTestDatabase() {
 	var err error
 	// 環境変数から値を取得して接続文字列を作成
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s",
-		os.Getenv("PSQL_USER"),        // ユーザー名
-		os.Getenv("PSQL_PASSWORD"),    // パスワード
-		os.Getenv("PSQL_TEST_DBNAME"), // テストDB名
-		os.Getenv("PSQL_SSLMODEL"),    // SSLモード
+		GlobalEnv.PsqlUser,     // ユーザー名
+		GlobalEnv.PsqlPassword, // パスワード
+		GlobalEnv.PsqlTestUser, // テストDB名
+		GlobalEnv.PsqlSslModel, // SSLモード
 	)
 
 	testDB, err = sql.Open("postgres", dsn)

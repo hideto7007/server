@@ -147,7 +147,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	}
 
 	dbFetcherSingIn, _, _ := models.NewSignDataFetcher(
-		config.DataSourceName,
+		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.Email)
@@ -203,7 +203,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	}
 
 	dbFetcher, _, _ := models.NewSignDataFetcher(
-		config.DataSourceName,
+		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	registerData := requesGoogleSignUpData{

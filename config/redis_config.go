@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -19,9 +18,8 @@ type (
 		RedisDel(key string) error
 	}
 
-	RedisManager struct {}
+	RedisManager struct{}
 )
-
 
 func NewRedisManager() RedisService {
 	return &RedisManager{}
@@ -37,8 +35,8 @@ var (
 func (rm *RedisManager) InitRedisClient() *redis.Client {
 	if rdb == nil {
 		rdb = redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_DOMAIN"), os.Getenv("REDIS_PORT")),
-			Password: os.Getenv("REDIS_PASSWORD"),
+			Addr:     fmt.Sprintf("%s:%s", GlobalEnv.RedisDomain, GlobalEnv.RedisPort),
+			Password: GlobalEnv.RedisPassword,
 			DB:       0,
 		})
 		if err := rdb.Ping(Ctx).Err(); err != nil {

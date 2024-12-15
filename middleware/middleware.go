@@ -4,10 +4,10 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
+	"server/config"
 	"server/utils"
 
 	"github.com/gin-contrib/cors"
@@ -21,7 +21,7 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 		authToken, err1 := c.Cookie(utils.AuthToken)
 		if authToken == "" || err1 != nil {
 			log.Println("ERROR : ", err1.Error())
-			response := utils.ResponseWithSingle[string]{
+			response := utils.ErrorResponse{
 				ErrorMsg: "トークンが必要です。",
 			}
 			c.JSON(http.StatusUnauthorized, response)
@@ -37,7 +37,7 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 		})
 		if err != nil || !token.Valid {
 			log.Println("ERROR: ", err)
-			response := utils.ResponseWithSingle[string]{
+			response := utils.ErrorResponse{
 				ErrorMsg: "無効なトークンです",
 			}
 			c.JSON(http.StatusUnauthorized, response)
@@ -50,7 +50,7 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 			claims, _ := claimsInterface.(jwt.MapClaims)
 			if exp, ok := claims["exp"].(float64); ok {
 				if time.Unix(int64(exp), 0).Before(time.Now()) {
-					response := utils.ResponseWithSingle[string]{
+					response := utils.ErrorResponse{
 						ErrorMsg: "トークンの有効期限が切れています",
 					}
 					c.JSON(http.StatusUnauthorized, response)
@@ -58,7 +58,7 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 					return
 				}
 			} else {
-				response := utils.ResponseWithSingle[string]{
+				response := utils.ErrorResponse{
 					ErrorMsg: "トークンの有効期限が不正です",
 				}
 				c.JSON(http.StatusUnauthorized, response)
@@ -66,7 +66,7 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 				return
 			}
 		} else {
-			response := utils.ResponseWithSingle[string]{
+			response := utils.ErrorResponse{
 				ErrorMsg: "トークンのクレームが不正です",
 			}
 			c.JSON(http.StatusUnauthorized, response)
@@ -82,13 +82,12 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 func CORSMiddleware() gin.HandlerFunc {
 	config := cors.Config{
 		AllowOrigins: []string{
-			os.Getenv("REACT_CLIENT"),
-			os.Getenv("VUE_CLIENT"),
-			os.Getenv("DOCKER_CLIENT"),
-			os.Getenv("CORS_CLIENT1"),
-			os.Getenv("CORS_CLIENT2"),
-			os.Getenv("CORS_CLIENT3"),
-			os.Getenv("CORS_CLIENT4"),
+			config.GlobalEnv.ReactClient,
+			config.GlobalEnv.VueClient,
+			config.GlobalEnv.SwaggerClient,
+			config.GlobalEnv.DockerClient,
+			config.GlobalEnv.GoogleAccounts,
+			config.GlobalEnv.GoogleApis,
 		},
 		AllowMethods: []string{
 			"GET",

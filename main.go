@@ -2,20 +2,25 @@ package main
 
 import (
 	"log"
-	"os"
+	"server/config"
 	"server/middleware"
 	"server/routes"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// .envファイルを最初にロードする
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	// 環境変数の初期化
+	config.InitGoogleEnvs()
+
 	r := gin.Default()
 	log.Println("start server...")
-	log.Println("REACT_CLIENT : " + os.Getenv("REACT_CLIENT"))
-	log.Println("VUE_CLIENT : ", os.Getenv("VUE_CLIENT"))
-	log.Println("DOCKER_CLIENT : ", os.Getenv("DOCKER_CLIENT"))
-	log.Println("SWAGGER_CLIENT : ", os.Getenv("SWAGGER_CLIENT"))
 	corsMiddleware := middleware.CORSMiddleware()
 
 	// CORSミドルウェアを設定

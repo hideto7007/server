@@ -3,7 +3,6 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -38,8 +37,8 @@ func (gm *GoogleManager) GoogleAuthURL(RedirectURI string) string {
 	// 環境変数や設定から取得する
 	// これだとリダイレクトとScopesのurlパスがエンコードされないまま出力される
 	// GoogleOauthConfig = &oauth2.Config{
-	// 	ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-	// 	ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+	// 	ClientID:     GlobalEnv.GoogleClientID,
+	// 	ClientSecret: GlobalEnv.GoogleClientSecret,
 	// 	RedirectURL:  RedirectURI, // リダイレクトURL
 	// 	Scopes: []string{
 	// 		"https://www.googleapis.com/auth/userinfo.email",
@@ -52,7 +51,7 @@ func (gm *GoogleManager) GoogleAuthURL(RedirectURI string) string {
 	AuthURL := fmt.Sprintf(
 		"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s",
 		google.Endpoint.AuthURL,
-		os.Getenv("GOOGLE_CLIENT_ID"),
+		GlobalEnv.GoogleClientID,
 		RedirectURI,
 		scopes,
 		"randomstate",
@@ -63,8 +62,8 @@ func (gm *GoogleManager) GoogleAuthURL(RedirectURI string) string {
 
 func (gm *GoogleManager) GoogleOauth(RedirectURI string) *oauth2.Config {
 	GoogleOauthConfig = &oauth2.Config{
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		ClientID:     GlobalEnv.GoogleClientID,
+		ClientSecret: GlobalEnv.GoogleClientSecret,
 		RedirectURL:  RedirectURI, // リダイレクトURL
 		Scopes:       scopesList,
 		Endpoint:     google.Endpoint,
