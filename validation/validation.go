@@ -73,7 +73,8 @@ type RequestSignOutData struct {
 }
 
 type RequestGoogleCallbackData struct {
-	Code string `json:"code" valid:"required~コードは必須です。"`
+	Code        string `json:"code" valid:"required~コードは必須です。"`
+	RedirectUri string `json:"redirect_uri" valid:"required~リダイレクトは必須です。"`
 }
 
 type RequestPriceManagementData struct {

@@ -13,7 +13,7 @@ import (
 type (
 	GoogleService interface {
 		GoogleAuthURL(RedirectURI string) string
-		GoogleOauth() *oauth2.Config
+		GoogleOauth(RedirectURI string) *oauth2.Config
 	}
 
 	GoogleManager struct{}
@@ -61,7 +61,7 @@ func (gm *GoogleManager) GoogleAuthURL(RedirectURI string) string {
 	return AuthURL
 }
 
-func (gm *GoogleManager) GoogleOauth() *oauth2.Config {
+func (gm *GoogleManager) GoogleOauth(RedirectURI string) *oauth2.Config {
 	GoogleOauthConfig = &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),

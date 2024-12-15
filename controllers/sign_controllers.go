@@ -124,9 +124,6 @@ func NewSignDataFetcher(
 
 func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 	var requestData requestSignInData
-	var secure bool = false
-	var domain string = "localhost"
-	var httpOnly bool = false
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		response := utils.ResponseWithSlice[requestSignInData]{
 			ErrorMsg: err.Error(),
@@ -180,16 +177,13 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		return
 	}
 
-	// ローカルの場合
-	if os.Getenv("ENV") != "local" {
-		domain = os.Getenv("DOMAIN")
-		secure = true
-		httpOnly = true
-	}
+	var env config.Env = config.LeadEnv(os.Getenv(config.ENV), "")
 
-	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result[0].UserId), 0, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
+	fmt.Println(env)
+
+	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result[0].UserId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.PostSignInTemplate(
 		result[0].UserName,
@@ -234,9 +228,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 
 func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	var common common.CommonFetcher = common.NewCommonFetcher()
-	var secure bool = false
-	var domain string = "localhost"
-	var httpOnly bool = false
+
 	// パラメータからユーザー情報取得
 	userIdCheck := c.Query("user_id")
 	validator := validation.RequestRefreshTokenData{
@@ -306,15 +298,8 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		return
 	}
 
-	// ローカルの場合
-	if os.Getenv("ENV") != "local" {
-		domain = os.Getenv("DOMAIN")
-		secure = true
-		httpOnly = true
-	}
-
 	// 新しいアクセストークンをクッキーとしてセット（またはJSONとして返す）
-	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	// // リフレッシュトークンも更新しておく
 	// c.SetCookie(utils.RefreshAuthToken, newToken, 2*60*60, "/", domain, secure, true)
 
@@ -719,9 +704,6 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 
 func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	var requestData requestSignInDeleteData
-	var secure bool = false
-	var domain string = "localhost"
-	var httpOnly bool = false
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
 		response := utils.ResponseWithSlice[signInDeleteResult]{
@@ -759,17 +741,10 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		return
 	}
 
-	// ローカルの場合
-	if os.Getenv("ENV") != "local" {
-		domain = os.Getenv("DOMAIN")
-		secure = true
-		httpOnly = true
-	}
-
 	// Cookie無効化
-	c.SetCookie(utils.UserId, "", 0, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.UserId, "", 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.AuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.DeleteSignInTemplate(
 		requestData.Data[0].UserName,
@@ -806,9 +781,6 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
-	var secure bool = false
-	var domain string = "localhost"
-	var httpOnly bool = false
 
 	// パラメータからユーザー情報取得
 	userName := c.Query("user_name")
@@ -824,19 +796,12 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 		return
 	}
 
-	// ローカルの場合
-	if os.Getenv("ENV") != "local" {
-		domain = os.Getenv("DOMAIN")
-		secure = true
-		httpOnly = true
-	}
-
 	// Cookie無効化
-	c.SetCookie(utils.UserId, "", 0, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.AuthToken, "", -1, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.GoogleToken, "", -1, "/", domain, secure, httpOnly)
-	c.SetCookie(utils.InstagramToken, "", -1, "/", domain, secure, httpOnly)
+	c.SetCookie(utils.UserId, "", 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.AuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.GoogleToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.InstagramToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.SignOutTemplate(
 		userName,

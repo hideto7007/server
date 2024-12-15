@@ -13,6 +13,9 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 
+	// 環境変数の初期化
+	config.InitGoogleEnvs()
+
 	// APiインターフェイスのインスタンス定義
 	var signAPI controllers.SignDataFetcher = controllers.NewSignDataFetcher(
 		utils.NewUtilsFetcher(utils.JwtSecret),

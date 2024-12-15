@@ -15,7 +15,7 @@ func getDataBaseSource() string {
 	// .env ファイルを読み込む
 	// 環境変数 ENV が "test" の場合は .env ファイルの読み込みをスキップ
 
-	if os.Getenv("ENV") != "test" {
+	if os.Getenv("PSQL_ENV") != "test" {
 		err := godotenv.Load(".env")
 		if err != nil {
 			log.Fatalf("Error loading .env file")

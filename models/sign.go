@@ -16,7 +16,8 @@ import (
 
 type (
 	SignInFetcher interface {
-		GetSignIn(data RequestSignInData) (SignInData, error)
+		GetSignIn(data RequestSignInData) ([]SignInData, error)
+		GetExternalAuth(UserName string) ([]ExternalAuthData, error)
 		PostSignUp(data RequestSignUpData) error
 		PutSignInEdit(data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
@@ -49,6 +50,11 @@ type (
 		UserId       int
 		UserName     string
 		UserPassword string
+	}
+
+	ExternalAuthData struct {
+		UserId   int
+		UserName string
 	}
 
 	SignUpData struct {
@@ -142,6 +148,49 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 		return nil, err
 	}
 
+	if len(result) == 0 {
+		return result, errors.New("存在しないユーザー名です。")
+	}
+
+	return result, nil
+}
+
+// GetExternalAuth 外部認証のサインイン情報を返す
+//
+// 引数:
+//   - data: { user_id: int, user_name: string}
+//
+// 戻り値:
+//
+//	戻り値1: サインイン情報を返し、ない場合は空のリスト
+//	戻り値2: エラー内容(エラーがない場合はnil)
+//
+
+func (pf *SignDataFetcher) GetExternalAuth(UserName string) ([]ExternalAuthData, error) {
+
+	var result []ExternalAuthData
+	var err error
+
+	// データベースクエリを実行
+	rows, err := pf.db.Query(DB.GetExternalAuthSyntax, UserName)
+
+	if err != nil {
+		fmt.Printf("Query failed: %v\n", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var record ExternalAuthData
+		err := rows.Scan(
+			&record.UserId,
+			&record.UserName,
+		)
+		if err != nil {
+			return result, err
+		}
+		result = append(result, record)
+	}
 	if len(result) == 0 {
 		return result, errors.New("存在しないユーザー名です。")
 	}

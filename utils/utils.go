@@ -86,6 +86,9 @@ var RefreshAuthToken = "RefreshAuthToken"
 var UserId = "UserId"
 var AuthTokenHour = 1
 
+// 定義する場所 (utils パッケージ内)
+type ErrorResponse = ResponseWithSlice[ErrorMessages]
+
 // 推奨：90日間だが、一旦12時間で設定
 var RefreshAuthTokenHour = 12
 var SecondsInHour = 3600

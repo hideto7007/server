@@ -54,6 +54,12 @@ const GetSignInSyntax = `
 			WHERE user_name = $1;
 			`
 
+const GetExternalAuthSyntax = `
+			SELECT user_id, user_name
+			FROM users
+			WHERE user_name = $1;
+			`
+
 const PostSignUpSyntax = `
 			INSERT INTO users
 			(user_name, user_password, create_user, create_at, update_user, update_at, delete_flag)
