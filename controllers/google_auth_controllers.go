@@ -152,7 +152,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	)
 	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.Email)
 	if err != nil {
-		response := utils.ResponseWithSlice[string]{
+		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
 		c.JSON(http.StatusUnauthorized, response)
@@ -161,7 +161,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	// UtilsFetcher を使用してトークンを生成
 	newToken, err := gm.UtilsFetcher.NewToken(result[0].UserId, utils.AuthTokenHour)
 	if err != nil {
-		response := utils.ResponseWithSlice[requestSignInData]{
+		response := utils.ErrorResponse{
 			ErrorMsg: "新規トークンの生成に失敗しました。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -170,7 +170,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 
 	refreshToken, err := gm.UtilsFetcher.RefreshToken(result[0].UserId, utils.RefreshAuthTokenHour)
 	if err != nil {
-		response := utils.ResponseWithSlice[RequestRefreshToken]{
+		response := utils.ErrorResponse{
 			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
@@ -216,7 +216,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		},
 	}
 	if err := dbFetcher.PostSignUp(registerData.Data[0]); err != nil {
-		response := utils.ResponseWithSlice[string]{
+		response := utils.ErrorResponse{
 			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
 		c.JSON(http.StatusConflict, response)

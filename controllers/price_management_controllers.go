@@ -97,7 +97,7 @@ func (pm *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ResponseWithSlice[utils.ErrorMessages]{
+		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
 		c.JSON(http.StatusBadRequest, response)
