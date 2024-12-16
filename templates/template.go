@@ -13,7 +13,7 @@ type (
 		PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error)
 		PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, string, error)
 		PostSignInTemplate(UserName, DateTime string) (string, string, error)
-		DeleteSignInTemplate(UserName, DateTime string) (string, string, error)
+		DeleteSignInTemplate(Name, UserName, DateTime string) (string, string, error)
 		SignOutTemplate(UserName, DateTime string) (string, string, error)
 	}
 	// データ構造体
@@ -33,7 +33,7 @@ type (
 		UpdateValue string
 	}
 
-	EmailTemplateManager struct {}
+	EmailTemplateManager struct{}
 )
 
 func NewEmailTemplateManager() EmailTemplateService {
@@ -239,7 +239,7 @@ var deleteSignInTemplate = template.Must(template.Must(commonTemplate.Clone()).P
 					アカウント削除完了のお知らせ
 				</div>
 				<div class="body">
-					<p>{{.UserName}}さん、この度はたくわえるをご利用いただき、誠にありがとうございました。</p>
+					<p>{{.Name}}さん、この度はたくわえるをご利用いただき、誠にありがとうございました。</p>
 					<p>以下の内容でアカウントの削除が完了しました。</p>
 
 					<div class="info-section">
@@ -377,13 +377,14 @@ func (et *EmailTemplateManager) PostSignInTemplate(UserName, DateTime string) (s
 	return subject, body.String(), nil
 }
 
-func (et *EmailTemplateManager) DeleteSignInTemplate(UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) DeleteSignInTemplate(Name, UserName, DateTime string) (string, string, error) {
 	subject := "【たくわえる】アカウント削除完了のお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
 	data := GenericEmailData{
+		Name:     Name,
 		UserName: UserName,
 		DateTime: DateTime,
 		Year:     year,

@@ -3524,8 +3524,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:   "",
-					UserName: "",
+					UserId:     "",
+					UserName:   "",
+					DeleteName: "",
 				},
 			},
 		}
@@ -3566,6 +3567,10 @@ func TestDeleteSignInApi(t *testing.T) {
 					Field:   "user_name",
 					Message: "ユーザー名は必須です。",
 				},
+				{
+					Field:   "delete_name",
+					Message: "削除ユーザー名は必須です。",
+				},
 			},
 		}
 		test_utils.SortErrorMessages(responseBody.Result)
@@ -3580,8 +3585,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:   "1",
-					UserName: "test@example",
+					UserId:     "1",
+					UserName:   "test@example",
+					DeleteName: "test",
 				},
 			},
 		}
@@ -3631,16 +3637,18 @@ func TestDeleteSignInApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInDeleteData{
 					{
-						UserId:   "test",
-						UserName: "test@example.com",
+						UserId:     "test",
+						UserName:   "test@example.com",
+						DeleteName: "test",
 					},
 				},
 			},
 			{
 				Data: []models.RequestSignInDeleteData{
 					{
-						UserId:   "1.25",
-						UserName: "test@example.com",
+						UserId:     "1.25",
+						UserName:   "test@example.com",
+						DeleteName: "test",
 					},
 				},
 			},
@@ -3694,8 +3702,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:   "1",
-					UserName: "test@example.com",
+					UserId:     "1",
+					UserName:   "test@example.com",
+					DeleteName: "test",
 				},
 			},
 		}
@@ -3740,8 +3749,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:   "1",
-					UserName: "test@example.com",
+					UserId:     "1",
+					UserName:   "test@example.com",
+					DeleteName: "test",
 				},
 			},
 		}
@@ -3760,7 +3770,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Return("2024年12月2日")
 
 		mockEmailTemplateService.EXPECT().
-			DeleteSignInTemplate(gomock.Any(), gomock.Any()).
+			DeleteSignInTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
 		w := httptest.NewRecorder()
@@ -3803,8 +3813,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:   "1",
-					UserName: "test@example.com",
+					UserId:     "1",
+					UserName:   "test@example.com",
+					DeleteName: "test",
 				},
 			},
 		}
@@ -3824,7 +3835,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Return("2024年12月2日")
 
 		mockEmailTemplateService.EXPECT().
-			DeleteSignInTemplate(gomock.Any(), gomock.Any()).
+			DeleteSignInTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return("件名", "本文", nil)
 
 		mockUtilsFetcher.EXPECT().
@@ -3871,8 +3882,9 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:   "1",
-					UserName: "test@example.com",
+					UserId:     "1",
+					UserName:   "test@example.com",
+					DeleteName: "test",
 				},
 			},
 		}
@@ -3894,7 +3906,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Return("2024年12月2日")
 
 		mockEmailTemplateService.EXPECT().
-			DeleteSignInTemplate(gomock.Any(), gomock.Any()).
+			DeleteSignInTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return("件名", "本文", nil)
 
 		mockUtilsFetcher.EXPECT().

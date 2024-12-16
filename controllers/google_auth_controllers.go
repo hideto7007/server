@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"server/config"
 	"server/models"
+	"server/templates"
 	"server/utils"
 	"server/validation"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
@@ -52,18 +54,21 @@ type (
 	}
 
 	GoogleManager struct {
-		GoogleService config.GoogleService
-		UtilsFetcher  utils.UtilsFetcher
+		GoogleService        config.GoogleService
+		EmailTemplateService templates.EmailTemplateService
+		UtilsFetcher         utils.UtilsFetcher
 	}
 )
 
 func NewGoogleService(
 	GoogleService config.GoogleService,
+	EmailTemplateService templates.EmailTemplateService,
 	utilsFetcher utils.UtilsFetcher,
 ) GoogleService {
 	return &GoogleManager{
-		GoogleService: GoogleService,
-		UtilsFetcher:  utilsFetcher,
+		GoogleService:        GoogleService,
+		EmailTemplateService: EmailTemplateService,
+		UtilsFetcher:         utilsFetcher,
 	}
 }
 
@@ -300,6 +305,27 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
+	subject, body, err := gm.EmailTemplateService.DeleteSignInTemplate(
+		userInfo.Name,
+		userInfo.Email,
+		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(削除): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := gm.UtilsFetcher.SendMail(userInfo.Email, subject, body, true); err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
 	Okresponse := utils.ResponseWithSingle[string]{
 		Result: "サインイン削除に成功",
 	}

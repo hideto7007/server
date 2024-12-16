@@ -100,9 +100,10 @@ func TestEmailTemplateService(t *testing.T) {
 	t.Run("DeleteSignInTemplate テンプレート", func(t *testing.T) {
 		emailTemplateService := NewEmailTemplateManager()
 
-		subject, body, err := emailTemplateService.DeleteSignInTemplate(UserName, DateTime)
+		subject, body, err := emailTemplateService.DeleteSignInTemplate(Name, UserName, DateTime)
 
 		data := GenericEmailData{
+			Name:     Name,
 			UserName: UserName,
 			DateTime: DateTime,
 			Year:     Year,

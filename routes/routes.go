@@ -22,6 +22,7 @@ func SetupRoutes(r *gin.Engine) {
 	)
 	var googleApi controllers.GoogleService = controllers.NewGoogleService(
 		config.NewGoogleManager(),
+		templates.NewEmailTemplateManager(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher(

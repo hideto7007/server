@@ -711,8 +711,9 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
 
 	validator := validation.RequestSignInDeleteData{
-		UserId:   userIdCheck,
-		UserName: requestData.Data[0].UserName,
+		DeleteName: requestData.Data[0].DeleteName,
+		UserId:     userIdCheck,
+		UserName:   requestData.Data[0].UserName,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -742,6 +743,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.DeleteSignInTemplate(
+		requestData.Data[0].DeleteName,
 		requestData.Data[0].UserName,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)

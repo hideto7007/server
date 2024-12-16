@@ -60,8 +60,9 @@ type RequestSignInEditData struct {
 }
 
 type RequestSignInDeleteData struct {
-	UserId   string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
-	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserId     string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
+	UserName   string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	DeleteName string `json:"delete_name" valid:"required~削除ユーザー名は必須です。"`
 }
 
 type RequestRefreshTokenData struct {
