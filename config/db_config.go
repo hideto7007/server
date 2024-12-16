@@ -3,7 +3,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 )
 
 func GetDataBaseSource() string {
@@ -16,8 +15,6 @@ func GetDataBaseSource() string {
 		GlobalEnv.PsqlPort,
 		GlobalEnv.PsqlSslModel,
 	)
-
-	log.Println(dsn)
 
 	return dsn
 

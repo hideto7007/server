@@ -769,7 +769,7 @@ func TestPutCheck(t *testing.T) {
 }
 
 func TestDeleteSignIn(t *testing.T) {
-	t.Run("DeleteSignIn 登録成功", func(t *testing.T) {
+	t.Run("DeleteSignIn 削除成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
@@ -780,13 +780,15 @@ func TestDeleteSignIn(t *testing.T) {
 		}
 
 		testData := RequestSignInDeleteData{
-			UserId: 1,
+			UserId:   1,
+			UserName: "text@example.com",
 		}
 
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSignInSyntax)).
 			WithArgs(
+				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
 			).
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -810,13 +812,15 @@ func TestDeleteSignIn(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInDeleteData{
-			UserId: 1,
+			UserId:   1,
+			UserName: "text@example.com",
 		}
 
 		// モックの準備
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSignInSyntax)).
 			WithArgs(
+				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
 			).
 			WillReturnError(errors.New("delete failed")) // Execの結果にエラーを返す

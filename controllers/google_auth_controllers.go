@@ -23,12 +23,15 @@ type (
 		)
 		GoogleSignIn(c *gin.Context)
 		GoogleSignUp(c *gin.Context)
+		GoogleDelete(c *gin.Context)
 		GoogleSignInCallback(c *gin.Context)
 		GoogleSignUpCallback(c *gin.Context)
+		GoogleDeleteCallback(c *gin.Context)
 	}
 
 	GoogleUserInfo struct {
 		ID            string        `json:"id"`
+		UserId        int           `json:"user_id"`
 		Email         string        `json:"email"`
 		VerifiedEmail bool          `json:"verified_email"`
 		Name          string        `json:"name"`
@@ -74,6 +77,11 @@ func (gm *GoogleManager) GoogleSignIn(c *gin.Context) {
 
 func (gm *GoogleManager) GoogleSignUp(c *gin.Context) {
 	url := gm.GoogleService.GoogleAuthURL(config.GoogleSignUpEnv.RedirectURI)
+	c.Redirect(http.StatusTemporaryRedirect, url)
+}
+
+func (gm *GoogleManager) GoogleDelete(c *gin.Context) {
+	url := gm.GoogleService.GoogleAuthURL(config.GoogleDeleteEnv.RedirectURI)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
@@ -180,8 +188,9 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result[0].UserId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
-	c.SetCookie(utils.GoogleToken, userInfo.Token.AccessToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
+	// DB登録ユーザーIDも取得
+	userInfo.UserId = result[0].UserId
 	c.JSON(http.StatusOK, userInfo)
 }
 
@@ -224,4 +233,75 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, userInfo)
+}
+
+func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
+	// コールバックから認証コードを取得
+	var httpStatus int
+	var userInfo GoogleUserInfo
+	var response utils.ErrorResponse
+	var err error
+	params := Prams{
+		Code:        c.Query(CODE),
+		RedirectUri: config.GoogleDeleteEnv.RedirectURI,
+	}
+
+	httpStatus, userInfo, response = gm.GoogleAuthCommon(c, params)
+
+	if httpStatus != http.StatusOK {
+		c.JSON(httpStatus, response)
+		return
+	}
+
+	// Googleトークンを無効化
+	revokeURL := fmt.Sprintf("%s%s", config.OauthGoogleRevokeURLAPI, userInfo.Token.AccessToken)
+	resp, err := http.Get(revokeURL)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		response := utils.ErrorResponse{
+			ErrorMsg: "無効なトークンのため削除できません",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// 削除する登録ユーザー取得
+	getDbFetcher, _, _ := models.NewSignDataFetcher(
+		config.GetDataBaseSource(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
+	result, err := getDbFetcher.GetExternalAuth(userInfo.Email)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
+	deleteDbFetcher, _, _ := models.NewSignDataFetcher(
+		config.GetDataBaseSource(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
+	data := models.RequestSignInDeleteData{
+		UserId:   result[0].UserId,
+		UserName: userInfo.Email,
+	}
+	err = deleteDbFetcher.DeleteSignIn(data)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: err.Error(),
+		}
+		c.JSON(http.StatusUnauthorized, response)
+		return
+	}
+
+	// Cookie無効化
+	c.SetCookie(utils.UserId, "", 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.AuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+
+	Okresponse := utils.ResponseWithSingle[string]{
+		Result: "サインイン削除に成功",
+	}
+	c.JSON(http.StatusOK, Okresponse)
 }

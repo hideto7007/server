@@ -40,6 +40,7 @@ type Env struct {
 var (
 	GoogleSignInEnv Env
 	GoogleSignUpEnv Env
+	GoogleDeleteEnv Env
 	GlobalEnv       Env
 )
 
@@ -48,6 +49,7 @@ func InitGoogleEnvs() {
 
 	GoogleSignInEnv = LeadEnv(env, "auth/google/signin/callback")
 	GoogleSignUpEnv = LeadEnv(env, "auth/google/signup/callback")
+	GoogleDeleteEnv = LeadEnv(env, "auth/google/delete/callback")
 	GlobalEnv = LeadEnv(env, "")
 }
 

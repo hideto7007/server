@@ -32,6 +32,7 @@ var (
 )
 
 const OauthGoogleURLAPI = "https://www.googleapis.com/oauth2/v2/userinfo?access_token="
+const OauthGoogleRevokeURLAPI = "https://accounts.google.com/o/oauth2/revoke?token="
 
 func (gm *GoogleManager) GoogleAuthURL(RedirectURI string) string {
 	// 環境変数や設定から取得する

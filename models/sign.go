@@ -399,8 +399,11 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 
 	signInDelete := DB.DeleteSignInSyntax
 
-	if _, err = tx.Exec(signInDelete,
-		data.UserId); err != nil {
+	if _, err = tx.Exec(
+		signInDelete,
+		data.UserId,
+		data.UserName,
+	); err != nil {
 		return err
 	}
 

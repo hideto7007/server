@@ -78,5 +78,6 @@ const PutSignInEditSyntax = `
 
 const DeleteSignInSyntax = `
 			DELETE FROM users
-			WHERE user_id = $1;
+			WHERE user_id = $1
+			and user_name = $2;
 			`
