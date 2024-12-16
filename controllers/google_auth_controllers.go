@@ -196,6 +196,27 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 
 	// DB登録ユーザーIDも取得
 	userInfo.UserId = result[0].UserId
+
+	subject, body, err := gm.EmailTemplateService.PostSignInTemplate(
+		result[0].UserName,
+		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(サインイン): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := gm.UtilsFetcher.SendMail(result[0].UserName, subject, body, true); err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
 	c.JSON(http.StatusOK, userInfo)
 }
 
@@ -234,6 +255,28 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
 		c.JSON(http.StatusConflict, response)
+		return
+	}
+
+	subject, body, err := gm.EmailTemplateService.PostSignUpTemplate(
+		userInfo.Name,
+		userInfo.Email,
+		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(登録): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := gm.UtilsFetcher.SendMail(userInfo.Email, subject, body, true); err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
+		}
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
