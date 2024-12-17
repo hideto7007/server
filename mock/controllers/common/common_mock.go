@@ -5,14 +5,12 @@
 package mock_common
 
 import (
-	http "net/http"
 	reflect "reflect"
 	common "server/controllers/common"
 	utils "server/utils"
 
 	gin "github.com/gin-gonic/gin"
 	gomock "github.com/golang/mock/gomock"
-	oauth2 "golang.org/x/oauth2"
 )
 
 // MockControllersCommonService is a mock of ControllersCommonService interface.
@@ -36,50 +34,6 @@ func NewMockControllersCommonService(ctrl *gomock.Controller) *MockControllersCo
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockControllersCommonService) EXPECT() *MockControllersCommonServiceMockRecorder {
 	return m.recorder
-}
-
-// Client mocks base method.
-func (m *MockControllersCommonService) Client(c *gin.Context, googleAuth *oauth2.Config, token *oauth2.Token) *http.Client {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Client", c, googleAuth, token)
-	ret0, _ := ret[0].(*http.Client)
-	return ret0
-}
-
-// Client indicates an expected call of Client.
-func (mr *MockControllersCommonServiceMockRecorder) Client(c, googleAuth, token interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockControllersCommonService)(nil).Client), c, googleAuth, token)
-}
-
-// Exchange mocks base method.
-func (m *MockControllersCommonService) Exchange(c *gin.Context, googleAuth *oauth2.Config, code string) (*oauth2.Token, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Exchange", c, googleAuth, code)
-	ret0, _ := ret[0].(*oauth2.Token)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Exchange indicates an expected call of Exchange.
-func (mr *MockControllersCommonServiceMockRecorder) Exchange(c, googleAuth, code interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exchange", reflect.TypeOf((*MockControllersCommonService)(nil).Exchange), c, googleAuth, code)
-}
-
-// Get mocks base method.
-func (m *MockControllersCommonService) Get(client *http.Client, url string) (*http.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", client, url)
-	ret0, _ := ret[0].(*http.Response)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockControllersCommonServiceMockRecorder) Get(client, url interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockControllersCommonService)(nil).Get), client, url)
 }
 
 // GoogleAuthCommon mocks base method.
