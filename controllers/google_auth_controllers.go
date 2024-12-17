@@ -2,27 +2,20 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"server/config"
+	"server/controllers/common"
 	"server/models"
 	"server/templates"
 	"server/utils"
-	"server/validation"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/oauth2"
 )
 
 type (
 	GoogleService interface {
-		GoogleAuthCommon(c *gin.Context, code Prams) (
-			int,
-			GoogleUserInfo,
-			utils.ErrorResponse,
-		)
 		GoogleSignIn(c *gin.Context)
 		GoogleSignUp(c *gin.Context)
 		GoogleDelete(c *gin.Context)
@@ -31,44 +24,29 @@ type (
 		GoogleDeleteCallback(c *gin.Context)
 	}
 
-	GoogleUserInfo struct {
-		ID            string        `json:"id"`
-		UserId        int           `json:"user_id"`
-		Email         string        `json:"email"`
-		VerifiedEmail bool          `json:"verified_email"`
-		Name          string        `json:"name"`
-		GivenName     string        `json:"given_name"`
-		FamilyName    string        `json:"family_name"`
-		Picture       string        `json:"picture"`
-		Locale        string        `json:"locale"`
-		Token         *oauth2.Token `json:"token"`
-	}
-
-	Prams struct {
-		Code        string
-		RedirectUri string
-	}
-
 	requesGoogleSignUpData struct {
 		Data []models.RequestSignUpData `json:"data"`
 	}
 
 	GoogleManager struct {
-		GoogleService        config.GoogleService
-		EmailTemplateService templates.EmailTemplateService
-		UtilsFetcher         utils.UtilsFetcher
+		GoogleConfig             config.GoogleConfig
+		ControllersCommonService common.ControllersCommonService
+		EmailTemplateService     templates.EmailTemplateService
+		UtilsFetcher             utils.UtilsFetcher
 	}
 )
 
 func NewGoogleService(
-	GoogleService config.GoogleService,
+	GoogleConfig config.GoogleConfig,
+	ControllersCommonService common.ControllersCommonService,
 	EmailTemplateService templates.EmailTemplateService,
 	utilsFetcher utils.UtilsFetcher,
 ) GoogleService {
 	return &GoogleManager{
-		GoogleService:        GoogleService,
-		EmailTemplateService: EmailTemplateService,
-		UtilsFetcher:         utilsFetcher,
+		GoogleConfig:             GoogleConfig,
+		ControllersCommonService: ControllersCommonService,
+		EmailTemplateService:     EmailTemplateService,
+		UtilsFetcher:             utilsFetcher,
 	}
 }
 
@@ -76,83 +54,32 @@ const CODE = "code"
 const REDIRECT_URI = "redirect_uri"
 
 func (gm *GoogleManager) GoogleSignIn(c *gin.Context) {
-	url := gm.GoogleService.GoogleAuthURL(config.GoogleSignInEnv.RedirectURI)
+	url := gm.GoogleConfig.GoogleAuthURL(config.GoogleSignInEnv.RedirectURI)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (gm *GoogleManager) GoogleSignUp(c *gin.Context) {
-	url := gm.GoogleService.GoogleAuthURL(config.GoogleSignUpEnv.RedirectURI)
+	url := gm.GoogleConfig.GoogleAuthURL(config.GoogleSignUpEnv.RedirectURI)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (gm *GoogleManager) GoogleDelete(c *gin.Context) {
-	url := gm.GoogleService.GoogleAuthURL(config.GoogleDeleteEnv.RedirectURI)
+	url := gm.GoogleConfig.GoogleAuthURL(config.GoogleDeleteEnv.RedirectURI)
 	c.Redirect(http.StatusTemporaryRedirect, url)
-}
-
-func (gm *GoogleManager) GoogleAuthCommon(c *gin.Context, params Prams) (
-	int,
-	GoogleUserInfo,
-	utils.ErrorResponse,
-) {
-	var userInfo GoogleUserInfo
-	validator := validation.RequestGoogleCallbackData{
-		Code:        params.Code,
-		RedirectUri: params.RedirectUri,
-	}
-
-	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
-			Result: errMsgList,
-		}
-		return http.StatusBadRequest, userInfo, response
-	}
-
-	var googleAuth *oauth2.Config = gm.GoogleService.GoogleOauth(params.RedirectUri)
-
-	// 認証コードからトークンを取得
-	token, err := googleAuth.Exchange(c, params.Code)
-	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
-		}
-		return http.StatusInternalServerError, userInfo, response
-	}
-
-	// トークンを使ってユーザー情報を取得
-	client := googleAuth.Client(c, token)
-	resp, err := client.Get(config.OauthGoogleURLAPI + token.AccessToken)
-	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
-		}
-		return http.StatusInternalServerError, userInfo, response
-	}
-	defer resp.Body.Close()
-
-	userInfo.Token = token
-	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
-		}
-		return http.StatusInternalServerError, userInfo, response
-	}
-
-	return http.StatusOK, userInfo, utils.ErrorResponse{}
 }
 
 func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	// コールバックから認証コードを取得
 	var httpStatus int
-	var userInfo GoogleUserInfo
+	var userInfo common.GoogleUserInfo
 	var response utils.ErrorResponse
 	var err error
-	params := Prams{
+	params := common.GooglePrams{
 		Code:        c.Query(CODE),
 		RedirectUri: config.GoogleSignInEnv.RedirectURI,
 	}
 
-	httpStatus, userInfo, response = gm.GoogleAuthCommon(c, params)
+	httpStatus, userInfo, response = gm.ControllersCommonService.GoogleAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
 		c.JSON(httpStatus, response)
@@ -223,14 +150,14 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	// コールバックから認証コードを取得
 	var httpStatus int
-	var userInfo GoogleUserInfo
+	var userInfo common.GoogleUserInfo
 	var response utils.ErrorResponse
-	params := Prams{
+	params := common.GooglePrams{
 		Code:        c.Query(CODE),
 		RedirectUri: config.GoogleSignUpEnv.RedirectURI,
 	}
 
-	httpStatus, userInfo, response = gm.GoogleAuthCommon(c, params)
+	httpStatus, userInfo, response = gm.ControllersCommonService.GoogleAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
 		c.JSON(httpStatus, response)
@@ -286,15 +213,15 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	// コールバックから認証コードを取得
 	var httpStatus int
-	var userInfo GoogleUserInfo
+	var userInfo common.GoogleUserInfo
 	var response utils.ErrorResponse
 	var err error
-	params := Prams{
+	params := common.GooglePrams{
 		Code:        c.Query(CODE),
 		RedirectUri: config.GoogleDeleteEnv.RedirectURI,
 	}
 
-	httpStatus, userInfo, response = gm.GoogleAuthCommon(c, params)
+	httpStatus, userInfo, response = gm.ControllersCommonService.GoogleAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
 		c.JSON(httpStatus, response)

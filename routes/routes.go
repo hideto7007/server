@@ -4,6 +4,7 @@ import (
 	"server/common"
 	"server/config"
 	"server/controllers"
+	controllers_common "server/controllers/common"
 	"server/middleware"
 	"server/templates"
 	"server/utils"
@@ -22,6 +23,7 @@ func SetupRoutes(r *gin.Engine) {
 	)
 	var googleApi controllers.GoogleService = controllers.NewGoogleService(
 		config.NewGoogleManager(),
+		controllers_common.NewControllersCommonManager(config.NewGoogleManager()),
 		templates.NewEmailTemplateManager(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
