@@ -27,16 +27,16 @@ type (
 	}
 
 	GoogleUserInfo struct {
-		ID            string        `json:"id"`
+		ID            string        `json:"id,omitempty"`
 		UserId        int           `json:"user_id"`
 		UserName      string        `json:"email"`
-		VerifiedEmail bool          `json:"verified_email"`
-		Name          string        `json:"name"`
-		GivenName     string        `json:"given_name"`
-		FamilyName    string        `json:"family_name"`
-		Picture       string        `json:"picture"`
-		Locale        string        `json:"locale"`
-		Token         *oauth2.Token `json:"token"`
+		VerifiedEmail bool          `json:"verified_email,omitempty"`
+		Name          string        `json:"name,omitempty"`
+		GivenName     string        `json:"given_name,omitempty"`
+		FamilyName    string        `json:"family_name,omitempty"`
+		Picture       string        `json:"picture,omitempty"`
+		Locale        string        `json:"locale,omitempty"`
+		Token         *oauth2.Token `json:"token,omitempty"`
 	}
 
 	GooglePrams struct {
