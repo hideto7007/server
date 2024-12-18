@@ -90,7 +90,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.Email)
+	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.UserName)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -144,7 +144,16 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
-	c.JSON(http.StatusOK, userInfo)
+
+	responseOk := utils.ResponseWithSlice[common.GoogleUserInfo]{
+		Result: []common.GoogleUserInfo{
+			{
+				UserId:   userInfo.UserId,
+				UserName: userInfo.UserName,
+			},
+		},
+	}
+	c.JSON(http.StatusOK, responseOk)
 }
 
 func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
@@ -171,7 +180,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	registerData := requesGoogleSignUpData{
 		Data: []models.RequestSignUpData{
 			{
-				UserName:     userInfo.Email,
+				UserName:     userInfo.UserName,
 				UserPassword: "google",
 				NickName:     userInfo.Name,
 			},
@@ -187,7 +196,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 
 	subject, body, err := gm.EmailTemplateService.PostSignUpTemplate(
 		userInfo.Name,
-		userInfo.Email,
+		userInfo.UserName,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -199,7 +208,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(userInfo.Email, subject, body, true); err != nil {
+	if err := gm.UtilsFetcher.SendMail(userInfo.UserName, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
@@ -207,7 +216,11 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, userInfo)
+	responseOk := utils.ResponseWithSingle[string]{
+		Result: "google外部認証の登録成功しました。",
+	}
+
+	c.JSON(http.StatusOK, responseOk)
 }
 
 func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
@@ -249,7 +262,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := getDbFetcher.GetExternalAuth(userInfo.Email)
+	result, err := getDbFetcher.GetExternalAuth(userInfo.UserName)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -264,7 +277,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	)
 	data := models.RequestSignInDeleteData{
 		UserId:   result[0].UserId,
-		UserName: userInfo.Email,
+		UserName: userInfo.UserName,
 	}
 	err = deleteDbFetcher.DeleteSignIn(data)
 	if err != nil {
@@ -282,7 +295,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 
 	subject, body, err := gm.EmailTemplateService.DeleteSignInTemplate(
 		userInfo.Name,
-		userInfo.Email,
+		userInfo.UserName,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -294,7 +307,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(userInfo.Email, subject, body, true); err != nil {
+	if err := gm.UtilsFetcher.SendMail(userInfo.UserName, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
 		}

@@ -231,7 +231,7 @@ func TestGoogleAuthCommon(t *testing.T) {
 		userInfo := GoogleUserInfo{
 			ID:            "",
 			UserId:        0,
-			Email:         "",
+			UserName:         "",
 			VerifiedEmail: false,
 			Name:          "",
 			GivenName:     "",
@@ -267,7 +267,7 @@ func TestGoogleAuthCommon(t *testing.T) {
 		userInfo := GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			Email:         "test@example.com",
+			UserName:         "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",

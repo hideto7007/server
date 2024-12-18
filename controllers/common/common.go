@@ -29,7 +29,7 @@ type (
 	GoogleUserInfo struct {
 		ID            string        `json:"id"`
 		UserId        int           `json:"user_id"`
-		Email         string        `json:"email"`
+		UserName      string        `json:"email"`
 		VerifiedEmail bool          `json:"verified_email"`
 		Name          string        `json:"name"`
 		GivenName     string        `json:"given_name"`

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"server/config"
+	"server/controllers/common"
 	controllers_common "server/controllers/common"
 	"server/models"
 	"server/templates"
@@ -183,7 +184,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
+			UserName: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -238,7 +239,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
+			UserName: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -299,7 +300,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
+			UserName: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -364,7 +365,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
+			UserName: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -439,7 +440,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
+			UserName: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -520,7 +521,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		userInfo := controllers_common.GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			Email:         "test@example.com",
+			UserName:      "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
@@ -577,12 +578,19 @@ func TestGoogleSignInCallback(t *testing.T) {
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody controllers_common.GoogleUserInfo
+		var responseBody utils.ResponseWithSlice[common.GoogleUserInfo]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := userInfo
-		assert.Equal(t, responseBody, expectedOk)
+		expectedOk := utils.ResponseWithSlice[common.GoogleUserInfo]{
+			Result: []common.GoogleUserInfo{
+				{
+					UserId:   userInfo.UserId,
+					UserName: userInfo.UserName,
+				},
+			},
+		}
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
 
@@ -646,8 +654,8 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
-			Name:  "test",
+			UserName: "test@example.com",
+			Name:     "test",
 		}
 
 		response := utils.ErrorResponse{}
@@ -700,7 +708,7 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
+			UserName: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -767,7 +775,7 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
+			UserName: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -845,7 +853,7 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		userInfo := controllers_common.GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			Email:         "test@example.com",
+			UserName:      "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
@@ -894,12 +902,14 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody controllers_common.GoogleUserInfo
+		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := userInfo
-		assert.Equal(t, responseBody, expectedOk)
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "google外部認証の登録成功しました。",
+		}
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
 
@@ -971,9 +981,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
-			Name:  "test",
-			Token: MockToken,
+			UserName: "test@example.com",
+			Name:     "test",
+			Token:    MockToken,
 		}
 		response := utils.ErrorResponse{}
 
@@ -1024,9 +1034,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
-			Name:  "test",
-			Token: MockToken,
+			UserName: "test@example.com",
+			Name:     "test",
+			Token:    MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1089,9 +1099,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
-			Name:  "test",
-			Token: MockToken,
+			UserName: "test@example.com",
+			Name:     "test",
+			Token:    MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1167,9 +1177,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
-			Name:  "test",
-			Token: MockToken,
+			UserName: "test@example.com",
+			Name:     "test",
+			Token:    MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1259,9 +1269,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			Email: "test@example.com",
-			Name:  "test",
-			Token: MockToken,
+			UserName: "test@example.com",
+			Name:     "test",
+			Token:    MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1357,7 +1367,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		userInfo := controllers_common.GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			Email:         "test@example.com",
+			UserName:      "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
