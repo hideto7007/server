@@ -5,6 +5,7 @@
 package mock_common
 
 import (
+	http "net/http"
 	reflect "reflect"
 	common "server/controllers/common"
 	utils "server/utils"
@@ -34,6 +35,21 @@ func NewMockControllersCommonService(ctrl *gomock.Controller) *MockControllersCo
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockControllersCommonService) EXPECT() *MockControllersCommonServiceMockRecorder {
 	return m.recorder
+}
+
+// GetRevoke mocks base method.
+func (m *MockControllersCommonService) GetRevoke(AccessToken string) (*http.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRevoke", AccessToken)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRevoke indicates an expected call of GetRevoke.
+func (mr *MockControllersCommonServiceMockRecorder) GetRevoke(AccessToken interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRevoke", reflect.TypeOf((*MockControllersCommonService)(nil).GetRevoke), AccessToken)
 }
 
 // GoogleAuthCommon mocks base method.

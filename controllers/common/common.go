@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"server/config"
 	"server/utils"
@@ -18,6 +19,7 @@ type (
 			GoogleUserInfo,
 			utils.ErrorResponse,
 		)
+		GetRevoke(AccessToken string) (*http.Response, error)
 	}
 
 	ControllersCommonManager struct {
@@ -105,4 +107,10 @@ func (gm *ControllersCommonManager) GoogleAuthCommon(c *gin.Context, params Goog
 	}
 
 	return http.StatusOK, userInfo, utils.ErrorResponse{}
+}
+
+func (gm *ControllersCommonManager) GetRevoke(AccessToken string) (*http.Response, error) {
+	revokeURL := fmt.Sprintf("%s%s", config.OauthGoogleRevokeURLAPI, AccessToken)
+	resp, err := http.Get(revokeURL)
+	return resp, err
 }

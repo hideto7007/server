@@ -229,11 +229,10 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	}
 
 	// Googleトークンを無効化
-	revokeURL := fmt.Sprintf("%s%s", config.OauthGoogleRevokeURLAPI, userInfo.Token.AccessToken)
-	resp, err := http.Get(revokeURL)
+	resp, err := gm.ControllersCommonService.GetRevoke(userInfo.Token.AccessToken)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		response := utils.ErrorResponse{
-			ErrorMsg: "無効なトークンのため削除できません",
+			ErrorMsg: "無効なトークンのため削除できません。",
 		}
 		c.JSON(http.StatusInternalServerError, response)
 		return
@@ -264,7 +263,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	err = deleteDbFetcher.DeleteSignIn(data)
 	if err != nil {
 		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+			ErrorMsg: "サインインの削除に失敗しました。",
 		}
 		c.JSON(http.StatusUnauthorized, response)
 		return

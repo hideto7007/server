@@ -3,9 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 
 	"server/config"
 	controllers_common "server/controllers/common"
@@ -898,5 +900,542 @@ func TestGoogleSignUpCallback(t *testing.T) {
 
 		expectedOk := userInfo
 		assert.Equal(t, responseBody, expectedOk)
+	})
+}
+
+func TestGoogleDeleteCallback(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	MockToken := &oauth2.Token{
+		AccessToken:  "test-access-token",
+		RefreshToken: "test-refresh-token",
+		TokenType:    "Bearer",
+	}
+
+	t.Run("GoogleDeleteCallback GoogleAuthCommonエラー返却", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/delete/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		response := utils.ErrorResponse{
+			ErrorMsg: "テストエラー",
+		}
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(500, controllers_common.GoogleUserInfo{}, response)
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             utils.NewUtilsFetcher(utils.JwtSecret),
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleDeleteCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "テストエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleDeleteCallback 無効なトークンのため削除できません", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/delete/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+			Name:  "test",
+			Token: MockToken,
+		}
+		response := utils.ErrorResponse{}
+
+		resp := &http.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body:       io.NopCloser(strings.NewReader("Internal Server Error")),
+		}
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		mockControllersCommonService.EXPECT().
+			GetRevoke(gomock.Any()).
+			Return(resp, fmt.Errorf("取得エラー"))
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             utils.NewUtilsFetcher(utils.JwtSecret),
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleDeleteCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "無効なトークンのため削除できません。",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleDeleteCallback DB取得エラー", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/delete/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+			Name:  "test",
+			Token: MockToken,
+		}
+
+		response := utils.ErrorResponse{}
+
+		resq := &http.Response{
+			StatusCode: http.StatusOK,
+		}
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		mockControllersCommonService.EXPECT().
+			GetRevoke(gomock.Any()).
+			Return(resq, nil)
+
+		resMock := []models.ExternalAuthData{}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetExternalAuth",
+			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+				return resMock, fmt.Errorf("sql取得失敗")
+			})
+		defer patches.Reset()
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             utils.NewUtilsFetcher(utils.JwtSecret),
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleDeleteCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "sql取得失敗",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleDeleteCallback DB削除エラー", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/delete/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+			Name:  "test",
+			Token: MockToken,
+		}
+
+		response := utils.ErrorResponse{}
+
+		resq := &http.Response{
+			StatusCode: http.StatusOK,
+		}
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		mockControllersCommonService.EXPECT().
+			GetRevoke(gomock.Any()).
+			Return(resq, nil)
+
+		resMock := []models.ExternalAuthData{
+			{
+				UserId:   1,
+				UserName: "test@example.com",
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetExternalAuth",
+			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+				return fmt.Errorf("DB削除エラー")
+			})
+		defer patches1.Reset()
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             utils.NewUtilsFetcher(utils.JwtSecret),
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleDeleteCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "サインインの削除に失敗しました。",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleDeleteCallback メールテンプレート生成エラー(削除)", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/delete/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+			Name:  "test",
+			Token: MockToken,
+		}
+
+		response := utils.ErrorResponse{}
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		// EmailTemplateService のモックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		// ControllersCommonService のモックを作成
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		resq := &http.Response{
+			StatusCode: http.StatusOK,
+		}
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		mockControllersCommonService.EXPECT().
+			GetRevoke(gomock.Any()).
+			Return(resq, nil)
+
+		resMock := []models.ExternalAuthData{
+			{
+				UserId:   1,
+				UserName: "test@example.com",
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetExternalAuth",
+			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches1.Reset()
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			DeleteSignInTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             mockUtilsFetcher,
+			EmailTemplateService:     mockEmailTemplateService,
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleDeleteCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(削除): メールテンプレートエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleDeleteCallback メール送信エラー(削除)", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/delete/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+			Name:  "test",
+			Token: MockToken,
+		}
+
+		response := utils.ErrorResponse{}
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		// EmailTemplateService のモックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		// ControllersCommonService のモックを作成
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		resq := &http.Response{
+			StatusCode: http.StatusOK,
+		}
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		mockControllersCommonService.EXPECT().
+			GetRevoke(gomock.Any()).
+			Return(resq, nil)
+
+		resMock := []models.ExternalAuthData{
+			{
+				UserId:   1,
+				UserName: "test@example.com",
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetExternalAuth",
+			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches1.Reset()
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			DeleteSignInTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             mockUtilsFetcher,
+			EmailTemplateService:     mockEmailTemplateService,
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleDeleteCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(削除): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleDeleteCallback result 成功", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/delete/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			ID:            "1234",
+			UserId:        1,
+			Email:         "test@example.com",
+			VerifiedEmail: true,
+			Name:          "test",
+			GivenName:     "test",
+			FamilyName:    "test",
+			Picture:       "111",
+			Locale:        "222",
+			Token:         MockToken,
+		}
+
+		response := utils.ErrorResponse{}
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		// ControllersCommonService のモックを作成
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		resq := &http.Response{
+			StatusCode: http.StatusOK,
+		}
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		mockControllersCommonService.EXPECT().
+			GetRevoke(gomock.Any()).
+			Return(resq, nil)
+
+		resMock := []models.ExternalAuthData{
+			{
+				UserId:   1,
+				UserName: "test@example.com",
+			},
+		}
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetExternalAuth",
+			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+				return resMock, nil
+			})
+		defer patches.Reset()
+
+		patches1 := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches1.Reset()
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             mockUtilsFetcher,
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleDeleteCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "サインイン削除に成功",
+		}
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
