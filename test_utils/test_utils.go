@@ -1,6 +1,9 @@
 package test_utils
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"server/utils"
 	"sort"
 )
@@ -19,4 +22,32 @@ func SortErrorMessages(sortData []utils.ErrorMessages) {
 			return sortData[i].Field < sortData[j].Field
 		},
 	)
+}
+
+func SetupMockHTTPServer(statusCode int, query, responseBody string) (*http.Client, string, func()) {
+    // モックHTTPサーバーの作成
+    mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.WriteHeader(statusCode)
+        w.Write([]byte(responseBody))
+    }))
+
+    // モックHTTPクライアントの作成
+    client := &http.Client{
+        Transport: &http.Transport{
+            Proxy: func(req *http.Request) (*url.URL, error) {
+                // モックサーバーのURLを設定
+                return url.Parse(mockServer.URL)
+            },
+        },
+    }
+
+    // モックサーバーURL
+    mockURL := mockServer.URL + query
+
+    // クリーンアップ関数を返す
+    cleanup := func() {
+        mockServer.Close()
+    }
+
+    return client, mockURL, cleanup
 }

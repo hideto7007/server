@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"server/config"
+	"server/test_utils"
 	"server/utils"
 	"strings"
 	"testing"
@@ -334,23 +334,12 @@ func TestGetRevoke(t *testing.T) {
 
 	t.Run("GetRevoke 異常系", func(t *testing.T) {
 		// モックHTTPサーバを作成
-		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// 異常系: 500 レスポンスを返す
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("エラー"))
-		}))
-		defer mockServer.Close()
-
-		// モックHTTPクライアントを作成
-		client := &http.Client{
-			Transport: &http.Transport{
-				Proxy: func(req *http.Request) (*url.URL, error) {
-					return url.Parse(mockServer.URL)
-				},
-			},
-		}
-		// 正しいモックサーバーの URL を設定
-		mockURL := mockServer.URL + "/dummry?"
+		client, mockURL, cleanup := test_utils.SetupMockHTTPServer(
+			http.StatusInternalServerError,
+			"/dummry?",
+			"エラー",
+		)
+		defer cleanup()
 
 		googleManager := ControllersCommonManager{
 			GoogleConfig: config.NewGoogleManager(),
@@ -365,23 +354,12 @@ func TestGetRevoke(t *testing.T) {
 	t.Run("GetRevoke 正常系", func(t *testing.T) {
 
 		// モックHTTPサーバを作成
-		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// 正常系: 200 OK レスポンスを返す
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("成功"))
-		}))
-		defer mockServer.Close()
-
-		// モックHTTPクライアントを作成
-		client := &http.Client{
-			Transport: &http.Transport{
-				Proxy: func(req *http.Request) (*url.URL, error) {
-					return url.Parse(mockServer.URL)
-				},
-			},
-		}
-		// 正しいモックサーバーの URL を設定
-		mockURL := mockServer.URL + "/dummry?"
+		client, mockURL, cleanup := test_utils.SetupMockHTTPServer(
+			http.StatusOK,
+			"/dummry?",
+			"成功",
+		)
+		defer cleanup()
 
 		googleManager := ControllersCommonManager{
 			GoogleConfig: config.NewGoogleManager(),
