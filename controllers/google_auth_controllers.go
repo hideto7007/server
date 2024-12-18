@@ -228,8 +228,14 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 		return
 	}
 
+	client := http.DefaultClient
+
 	// Googleトークンを無効化
-	resp, err := gm.ControllersCommonService.GetRevoke(userInfo.Token.AccessToken)
+	resp, err := gm.ControllersCommonService.GetRevoke(
+		client,
+		config.OauthGoogleRevokeURLAPI,
+		userInfo.Token.AccessToken,
+	)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		response := utils.ErrorResponse{
 			ErrorMsg: "無効なトークンのため削除できません。",

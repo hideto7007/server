@@ -987,7 +987,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			Return(200, userInfo, response)
 
 		mockControllersCommonService.EXPECT().
-			GetRevoke(gomock.Any()).
+			GetRevoke(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(resp, fmt.Errorf("取得エラー"))
 
 		googleManager := GoogleManager{
@@ -1042,7 +1042,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			Return(200, userInfo, response)
 
 		mockControllersCommonService.EXPECT().
-			GetRevoke(gomock.Any()).
+			GetRevoke(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(resq, nil)
 
 		resMock := []models.ExternalAuthData{}
@@ -1107,7 +1107,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			Return(200, userInfo, response)
 
 		mockControllersCommonService.EXPECT().
-			GetRevoke(gomock.Any()).
+			GetRevoke(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(resq, nil)
 
 		resMock := []models.ExternalAuthData{
@@ -1190,7 +1190,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			Return(200, userInfo, response)
 
 		mockControllersCommonService.EXPECT().
-			GetRevoke(gomock.Any()).
+			GetRevoke(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(resq, nil)
 
 		resMock := []models.ExternalAuthData{
@@ -1282,7 +1282,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			Return(200, userInfo, response)
 
 		mockControllersCommonService.EXPECT().
-			GetRevoke(gomock.Any()).
+			GetRevoke(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(resq, nil)
 
 		resMock := []models.ExternalAuthData{
@@ -1383,7 +1383,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			Return(200, userInfo, response)
 
 		mockControllersCommonService.EXPECT().
-			GetRevoke(gomock.Any()).
+			GetRevoke(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(resq, nil)
 
 		resMock := []models.ExternalAuthData{

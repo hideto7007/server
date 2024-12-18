@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"server/config"
 	"server/utils"
 	"strings"
@@ -322,5 +323,73 @@ func TestGoogleAuthCommon(t *testing.T) {
 
 		expectedErrorMessage := utils.ErrorResponse{}
 		assert.Equal(t, response, expectedErrorMessage)
+	})
+}
+
+func TestGetRevoke(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	AccessToken := "test_token"
+
+	t.Run("GetRevoke 異常系", func(t *testing.T) {
+		// モックHTTPサーバを作成
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// 異常系: 500 レスポンスを返す
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("エラー"))
+		}))
+		defer mockServer.Close()
+
+		// モックHTTPクライアントを作成
+		client := &http.Client{
+			Transport: &http.Transport{
+				Proxy: func(req *http.Request) (*url.URL, error) {
+					return url.Parse(mockServer.URL)
+				},
+			},
+		}
+		// 正しいモックサーバーの URL を設定
+		mockURL := mockServer.URL + "/dummry?"
+
+		googleManager := ControllersCommonManager{
+			GoogleConfig: config.NewGoogleManager(),
+		}
+		resp, err := googleManager.GetRevoke(client, mockURL, AccessToken)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+		assert.NoError(t, err) // HTTPリクエスト自体は成功するためerrはnilになる
+	})
+
+	t.Run("GetRevoke 正常系", func(t *testing.T) {
+
+		// モックHTTPサーバを作成
+		mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// 正常系: 200 OK レスポンスを返す
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("成功"))
+		}))
+		defer mockServer.Close()
+
+		// モックHTTPクライアントを作成
+		client := &http.Client{
+			Transport: &http.Transport{
+				Proxy: func(req *http.Request) (*url.URL, error) {
+					return url.Parse(mockServer.URL)
+				},
+			},
+		}
+		// 正しいモックサーバーの URL を設定
+		mockURL := mockServer.URL + "/dummry?"
+
+		googleManager := ControllersCommonManager{
+			GoogleConfig: config.NewGoogleManager(),
+		}
+		resp, err := googleManager.GetRevoke(client, mockURL, AccessToken)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, err, nil)
 	})
 }

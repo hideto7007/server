@@ -38,18 +38,18 @@ func (m *MockControllersCommonService) EXPECT() *MockControllersCommonServiceMoc
 }
 
 // GetRevoke mocks base method.
-func (m *MockControllersCommonService) GetRevoke(AccessToken string) (*http.Response, error) {
+func (m *MockControllersCommonService) GetRevoke(client *http.Client, url, AccessToken string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRevoke", AccessToken)
+	ret := m.ctrl.Call(m, "GetRevoke", client, url, AccessToken)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRevoke indicates an expected call of GetRevoke.
-func (mr *MockControllersCommonServiceMockRecorder) GetRevoke(AccessToken interface{}) *gomock.Call {
+func (mr *MockControllersCommonServiceMockRecorder) GetRevoke(client, url, AccessToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRevoke", reflect.TypeOf((*MockControllersCommonService)(nil).GetRevoke), AccessToken)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRevoke", reflect.TypeOf((*MockControllersCommonService)(nil).GetRevoke), client, url, AccessToken)
 }
 
 // GoogleAuthCommon mocks base method.
