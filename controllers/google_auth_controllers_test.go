@@ -583,3 +583,320 @@ func TestGoogleSignInCallback(t *testing.T) {
 		assert.Equal(t, responseBody, expectedOk)
 	})
 }
+
+func TestGoogleSignUpCallback(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	t.Run("GoogleSignUpCallback GoogleAuthCommonエラー返却", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/signup/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		response := utils.ErrorResponse{
+			ErrorMsg: "テストエラー",
+		}
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(500, controllers_common.GoogleUserInfo{}, response)
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             utils.NewUtilsFetcher(utils.JwtSecret),
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleSignUpCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "テストエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleSignUpCallback DB取得エラー", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/signup/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+			Name:  "test",
+		}
+
+		response := utils.ErrorResponse{}
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return fmt.Errorf("sql登録失敗")
+			})
+		defer patches.Reset()
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             utils.NewUtilsFetcher(utils.JwtSecret),
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleSignUpCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusConflict, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "既に登録されたメールアドレスです。",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleSignUpCallback メールテンプレート生成エラー(登録)", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/signup/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+		}
+
+		response := utils.ErrorResponse{}
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		// EmailTemplateService のモックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             mockUtilsFetcher,
+			EmailTemplateService:     mockEmailTemplateService,
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleSignUpCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(登録): メールテンプレートエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleSignUpCallback メール送信エラー(登録)", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/signup/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		userInfo := controllers_common.GoogleUserInfo{
+			Email: "test@example.com",
+		}
+
+		response := utils.ErrorResponse{}
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             mockUtilsFetcher,
+			EmailTemplateService:     mockEmailTemplateService,
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleSignUpCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(登録): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("GoogleSignUpCallback result 成功", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/auth/google/signup/callback?code=test-code", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockToken := &oauth2.Token{
+			AccessToken:  "test-access-token",
+			RefreshToken: "test-refresh-token",
+			TokenType:    "Bearer",
+		}
+
+		userInfo := controllers_common.GoogleUserInfo{
+			ID:            "1234",
+			UserId:        1,
+			Email:         "test@example.com",
+			VerifiedEmail: true,
+			Name:          "test",
+			GivenName:     "test",
+			FamilyName:    "test",
+			Picture:       "111",
+			Locale:        "222",
+			Token:         mockToken,
+		}
+
+		response := utils.ErrorResponse{}
+
+		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
+
+		mockControllersCommonService.EXPECT().
+			GoogleAuthCommon(gomock.Any(), gomock.Any()).
+			Return(200, userInfo, response)
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
+				return nil
+			})
+		defer patches.Reset()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		googleManager := GoogleManager{
+			UtilsFetcher:             mockUtilsFetcher,
+			EmailTemplateService:     templates.NewEmailTemplateManager(),
+			GoogleConfig:             config.NewGoogleManager(),
+			ControllersCommonService: mockControllersCommonService,
+		}
+		googleManager.GoogleSignUpCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody controllers_common.GoogleUserInfo
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedOk := userInfo
+		assert.Equal(t, responseBody, expectedOk)
+	})
+}
