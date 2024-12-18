@@ -192,6 +192,9 @@ func (pf *SignDataFetcher) GetExternalAuth(UserName string) ([]ExternalAuthData,
 		}
 		result = append(result, record)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	if len(result) == 0 {
 		return result, errors.New("存在しないユーザー名です。")
 	}

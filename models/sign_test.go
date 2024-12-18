@@ -287,6 +287,187 @@ func TestGetSignIn(t *testing.T) {
 	})
 }
 
+func TestGetExternalAuth(t *testing.T) {
+	t.Run("GetExternalAuth クエリー実行時エラー", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト対象のデータ
+		UserName := "test@exmple.com"
+
+		// クエリ実行時にエラーを返すようにモックを設定
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
+			WithArgs(UserName).
+			WillReturnError(fmt.Errorf("クエリの実行に失敗しました"))
+
+		// テストを実行
+		_, err = dbFetcher.GetExternalAuth(UserName)
+
+		// クエリエラーが発生したことを確認
+		assert.Error(t, err)
+		assert.EqualError(t, err, "クエリの実行に失敗しました")
+	})
+
+	t.Run("GetExternalAuth rows.Scan時にエラー発生 UserIdで検証", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト対象のデータ
+		UserName := "test@exmple.com"
+
+		rows := sqlmock.NewRows([]string{"user_id", "user_name"}).
+			AddRow("test", UserName)
+
+		// モッククエリの期待値を設定
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
+			WithArgs(UserName). // ここで引数が一致しないとマッチしない
+			WillReturnRows(rows)
+
+		// テスト対象関数を実行
+		var result []ExternalAuthData
+		result, err = dbFetcher.GetExternalAuth(UserName)
+
+		// エラーが発生したことを確認
+		assert.Error(t, err)
+		assert.Empty(t, result)
+	})
+
+	t.Run("GetExternalAuth rows.Err()にエラー発生", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト対象のデータ
+		UserName := "test@exmple.com"
+
+		rows := sqlmock.NewRows([]string{"user_id", "user_name"}).
+			AddRow(1, UserName)
+		rows.RowError(0, fmt.Errorf("forced row error"))
+
+		// モッククエリの期待値を設定
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
+			WithArgs(UserName). // ここで引数が一致しないとマッチしない
+			WillReturnRows(rows)
+
+		// テスト対象関数を実行
+		var result []ExternalAuthData
+		result, err = dbFetcher.GetExternalAuth(UserName)
+
+		// エラーが発生したことを確認
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "forced row error")
+	})
+
+	t.Run("GetExternalAuth 成功", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト対象のデータ
+		UserName := "test@exmple.com"
+
+		mockData := []ExternalAuthData{
+			{
+				UserId:   1,
+				UserName: "test@exmple.com",
+			},
+		}
+
+		expectedData := mockData
+
+		// テスト用の行データを設定
+		rows := sqlmock.NewRows([]string{
+			"user_id", "user_name",
+		})
+
+		for _, data := range mockData {
+			rows.AddRow(
+				data.UserId,
+				data.UserName,
+			)
+		}
+
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
+			WithArgs(UserName).
+			WillReturnRows(rows)
+
+		// テストを実行
+		result, err := dbFetcher.GetExternalAuth(UserName)
+
+		// エラーがないことを検証
+		assert.NoError(t, err)
+
+		t.Log("result : ", result)
+		// 取得したデータが期待値と一致することを検証
+		assert.Equal(t, expectedData, result)
+
+		// モックが期待通りのクエリを受け取ったか確認
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("mock check: %s", err)
+		}
+	})
+
+	t.Run("GetExternalAuth 存在しないユーザー名です", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト対象のデータ
+		UserName := "test@exmple.com"
+
+		expectedData := "存在しないユーザー名です。"
+
+		// テスト用の行データを設定
+		rows := sqlmock.NewRows([]string{
+			"user_id", "user_name",
+		})
+
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
+			WithArgs(UserName).
+			WillReturnRows(rows)
+
+		// テストを実行
+		result, err := dbFetcher.GetExternalAuth(UserName)
+
+		// 取得したデータが期待値と一致することを検証
+		assert.Empty(t, result)
+		assert.Equal(t, expectedData, err.Error())
+
+		// モックが期待通りのクエリを受け取ったか確認
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("mock check: %s", err)
+		}
+	})
+}
+
 func TestPostSignUp(t *testing.T) {
 	t.Run("PostSignUp 登録成功", func(t *testing.T) {
 		// テスト用のDBモックを作成
