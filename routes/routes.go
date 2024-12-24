@@ -8,11 +8,16 @@ import (
 	"server/middleware"
 	"server/templates"
 	"server/utils"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine) {
+
+	httpClient := common.NewHTTPClient(common.HTTPClientConfig{
+		Timeout: 10 * time.Second,
+	})
 
 	// APiインターフェイスのインスタンス定義
 	var signAPI controllers.SignDataFetcher = controllers.NewSignDataFetcher(
@@ -23,7 +28,19 @@ func SetupRoutes(r *gin.Engine) {
 	)
 	var googleApi controllers.GoogleService = controllers.NewGoogleService(
 		config.NewGoogleManager(),
-		controllers_common.NewControllersCommonManager(config.NewGoogleManager()),
+		controllers_common.NewControllersCommonManager(
+			config.NewGoogleManager(),
+			config.NewLineManager(httpClient),
+		),
+		templates.NewEmailTemplateManager(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
+	var lineApi controllers.LineService = controllers.NewLineService(
+		config.NewLineManager(httpClient),
+		controllers_common.NewControllersCommonManager(
+			config.NewGoogleManager(),
+			config.NewLineManager(httpClient),
+		),
 		templates.NewEmailTemplateManager(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
@@ -41,6 +58,13 @@ func SetupRoutes(r *gin.Engine) {
 	r.GET("auth/google/signin/callback", googleApi.GoogleSignInCallback)
 	r.GET("auth/google/signup/callback", googleApi.GoogleSignUpCallback)
 	r.GET("auth/google/delete/callback", googleApi.GoogleDeleteCallback)
+	// line認証
+	r.GET("auth/line/signin", lineApi.LineSignIn)
+	r.GET("auth/line/signup", lineApi.LineSignUp)
+	r.GET("auth/line/delete", lineApi.LineDelete)
+	r.GET("auth/line/signin/callback", lineApi.LineSignInCallback)
+	r.GET("auth/line/signup/callback", lineApi.LineSignUpCallback)
+	r.GET("auth/line/delete/callback", lineApi.LineDeleteCallback)
 
 	// ルートの設定
 	Routes := r.Group("/api")

@@ -35,12 +35,17 @@ type Env struct {
 	EmailPassword      string
 	GoogleClientID     string
 	GoogleClientSecret string
+	LineClientID       string
+	LineClientSecret   string
 }
 
 var (
 	GoogleSignInEnv Env
 	GoogleSignUpEnv Env
 	GoogleDeleteEnv Env
+	LineSignInEnv   Env
+	LineSignUpEnv   Env
+	LineDeleteEnv   Env
 	GlobalEnv       Env
 )
 
@@ -50,6 +55,9 @@ func InitGoogleEnvs() {
 	GoogleSignInEnv = LeadEnv(env, "auth/google/signin/callback")
 	GoogleSignUpEnv = LeadEnv(env, "auth/google/signup/callback")
 	GoogleDeleteEnv = LeadEnv(env, "auth/google/delete/callback")
+	LineSignInEnv = LeadEnv(env, "auth/line/signin/callback")
+	LineSignUpEnv = LeadEnv(env, "auth/line/signup/callback")
+	LineDeleteEnv = LeadEnv(env, "auth/line/delete/callback")
 	GlobalEnv = LeadEnv(env, "")
 }
 
@@ -98,6 +106,8 @@ func LeadEnv(env string, path string) Env {
 		EmailPassword:      os.Getenv("PASSWORD"),
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		LineClientID:       os.Getenv("LINE_CLIENT_ID"),
+		LineClientSecret:   os.Getenv("LINE_CLIENT_SECRET"),
 	}
 
 	return EnvInfo

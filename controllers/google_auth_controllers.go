@@ -50,9 +50,6 @@ func NewGoogleService(
 	}
 }
 
-const CODE = "code"
-const REDIRECT_URI = "redirect_uri"
-
 func (gm *GoogleManager) GoogleSignIn(c *gin.Context) {
 	url := gm.GoogleConfig.GoogleAuthURL(config.GoogleSignInEnv.RedirectURI)
 	c.Redirect(http.StatusTemporaryRedirect, url)
@@ -75,7 +72,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	var response utils.ErrorResponse
 	var err error
 	params := common.GooglePrams{
-		Code:        c.Query(CODE),
+		Code:        c.Query(common.CODE),
 		RedirectUri: config.GoogleSignInEnv.RedirectURI,
 	}
 
@@ -162,7 +159,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	var userInfo common.GoogleUserInfo
 	var response utils.ErrorResponse
 	params := common.GooglePrams{
-		Code:        c.Query(CODE),
+		Code:        c.Query(common.CODE),
 		RedirectUri: config.GoogleSignUpEnv.RedirectURI,
 	}
 
@@ -230,7 +227,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	var response utils.ErrorResponse
 	var err error
 	params := common.GooglePrams{
-		Code:        c.Query(CODE),
+		Code:        c.Query(common.CODE),
 		RedirectUri: config.GoogleDeleteEnv.RedirectURI,
 	}
 

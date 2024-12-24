@@ -81,9 +81,10 @@ var JwtSecret = []byte(config.GlobalEnv.JwtSecret)
 
 var AuthToken = "AuthToken"
 var GoogleToken = "GoogleToken"
-var InstagramToken = "InstagramTokenの"
+var LineToken = "LineToken"
 var RefreshAuthToken = "RefreshAuthToken"
 var UserId = "UserId"
+var OauthState = "oauth_state"
 var AuthTokenHour = 1
 
 // 定義する場所 (utils パッケージ内)

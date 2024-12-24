@@ -7,6 +7,7 @@ package mock_common
 import (
 	http "net/http"
 	reflect "reflect"
+	config "server/config"
 	common "server/controllers/common"
 	utils "server/utils"
 
@@ -66,4 +67,20 @@ func (m *MockControllersCommonService) GoogleAuthCommon(c *gin.Context, params c
 func (mr *MockControllersCommonServiceMockRecorder) GoogleAuthCommon(c, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GoogleAuthCommon", reflect.TypeOf((*MockControllersCommonService)(nil).GoogleAuthCommon), c, params)
+}
+
+// LineAuthCommon mocks base method.
+func (m *MockControllersCommonService) LineAuthCommon(c *gin.Context, params common.LinePrams) (int, *config.LineUserInfo, utils.ErrorResponse) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LineAuthCommon", c, params)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(*config.LineUserInfo)
+	ret2, _ := ret[2].(utils.ErrorResponse)
+	return ret0, ret1, ret2
+}
+
+// LineAuthCommon indicates an expected call of LineAuthCommon.
+func (mr *MockControllersCommonServiceMockRecorder) LineAuthCommon(c, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LineAuthCommon", reflect.TypeOf((*MockControllersCommonService)(nil).LineAuthCommon), c, params)
 }

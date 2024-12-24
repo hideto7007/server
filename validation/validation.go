@@ -78,6 +78,11 @@ type RequestGoogleCallbackData struct {
 	RedirectUri string `json:"redirect_uri" valid:"required~リダイレクトは必須です。"`
 }
 
+type RequestLineCallbackData struct {
+	Code  string `json:"code" valid:"required~コードは必須です。"`
+	State string `json:"state" valid:"required~ステートは必須です。"`
+}
+
 type RequestPriceManagementData struct {
 	MoneyReceived string `json:"money_received" valid:"int~月の収入は整数値のみです。"`
 	Bouns         string `json:"bouns" valid:"int~ボーナスは整数値のみです。"`
@@ -302,6 +307,24 @@ func (data RequestSignUpData) Validate() (bool, []utils.ErrorMessages) {
 }
 
 func (data RequestGoogleCallbackData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestLineCallbackData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)

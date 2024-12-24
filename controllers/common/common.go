@@ -19,11 +19,17 @@ type (
 			GoogleUserInfo,
 			utils.ErrorResponse,
 		)
+		LineAuthCommon(c *gin.Context, params LinePrams) (
+			int,
+			*config.LineUserInfo,
+			utils.ErrorResponse,
+		)
 		GetRevoke(client *http.Client, url string, AccessToken string) (*http.Response, error)
 	}
 
 	ControllersCommonManager struct {
 		GoogleConfig config.GoogleConfig
+		LineConfig   config.LineConfig
 	}
 
 	GoogleUserInfo struct {
@@ -43,13 +49,21 @@ type (
 		Code        string
 		RedirectUri string
 	}
+
+	LinePrams struct {
+		Code  string
+		State string
+	}
 )
 
 func NewControllersCommonManager(
 	GoogleConfig config.GoogleConfig,
+	LineConfig config.LineConfig,
+
 ) ControllersCommonService {
 	return &ControllersCommonManager{
 		GoogleConfig: GoogleConfig,
+		LineConfig:   LineConfig,
 	}
 }
 
@@ -57,6 +71,10 @@ var (
 	RedirectURI       string
 	GoogleOauthConfig *oauth2.Config
 )
+
+const CODE = "code"
+const REDIRECT_URI = "redirect_uri"
+const STATE = "state"
 
 func (gm *ControllersCommonManager) GoogleAuthCommon(c *gin.Context, params GooglePrams) (
 	int,
@@ -105,6 +123,60 @@ func (gm *ControllersCommonManager) GoogleAuthCommon(c *gin.Context, params Goog
 		}
 		return http.StatusInternalServerError, userInfo, response
 	}
+
+	return http.StatusOK, userInfo, utils.ErrorResponse{}
+}
+
+func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePrams) (
+	int,
+	*config.LineUserInfo,
+	utils.ErrorResponse,
+) {
+	var userInfo *config.LineUserInfo
+	validator := validation.RequestLineCallbackData{
+		Code:  params.Code,
+		State: params.State,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		response := utils.ErrorResponse{
+			Result: errMsgList,
+		}
+		return http.StatusBadRequest, nil, response
+	}
+
+	// stateを検証（CSRF対策）
+	savedState, err := c.Cookie(utils.OauthState)
+	if err != nil || params.State != savedState {
+		response := utils.ErrorResponse{
+			ErrorMsg: "無効なステートです。",
+		}
+		return http.StatusBadRequest, nil, response
+	}
+
+	// アクセストークン取得
+	tokenResp, err := gm.LineConfig.GetLineAccessToken(
+		params.Code,
+		config.LineSignUpEnv.RedirectURI,
+	)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "無効なLineアクセストークンです。",
+		}
+		return http.StatusInternalServerError, nil, response
+	}
+
+	// ユーザー情報取得
+	userInfo, err = gm.LineConfig.GetLineUserInfo(tokenResp.AccessToken)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "Lineのユーザー情報取得に失敗しました。",
+		}
+		return http.StatusInternalServerError, userInfo, response
+	}
+
+	// lineトークン情報セット
+	userInfo.LineToken = tokenResp
 
 	return http.StatusOK, userInfo, utils.ErrorResponse{}
 }
