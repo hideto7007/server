@@ -183,7 +183,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 			{
 				UserName:     userInfo.UserName,
 				UserPassword: "line",
-				NickName:     userInfo.Name,
+				NickName:     userInfo.DisplayName,
 			},
 		},
 	}
@@ -196,7 +196,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 	}
 
 	subject, body, err := gm.EmailTemplateService.PostSignUpTemplate(
-		userInfo.Name,
+		userInfo.DisplayName,
 		userInfo.UserName,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
@@ -290,7 +290,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := gm.EmailTemplateService.DeleteSignInTemplate(
-		userInfo.Name,
+		userInfo.DisplayName,
 		userInfo.UserName,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)

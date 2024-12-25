@@ -175,8 +175,28 @@ func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePr
 		return http.StatusInternalServerError, userInfo, response
 	}
 
+	// メールアドレス取得
+	email, err := gm.LineConfig.GetEmail(tokenResp.IdToken)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: err.Error(),
+		}
+		return http.StatusInternalServerError, userInfo, response
+	}
+
 	// lineトークン情報セット
 	userInfo.LineToken = tokenResp
+	userInfo.UserName = email
+
+	fmt.Println(userInfo.DisplayName)
+	fmt.Println(userInfo.Id)
+	fmt.Println(userInfo.UserName)
+	fmt.Println(userInfo.LineToken.AccessToken)
+	fmt.Println(userInfo.LineToken.ExpiresIn)
+	fmt.Println(userInfo.LineToken.IdToken)
+	fmt.Println(userInfo.LineToken.RefreshToken)
+	fmt.Println(userInfo.LineToken.Scope)
+	fmt.Println(userInfo.LineToken.TokenType)
 
 	return http.StatusOK, userInfo, utils.ErrorResponse{}
 }

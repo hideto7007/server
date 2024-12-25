@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"server/common"
 
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/oauth2"
 )
 
@@ -16,6 +17,7 @@ type (
 		LineAuthURL(RedirectURI string) (string, string)
 		GetLineAccessToken(code, redirectURI string) (*LineTokenResponse, error)
 		GetLineUserInfo(accessToken string) (*LineUserInfo, error)
+		GetEmail(IdToken string) (string, error)
 		RevokeLineAccessToken(accessToken string) error
 	}
 
@@ -33,16 +35,21 @@ type (
 	}
 
 	LineUserInfo struct {
-		UserId    int                `json:"user_id"`
-		UserName  string             `json:"email"`
-		Name      string             `json:"name,omitempty"`
-		LineToken *LineTokenResponse `json:"line_token,omitempty"`
+		Id          string             `json:"userId"`
+		UserId      int                `json:"user_id"`
+		UserName    string             `json:"email"`
+		DisplayName string             `json:"displayName,omitempty"`
+		LineToken   *LineTokenResponse `json:"line_token,omitempty"`
 	}
 )
 
 var localHeaders = map[string]string{
 	"Content-Type": "application/x-www-form-urlencoded",
 }
+
+// var localHeaders = map[string]string{
+// 	"Content-Type": "application/json",
+// }
 
 func NewLineManager(HTTPClient *common.HTTPClient) LineConfig {
 	return &LineConfigManager{
@@ -121,6 +128,19 @@ func (gm *LineConfigManager) GetLineUserInfo(accessToken string) (*LineUserInfo,
 		return nil, err
 	}
 	return &userInfo, nil
+}
+
+func (gm *LineConfigManager) GetEmail(IdToken string) (string, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(IdToken, jwt.MapClaims{})
+	if err != nil {
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		return claims["email"].(string), err
+	} else {
+		return "", fmt.Errorf("解析不可能でした。。。")
+	}
 }
 
 func (gm *LineConfigManager) RevokeLineAccessToken(accessToken string) error {
