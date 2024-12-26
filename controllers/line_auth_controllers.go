@@ -79,8 +79,9 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	var userInfo *config.LineUserInfo
 	var response utils.ErrorResponse
 	params := common.LinePrams{
-		Code:  c.Query(common.CODE),
-		State: c.Query(common.STATE),
+		Code:        c.Query(common.CODE),
+		State:       c.Query(common.STATE),
+		RedirectUri: config.LineSignInEnv.RedirectURI,
 	}
 
 	httpStatus, userInfo, response = gm.ControllersCommonService.LineAuthCommon(c, params)
@@ -163,8 +164,9 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 	var userInfo *config.LineUserInfo
 	var response utils.ErrorResponse
 	params := common.LinePrams{
-		Code:  c.Query(common.CODE),
-		State: c.Query(common.STATE),
+		Code:        c.Query(common.CODE),
+		State:       c.Query(common.STATE),
+		RedirectUri: config.LineSignUpEnv.RedirectURI,
 	}
 
 	httpStatus, userInfo, response = gm.ControllersCommonService.LineAuthCommon(c, params)
@@ -230,8 +232,9 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	var userInfo *config.LineUserInfo
 	var response utils.ErrorResponse
 	params := common.LinePrams{
-		Code:  c.Query(common.CODE),
-		State: c.Query(common.STATE),
+		Code:        c.Query(common.CODE),
+		State:       c.Query(common.STATE),
+		RedirectUri: config.LineDeleteEnv.RedirectURI,
 	}
 
 	httpStatus, userInfo, response = gm.ControllersCommonService.LineAuthCommon(c, params)

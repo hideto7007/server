@@ -51,8 +51,9 @@ type (
 	}
 
 	LinePrams struct {
-		Code  string
-		State string
+		Code        string
+		State       string
+		RedirectUri string
 	}
 )
 
@@ -134,8 +135,9 @@ func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePr
 ) {
 	var userInfo *config.LineUserInfo
 	validator := validation.RequestLineCallbackData{
-		Code:  params.Code,
-		State: params.State,
+		Code:        params.Code,
+		State:       params.State,
+		RedirectUri: params.RedirectUri,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -157,7 +159,7 @@ func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePr
 	// アクセストークン取得
 	tokenResp, err := gm.LineConfig.GetLineAccessToken(
 		params.Code,
-		config.LineSignUpEnv.RedirectURI,
+		params.RedirectUri,
 	)
 	if err != nil {
 		response := utils.ErrorResponse{
@@ -187,16 +189,6 @@ func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePr
 	// lineトークン情報セット
 	userInfo.LineToken = tokenResp
 	userInfo.UserName = email
-
-	fmt.Println(userInfo.DisplayName)
-	fmt.Println(userInfo.Id)
-	fmt.Println(userInfo.UserName)
-	fmt.Println(userInfo.LineToken.AccessToken)
-	fmt.Println(userInfo.LineToken.ExpiresIn)
-	fmt.Println(userInfo.LineToken.IdToken)
-	fmt.Println(userInfo.LineToken.RefreshToken)
-	fmt.Println(userInfo.LineToken.Scope)
-	fmt.Println(userInfo.LineToken.TokenType)
 
 	return http.StatusOK, userInfo, utils.ErrorResponse{}
 }
