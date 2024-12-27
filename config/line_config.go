@@ -35,7 +35,7 @@ type (
 	}
 
 	LineUserInfo struct {
-		Id          string             `json:"userId"`
+		Id          string             `json:"userId,omitempty"`
 		UserId      int                `json:"user_id"`
 		UserName    string             `json:"email"`
 		DisplayName string             `json:"displayName,omitempty"`
