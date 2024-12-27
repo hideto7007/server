@@ -9,10 +9,15 @@ import (
 )
 
 type (
-	// HTTPClientConfig は HTTPクライアントの設定
-	HTTPClientConfig struct {
-		Timeout time.Duration // タイムアウト設定
+	HttpService interface {
+		Request(method, url string, headers map[string]string, body io.Reader) (*http.Response, error)
+		Get(url string, headers map[string]string) (*http.Response, error)
+		Post(url string, headers map[string]string, body []byte) (*http.Response, error)
+		Put(url string, headers map[string]string, body []byte) (*http.Response, error)
+		Delete(url string, headers map[string]string) (*http.Response, error)
 	}
+
+	HttpServiceManager struct{}
 
 	// HTTPClient はHTTPリクエストを扱う構造体
 	HTTPClient struct {
@@ -24,11 +29,14 @@ var Headers = map[string]string{
 	"Content-Type": "application/json",
 }
 
+// タイムアウト設定
+var timeout time.Duration = 10 * time.Second
+
 // NewHTTPClient はHTTPクライアントを初期化する
-func NewHTTPClient(config HTTPClientConfig) *HTTPClient {
+func NewHTTPClient() *HTTPClient {
 	return &HTTPClient{
 		client: &http.Client{
-			Timeout: config.Timeout,
+			Timeout: timeout,
 		},
 	}
 }

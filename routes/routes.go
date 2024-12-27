@@ -8,16 +8,13 @@ import (
 	"server/middleware"
 	"server/templates"
 	"server/utils"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine) {
 
-	httpClient := common.NewHTTPClient(common.HTTPClientConfig{
-		Timeout: 10 * time.Second,
-	})
+	httpClient := common.NewHTTPClient()
 
 	// APiインターフェイスのインスタンス定義
 	var signAPI controllers.SignDataFetcher = controllers.NewSignDataFetcher(

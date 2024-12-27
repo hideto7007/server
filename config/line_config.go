@@ -22,7 +22,7 @@ type (
 	}
 
 	LineConfigManager struct {
-		HTTPClient *common.HTTPClient
+		HttpService common.HttpService
 	}
 
 	LineTokenResponse struct {
@@ -51,9 +51,9 @@ var localHeaders = map[string]string{
 // 	"Content-Type": "application/json",
 // }
 
-func NewLineManager(HTTPClient *common.HTTPClient) LineConfig {
+func NewLineManager(HttpService common.HttpService) LineConfig {
 	return &LineConfigManager{
-		HTTPClient: HTTPClient,
+		HttpService: HttpService,
 	}
 }
 
@@ -94,7 +94,7 @@ func (gm *LineConfigManager) GetLineAccessToken(code, redirectURI string) (*Line
 	// URL エンコードされた文字列を取得
 	dataBytes := []byte(data.Encode())
 
-	resp, err := gm.HTTPClient.Post(
+	resp, err := gm.HttpService.Post(
 		OauthLineAccessTokenURLAPI,
 		localHeaders,
 		dataBytes,
@@ -114,7 +114,7 @@ func (gm *LineConfigManager) GetLineAccessToken(code, redirectURI string) (*Line
 func (gm *LineConfigManager) GetLineUserInfo(accessToken string) (*LineUserInfo, error) {
 	localHeaders["Authorization"] = "Bearer " + accessToken
 
-	resp, err := gm.HTTPClient.Get(
+	resp, err := gm.HttpService.Get(
 		ProfileLineURLAPI,
 		localHeaders,
 	)
@@ -153,7 +153,7 @@ func (gm *LineConfigManager) RevokeLineAccessToken(accessToken string) error {
 	// URL エンコードされた文字列を取得
 	dataBytes := []byte(data.Encode())
 
-	resp, err := gm.HTTPClient.Post(
+	resp, err := gm.HttpService.Post(
 		OauthLineRevokeURLAPI,
 		localHeaders,
 		dataBytes,
