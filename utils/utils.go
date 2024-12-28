@@ -79,11 +79,11 @@ type ErrorMessages struct {
 
 var JwtSecret = []byte(config.GlobalEnv.JwtSecret)
 
-var AuthToken = "AuthToken"
-var GoogleToken = "GoogleToken"
-var LineToken = "LineToken"
-var RefreshAuthToken = "RefreshAuthToken"
-var UserId = "UserId"
+var AuthToken = "auth_token"
+var GoogleToken = "google_token"
+var LineToken = "line_token"
+var RefreshAuthToken = "refresh_auth_token"
+var UserId = "user_id"
 var OauthState = "oauth_state"
 var AuthTokenHour = 1
 

@@ -907,11 +907,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "AuthToken",
+			Name:  utils.AuthToken,
 			Value: "dummy_token",
 		})
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "UserId",
+			Name:  utils.UserId,
 			Value: "2",
 		})
 
@@ -948,7 +948,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 			c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
 			c.Request.Header.Set("Content-Type", "application/json")
 			c.Request.AddCookie(&http.Cookie{
-				Name:  "AuthToken",
+				Name:  utils.AuthToken,
 				Value: "dummy_token",
 			})
 			c.Request.AddCookie(&http.Cookie{
@@ -993,7 +993,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 				Value: "dummy_token",
 			})
 			c.Request.AddCookie(&http.Cookie{
-				Name:  "UserId",
+				Name:  utils.UserId,
 				Value: "1",
 			})
 
@@ -1040,18 +1040,18 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "AuthToken",
+			Name:  utils.AuthToken,
 			Value: "dummy_token",
 		})
 
 		// 2つ目のCookieを設定
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "RefreshAuthToken",
+			Name:  utils.RefreshAuthToken,
 			Value: "dummy_token",
 		})
 
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "UserId",
+			Name:  utils.UserId,
 			Value: "1",
 		})
 
@@ -1116,18 +1116,18 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "AuthToken",
+			Name:  utils.AuthToken,
 			Value: "dummy_token",
 		})
 
 		// 2つ目のCookieを設定
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "RefreshAuthToken",
+			Name:  utils.RefreshAuthToken,
 			Value: "dummy_token",
 		})
 
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "UserId",
+			Name:  utils.UserId,
 			Value: "1",
 		})
 
@@ -1196,18 +1196,18 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "AuthToken",
+			Name:  utils.AuthToken,
 			Value: "dummy_token",
 		})
 
 		// 2つ目のCookieを設定
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "RefreshAuthToken",
+			Name:  utils.RefreshAuthToken,
 			Value: "dummy_token",
 		})
 
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "UserId",
+			Name:  utils.UserId,
 			Value: "1",
 		})
 
@@ -1277,18 +1277,18 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/api/refresh_token?user_id=1", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "AuthToken",
+			Name:  utils.AuthToken,
 			Value: "dummy_token",
 		})
 
 		// 2つ目のCookieを設定
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "RefreshAuthToken",
+			Name:  utils.RefreshAuthToken,
 			Value: "dummy_token",
 		})
 
 		c.Request.AddCookie(&http.Cookie{
-			Name:  "UserId",
+			Name:  utils.UserId,
 			Value: "1",
 		})
 
