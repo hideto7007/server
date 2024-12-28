@@ -52,7 +52,6 @@ func NewLineService(
 
 func (gm *LineManager) LineSignIn(c *gin.Context) {
 	url, state := gm.LineConfig.LineAuthURL(config.LineSignInEnv.RedirectURI)
-	fmt.Println(url)
 	// stateを保存（CSRF対策用）
 	c.SetCookie(utils.OauthState, state, utils.SecondsInHour, "/", "", false, true)
 	c.Redirect(http.StatusTemporaryRedirect, url)
@@ -60,7 +59,6 @@ func (gm *LineManager) LineSignIn(c *gin.Context) {
 
 func (gm *LineManager) LineSignUp(c *gin.Context) {
 	url, state := gm.LineConfig.LineAuthURL(config.LineSignUpEnv.RedirectURI)
-	fmt.Println(url)
 	// stateを保存（CSRF対策用）
 	c.SetCookie(utils.OauthState, state, utils.SecondsInHour, "/", "", false, true)
 	c.Redirect(http.StatusTemporaryRedirect, url)
@@ -291,6 +289,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	c.SetCookie(utils.UserId, "", 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.AuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.OauthState, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := gm.EmailTemplateService.DeleteSignInTemplate(
 		userInfo.DisplayName,
