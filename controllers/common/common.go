@@ -174,7 +174,7 @@ func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePr
 		response := utils.ErrorResponse{
 			ErrorMsg: "Lineのユーザー情報取得に失敗しました。",
 		}
-		return http.StatusInternalServerError, userInfo, response
+		return http.StatusInternalServerError, nil, response
 	}
 
 	// メールアドレス取得
@@ -183,7 +183,7 @@ func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePr
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		return http.StatusInternalServerError, userInfo, response
+		return http.StatusInternalServerError, nil, response
 	}
 
 	// lineトークン情報セット

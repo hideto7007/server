@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	mock_common "server/mock/common"
 	mock_config "server/mock/config"
 
 	"github.com/gin-gonic/gin"
@@ -231,7 +232,7 @@ func TestGoogleAuthCommon(t *testing.T) {
 		userInfo := GoogleUserInfo{
 			ID:            "",
 			UserId:        0,
-			UserName:         "",
+			UserName:      "",
 			VerifiedEmail: false,
 			Name:          "",
 			GivenName:     "",
@@ -267,7 +268,7 @@ func TestGoogleAuthCommon(t *testing.T) {
 		userInfo := GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			UserName:         "test@example.com",
+			UserName:      "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
@@ -320,6 +321,307 @@ func TestGoogleAuthCommon(t *testing.T) {
 		assert.Equal(t, http.StatusOK, status)
 		expectedUserInfo := userInfo
 		assert.Equal(t, googleUserInfo, expectedUserInfo)
+
+		expectedErrorMessage := utils.ErrorResponse{}
+		assert.Equal(t, response, expectedErrorMessage)
+	})
+}
+
+func TestLineAuthCommon(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	mockRedirectURL := "http://localhost:8080/auth/line/callback"
+	LinePramsVaild := LinePrams{}
+	var EnptyUserInfo *config.LineUserInfo
+	LinePrams := LinePrams{
+		Code:        "1234",
+		State:       "dummy_state",
+		RedirectUri: mockRedirectURL,
+	}
+
+	// やること
+	// cookieのキー名の命名規則調べる。正しい形式に修正
+	// テスト実行確認
+	// セッションキーが以前のキー名で更新されない
+
+	t.Run("LineAuthCommon バリデーション 必須", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mockMockHttpService のモックを作成
+		mockMockHttpService := mock_common.NewMockHttpService(ctrl)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/line_auth_common", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		lineManager := ControllersCommonManager{
+			LineConfig: config.NewLineManager(mockMockHttpService),
+		}
+		status, lineUserInfo, response := lineManager.LineAuthCommon(c, LinePramsVaild)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusBadRequest, status)
+		assert.Equal(t, lineUserInfo, EnptyUserInfo)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "code",
+					Message: "コードは必須です。",
+				},
+				{
+					Field:   "state",
+					Message: "ステートは必須です。",
+				},
+				{
+					Field:   "redirect_uri",
+					Message: "リダイレクトは必須です。",
+				},
+			},
+		}
+		assert.Equal(t, response, expectedErrorMessage)
+	})
+
+	t.Run("LineAuthCommon 無効なステートです。エラー系", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mockMockHttpService のモックを作成
+		mockMockHttpService := mock_common.NewMockHttpService(ctrl)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/line_auth_common", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		lineManager := ControllersCommonManager{
+			LineConfig: config.NewLineManager(mockMockHttpService),
+		}
+		status, lineUserInfo, response := lineManager.LineAuthCommon(c, LinePrams)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusBadRequest, status)
+		assert.Equal(t, lineUserInfo, EnptyUserInfo)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "無効なステートです。",
+		}
+		assert.Equal(t, response, expectedErrorMessage)
+	})
+
+	t.Run("LineAuthCommon 無効なLineアクセストークンです。エラー系", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/line_auth_common", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Request.AddCookie(&http.Cookie{
+			Name:  utils.OauthState,
+			Value: "dummy_state",
+		})
+		var mockToken *config.LineTokenResponse
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mockLineService のモックを作成
+		mockLineService := mock_config.NewMockLineConfig(ctrl)
+
+		// モックの挙動を定義
+		mockLineService.EXPECT().
+			GetLineAccessToken(gomock.Any(), gomock.Any()).
+			Return(mockToken, fmt.Errorf("トークン取得エラー"))
+
+		lineManager := ControllersCommonManager{
+			LineConfig: mockLineService,
+		}
+		status, lineUserInfo, response := lineManager.LineAuthCommon(c, LinePrams)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, status)
+		assert.Equal(t, lineUserInfo, EnptyUserInfo)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "無効なLineアクセストークンです。",
+		}
+		assert.Equal(t, response, expectedErrorMessage)
+	})
+
+	t.Run("LineAuthCommon Lineのユーザー情報取得に失敗しました。エラー系", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/line_auth_common", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Request.AddCookie(&http.Cookie{
+			Name:  utils.OauthState,
+			Value: "dummy_state",
+		})
+
+		mockResp := &config.LineTokenResponse{
+			AccessToken: "token",
+		}
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mockLineService のモックを作成
+		mockLineService := mock_config.NewMockLineConfig(ctrl)
+
+		// モックの挙動を定義
+		mockLineService.EXPECT().
+			GetLineAccessToken(gomock.Any(), gomock.Any()).
+			Return(mockResp, nil)
+
+		mockLineService.EXPECT().
+			GetLineUserInfo(gomock.Any()).
+			Return(nil, fmt.Errorf("ユーザー取得エラー"))
+
+		lineManager := ControllersCommonManager{
+			LineConfig: mockLineService,
+		}
+		status, lineUserInfo, response := lineManager.LineAuthCommon(c, LinePrams)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, status)
+		assert.Equal(t, lineUserInfo, EnptyUserInfo)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "Lineのユーザー情報取得に失敗しました。",
+		}
+		assert.Equal(t, response, expectedErrorMessage)
+	})
+
+	t.Run("LineAuthCommon メールアドレス取得失敗", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/line_auth_common", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Request.AddCookie(&http.Cookie{
+			Name:  utils.OauthState,
+			Value: "dummy_state",
+		})
+		// ダミーのトークンとレスポンス
+		mockResp := &config.LineTokenResponse{
+			AccessToken: "token",
+			IdToken:     "id_token",
+		}
+
+		userInfo := &config.LineUserInfo{
+			Id:          "1234test",
+			UserId:      1,
+			UserName:    "",
+			DisplayName: "test",
+		}
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mockLineService のモックを作成
+		mockLineService := mock_config.NewMockLineConfig(ctrl)
+
+		// モックの挙動を定義
+		mockLineService.EXPECT().
+			GetLineAccessToken(gomock.Any(), gomock.Any()).
+			Return(mockResp, nil)
+
+		mockLineService.EXPECT().
+			GetLineUserInfo(gomock.Any()).
+			Return(userInfo, nil)
+
+		mockLineService.EXPECT().
+			GetEmail(gomock.Any()).
+			Return("", fmt.Errorf("メールアドレス取得エラー"))
+
+		lineManager := ControllersCommonManager{
+			LineConfig: mockLineService,
+		}
+		status, lineUserInfo, response := lineManager.LineAuthCommon(c, LinePrams)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, status)
+		assert.Equal(t, lineUserInfo, EnptyUserInfo)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "メールアドレス取得エラー",
+		}
+		assert.Equal(t, response, expectedErrorMessage)
+	})
+
+	t.Run("LineAuthCommon 成功", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// パラメータなしのリクエストを送信して、不正なリクエストをシミュレート
+		c.Request = httptest.NewRequest("GET", "/line_auth_common", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Request.AddCookie(&http.Cookie{
+			Name:  utils.OauthState,
+			Value: "dummy_state",
+		})
+
+		// ダミーのトークンとレスポンス
+		mockResp := &config.LineTokenResponse{
+			AccessToken: "token",
+			IdToken:     "id_token",
+		}
+
+		userInfo := &config.LineUserInfo{
+			Id:          "1234test",
+			UserId:      1,
+			UserName:    "",
+			DisplayName: "test",
+		}
+
+		email := "test@example.com"
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mockLineService のモックを作成
+		mockLineService := mock_config.NewMockLineConfig(ctrl)
+
+		// モックの挙動を定義
+		mockLineService.EXPECT().
+			GetLineAccessToken(gomock.Any(), gomock.Any()).
+			Return(mockResp, nil)
+
+		mockLineService.EXPECT().
+			GetLineUserInfo(gomock.Any()).
+			Return(userInfo, nil)
+
+		mockLineService.EXPECT().
+			GetEmail(gomock.Any()).
+			Return("test@example.com", nil)
+
+		lineManager := ControllersCommonManager{
+			LineConfig: mockLineService,
+		}
+		status, lineUserInfo, response := lineManager.LineAuthCommon(c, LinePrams)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusOK, status)
+		expectedUserInfo := userInfo
+		expectedUserInfo.UserName = email
+		expectedUserInfo.LineToken = mockResp
+		assert.Equal(t, lineUserInfo, expectedUserInfo)
 
 		expectedErrorMessage := utils.ErrorResponse{}
 		assert.Equal(t, response, expectedErrorMessage)
