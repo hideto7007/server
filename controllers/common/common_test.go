@@ -75,6 +75,8 @@ func TestGoogleAuthCommon(t *testing.T) {
 				},
 			},
 		}
+		test_utils.SortErrorMessages(response.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
 		assert.Equal(t, response, expectedErrorMessage)
 	})
 
@@ -340,11 +342,6 @@ func TestLineAuthCommon(t *testing.T) {
 		RedirectUri: mockRedirectURL,
 	}
 
-	// やること
-	// cookieのキー名の命名規則調べる。正しい形式に修正
-	// テスト実行確認
-	// セッションキーが以前のキー名で更新されない
-
 	t.Run("LineAuthCommon バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -385,6 +382,8 @@ func TestLineAuthCommon(t *testing.T) {
 				},
 			},
 		}
+		test_utils.SortErrorMessages(response.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
 		assert.Equal(t, response, expectedErrorMessage)
 	})
 
