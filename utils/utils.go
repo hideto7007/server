@@ -2,11 +2,13 @@
 package utils
 
 import (
-	"os"
+	"server/common"
+	"server/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/gomail.v2"
 )
 
 // UtilsFetcher インターフェースの定義
@@ -18,10 +20,31 @@ type UtilsFetcher interface {
 	CompareHashPassword(hashedPassword, requestPassword string) error
 	ParseWithClaims(validationToken string) (interface{}, error)
 	MapClaims(token *jwt.Token) (interface{}, bool)
+	SendMail(toEmail, subject, body string, isHTML bool) error
+	DateTimeStr(t time.Time, format string) string
+}
+
+type MailDialer interface {
+	DialAndSend(m ...*gomail.Message) error
+}
+
+type SMTPMailDialer struct {
+	dialer *gomail.Dialer
+}
+
+func NewSMTPMailDialer(host string, port int, username, password string) MailDialer {
+	return &SMTPMailDialer{
+		dialer: gomail.NewDialer(host, port, username, password),
+	}
+}
+
+func (s *SMTPMailDialer) DialAndSend(m ...*gomail.Message) error {
+	return s.dialer.DialAndSend(m...)
 }
 
 type UtilsDataFetcher struct {
-	JwtSecret []byte
+	JwtSecret  []byte
+	MailDialer MailDialer
 }
 
 // ResponseWithSlice with slice Result
@@ -54,19 +77,33 @@ type ErrorMessages struct {
 	Message string `json:"message"`
 }
 
-var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
+var JwtSecret = []byte(config.GlobalEnv.JwtSecret)
 
-var AuthToken = "AuthToken"
-var RefreshAuthToken = "RefreshAuthToken"
+var AuthToken = "auth_token"
+var GoogleToken = "google_token"
+var LineToken = "line_token"
+var RefreshAuthToken = "refresh_auth_token"
+var UserId = "user_id"
+var OauthState = "oauth_state"
 var AuthTokenHour = 1
+
+// 定義する場所 (utils パッケージ内)
+type ErrorResponse = ResponseWithSlice[ErrorMessages]
 
 // 推奨：90日間だが、一旦12時間で設定
 var RefreshAuthTokenHour = 12
 var SecondsInHour = 3600
 
 func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
+	var common common.CommonFetcher = common.NewCommonFetcher()
+	smtpHost := config.GlobalEnv.SmtpHost                     // SMTPサーバー
+	smtpPort, _ := common.StrToInt(config.GlobalEnv.SmtpPort) // SMTPポート
+	fromEmail := config.GlobalEnv.FromEmail                   // 送信元メールアドレス
+	password := config.GlobalEnv.EmailPassword                // 送信元メールのパスワード（またはアプリパスワード）
+	mailDialer := NewSMTPMailDialer(smtpHost, smtpPort, fromEmail, password)
 	return &UtilsDataFetcher{
-		JwtSecret: JwtSecret,
+		JwtSecret:  JwtSecret,
+		MailDialer: mailDialer,
 	}
 }
 
@@ -146,4 +183,29 @@ func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	return claims, ok
+}
+
+// SendMail はメールを送信する関数
+func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string, isHTML bool) error {
+	fromEmail := config.GlobalEnv.FromEmail // 送信元メールアドレス
+
+	// メール設定
+	m := gomail.NewMessage()
+	m.SetHeader("From", fromEmail)  // 送信元
+	m.SetHeader("To", toEmail)      // 送信先
+	m.SetHeader("Subject", subject) // 件名
+
+	// メール本文を設定 (HTMLまたはプレーンテキスト)
+	if isHTML {
+		m.SetBody("text/html", body) // HTML形式の本文
+	} else {
+		m.SetBody("text/plain", body) // プレーンテキスト形式の本文
+	}
+
+	// メール送信
+	return ud.MailDialer.DialAndSend(m)
+}
+
+func (ud *UtilsDataFetcher) DateTimeStr(t time.Time, format string) string {
+	return t.Format(format)
 }

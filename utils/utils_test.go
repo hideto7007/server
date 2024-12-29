@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	mock_utils "server/mock/utils"
 
@@ -153,5 +154,106 @@ func TestMapClaims(t *testing.T) {
 		assert.Equal(t, false, ok)
 		// claims が空であることを確認
 		assert.Empty(t, claims)
+	})
+}
+
+func TestSendMail(t *testing.T) {
+	t.Run("SendMail エラーが起きないこと 2", func(t *testing.T) {
+		// gomail のモックを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		// MockMailDialer の作成
+		mockMailDialer := mock_utils.NewMockMailDialer(ctrl)
+
+		// MockMailDialer の挙動を設定
+		mockMailDialer.EXPECT().
+			DialAndSend(gomock.Any()).
+			Return(nil)
+
+		// UtilsDataFetcher のモック設定
+		utilsFetcher := &UtilsDataFetcher{
+			MailDialer: mockMailDialer,
+		}
+
+		// テスト用の引数
+		toEmail := "recipient@example.com"
+		subject := "テスト件名"
+		body := "テスト本文"
+
+		// テスト対象の関数を呼び出し
+		err := utilsFetcher.SendMail(toEmail, subject, body, true) // HTMLメール
+
+		// エラーがないことを確認
+		assert.NoError(t, err)
+		// assert.NoError(t, err2)
+	})
+
+	t.Run("SendMail エラーが起きないこと 2", func(t *testing.T) {
+		// gomail のモックを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		// MockMailDialer の作成
+		mockMailDialer := mock_utils.NewMockMailDialer(ctrl)
+
+		// MockMailDialer の挙動を設定
+		mockMailDialer.EXPECT().
+			DialAndSend(gomock.Any()).
+			Return(nil)
+
+		// UtilsDataFetcher のモック設定
+		utilsFetcher := &UtilsDataFetcher{
+			MailDialer: mockMailDialer,
+		}
+
+		// テスト用の引数
+		toEmail := "recipient@example.com"
+		subject := "テスト件名"
+		body := "テスト本文"
+
+		// テスト対象の関数を呼び出し
+		err := utilsFetcher.SendMail(toEmail, subject, body, false) // プレーンテキストメール
+
+		// エラーがないことを確認
+		assert.NoError(t, err)
+	})
+
+	t.Run("SendMail エラー発生", func(t *testing.T) {
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+
+		// テスト用の引数
+		toEmail := "recipient@example.com"
+		subject := "テスト件名"
+		body := "テスト本文"
+
+		// テスト対象の関数を呼び出し
+		err := utilsFetcher.SendMail(toEmail, subject, body, false) // プレーンテキストメール
+
+		// エラーがないことを確認
+		assert.Equal(t, err.Error(), "dial tcp :0: connect: connection refused")
+	})
+}
+
+func TestDateTimeStr(t *testing.T) {
+	t.Run("DateTimeStr エラーが起きないこと 2", func(t *testing.T) {
+		// 日本標準時（JST: UTC+9）を明示的に設定
+		jst := time.FixedZone("Asia/Tokyo", 9*60*60)
+
+		// 指定した日時を生成
+		specifiedTime := time.Date(
+			2024,          // 年
+			time.December, // 月
+			7,             // 日
+			14,            // 時
+			30,            // 分
+			0,             // 秒
+			0,             // ナノ秒
+			jst,           // タイムゾーン
+		)
+		utilsFetcher := NewUtilsFetcher(JwtSecret)
+
+		result := utilsFetcher.DateTimeStr(specifiedTime, "2006年01月02日 15:04")
+
+		// エラーがないことを確認
+		assert.Equal(t, result, "2024年12月07日 14:30")
 	})
 }

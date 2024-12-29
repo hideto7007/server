@@ -2,8 +2,11 @@ package routes
 
 import (
 	"server/common"
+	"server/config"
 	"server/controllers"
+	controllers_common "server/controllers/common"
 	"server/middleware"
+	"server/templates"
 	"server/utils"
 
 	"github.com/gin-gonic/gin"
@@ -11,10 +14,32 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 
+	httpClient := common.NewHTTPClient()
+
 	// APiインターフェイスのインスタンス定義
-	var singAPI controllers.SingDataFetcher = controllers.NewSingDataFetcher(
+	var signAPI controllers.SignDataFetcher = controllers.NewSignDataFetcher(
 		utils.NewUtilsFetcher(utils.JwtSecret),
 		common.NewCommonFetcher(),
+		templates.NewEmailTemplateManager(),
+		config.NewRedisManager(),
+	)
+	var googleApi controllers.GoogleService = controllers.NewGoogleService(
+		config.NewGoogleManager(),
+		controllers_common.NewControllersCommonManager(
+			config.NewGoogleManager(),
+			config.NewLineManager(httpClient),
+		),
+		templates.NewEmailTemplateManager(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
+	var lineApi controllers.LineService = controllers.NewLineService(
+		config.NewLineManager(httpClient),
+		controllers_common.NewControllersCommonManager(
+			config.NewGoogleManager(),
+			config.NewLineManager(httpClient),
+		),
+		templates.NewEmailTemplateManager(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	var priceAPI controllers.PriceManagementFetcher = controllers.NewPriceManagementFetcher(
 		common.NewCommonFetcher(),
@@ -23,14 +48,32 @@ func SetupRoutes(r *gin.Engine) {
 		common.NewCommonFetcher(),
 	)
 
+	// google認証
+	r.GET("auth/google/signin", googleApi.GoogleSignIn)
+	r.GET("auth/google/signup", googleApi.GoogleSignUp)
+	r.GET("auth/google/delete", googleApi.GoogleDelete)
+	r.GET("auth/google/signin/callback", googleApi.GoogleSignInCallback)
+	r.GET("auth/google/signup/callback", googleApi.GoogleSignUpCallback)
+	r.GET("auth/google/delete/callback", googleApi.GoogleDeleteCallback)
+	// line認証
+	r.GET("auth/line/signin", lineApi.LineSignIn)
+	r.GET("auth/line/signup", lineApi.LineSignUp)
+	r.GET("auth/line/delete", lineApi.LineDelete)
+	r.GET("auth/line/signin/callback", lineApi.LineSignInCallback)
+	r.GET("auth/line/signup/callback", lineApi.LineSignUpCallback)
+	r.GET("auth/line/delete/callback", lineApi.LineDeleteCallback)
+
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
-		Routes.POST("/singin", singAPI.PostSingInApi)
-		Routes.GET("/refresh_token", singAPI.GetRefreshTokenApi)
-		Routes.POST("/singup", singAPI.PostSingUpApi)
-		Routes.PUT("/singin_edit", singAPI.PutSingInEditApi)
-		Routes.DELETE("/singin_delete", singAPI.DeleteSingInApi)
+		Routes.POST("/signin", signAPI.PostSignInApi)
+		Routes.GET("/refresh_token", signAPI.GetRefreshTokenApi)
+		Routes.POST("/temporay_signup", signAPI.TemporayPostSignUpApi)
+		Routes.GET("/retry_auth_email", signAPI.RetryAuthEmail)
+		Routes.POST("/signup", signAPI.PostSignUpApi)
+		Routes.PUT("/signin_edit", signAPI.PutSignInEditApi)
+		Routes.DELETE("/signin_delete", signAPI.DeleteSignInApi)
+		Routes.GET("/signout", signAPI.SignOutApi)
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")
@@ -47,41 +90,3 @@ func SetupRoutes(r *gin.Engine) {
 		}
 	}
 }
-
-// {
-//     "data": [
-//         {
-//             "income_forecast_id": "7b941edb-b7a2-e1e7-6466-ce53d1c8bcff",
-//             "payment_date": "2024-02-10",
-//             "age": 30,
-//             "industry": "test開発",
-//             "total_amount": 320524,
-//             "deduction_amount": 93480,
-//             "take_home_amount": 227044,
-//             "classification": "給料",
-//             "user_id": 1
-//         },
-//         {
-//             "income_forecast_id": "af16418d-85d2-7945-bef8-bc50d3adbf82",
-//             "payment_date": "2024-03-10",
-//             "age": 30,
-//             "industry": "test開発",
-//             "total_amount": 320524,
-//             "deduction_amount": 93480,
-//             "take_home_amount": 227044,
-//             "classification": "給料",
-//             "user_id": 1
-//         },
-//         {
-//             "income_forecast_id": "2c33ff50-d48a-094b-cc6a-bafa618dd96d",
-//             "payment_date": "2024-04-10",
-//             "age": 30,
-//             "industry": "test開発",
-//             "total_amount": 320524,
-//             "deduction_amount": 93480,
-//             "take_home_amount": 227044,
-//             "classification": "給料",
-//             "user_id": 1
-//         }
-//     ]
-// }

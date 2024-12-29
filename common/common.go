@@ -133,7 +133,7 @@ func AnyToStr[T interface{}](num T) string {
 
 // // この関数はテストデータを削除するための独立関数
 // func TestDataDelete() error {
-// 	db, err := sql.Open("postgres", config.DataSourceName)
+// 	db, err := sql.Open("postgres", config.GetDataBaseSource())
 // 	if err != nil {
 // 		log.Printf("sql.Open error %s", err)
 // 	}

@@ -6,9 +6,11 @@ package mock_utils
 
 import (
 	reflect "reflect"
+	time "time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	gomock "github.com/golang/mock/gomock"
+	gomail "gopkg.in/gomail.v2"
 )
 
 // MockUtilsFetcher is a mock of UtilsFetcher interface.
@@ -46,6 +48,20 @@ func (m *MockUtilsFetcher) CompareHashPassword(hashedPassword, requestPassword s
 func (mr *MockUtilsFetcherMockRecorder) CompareHashPassword(hashedPassword, requestPassword interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CompareHashPassword", reflect.TypeOf((*MockUtilsFetcher)(nil).CompareHashPassword), hashedPassword, requestPassword)
+}
+
+// DateTimeStr mocks base method.
+func (m *MockUtilsFetcher) DateTimeStr(t time.Time, format string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DateTimeStr", t, format)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// DateTimeStr indicates an expected call of DateTimeStr.
+func (mr *MockUtilsFetcherMockRecorder) DateTimeStr(t, format interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DateTimeStr", reflect.TypeOf((*MockUtilsFetcher)(nil).DateTimeStr), t, format)
 }
 
 // EncryptPassword mocks base method.
@@ -136,4 +152,59 @@ func (m *MockUtilsFetcher) RefreshToken(UserId, ExpirationDate int) (string, err
 func (mr *MockUtilsFetcherMockRecorder) RefreshToken(UserId, ExpirationDate interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshToken", reflect.TypeOf((*MockUtilsFetcher)(nil).RefreshToken), UserId, ExpirationDate)
+}
+
+// SendMail mocks base method.
+func (m *MockUtilsFetcher) SendMail(toEmail, subject, body string, isHTML bool) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendMail", toEmail, subject, body, isHTML)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendMail indicates an expected call of SendMail.
+func (mr *MockUtilsFetcherMockRecorder) SendMail(toEmail, subject, body, isHTML interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendMail", reflect.TypeOf((*MockUtilsFetcher)(nil).SendMail), toEmail, subject, body, isHTML)
+}
+
+// MockMailDialer is a mock of MailDialer interface.
+type MockMailDialer struct {
+	ctrl     *gomock.Controller
+	recorder *MockMailDialerMockRecorder
+}
+
+// MockMailDialerMockRecorder is the mock recorder for MockMailDialer.
+type MockMailDialerMockRecorder struct {
+	mock *MockMailDialer
+}
+
+// NewMockMailDialer creates a new mock instance.
+func NewMockMailDialer(ctrl *gomock.Controller) *MockMailDialer {
+	mock := &MockMailDialer{ctrl: ctrl}
+	mock.recorder = &MockMailDialerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMailDialer) EXPECT() *MockMailDialerMockRecorder {
+	return m.recorder
+}
+
+// DialAndSend mocks base method.
+func (m_2 *MockMailDialer) DialAndSend(m ...*gomail.Message) error {
+	m_2.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range m {
+		varargs = append(varargs, a)
+	}
+	ret := m_2.ctrl.Call(m_2, "DialAndSend", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DialAndSend indicates an expected call of DialAndSend.
+func (mr *MockMailDialerMockRecorder) DialAndSend(m ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DialAndSend", reflect.TypeOf((*MockMailDialer)(nil).DialAndSend), m...)
 }
