@@ -2,7 +2,9 @@ package templates
 
 import (
 	"bytes"
+	"server/utils"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -14,7 +16,7 @@ func TestEmailTemplateService(t *testing.T) {
 	var Update string = "ユーザーパスワード"
 	var UpdateValue string = "Update"
 	var DateTime string = "2024年12月07日 20:00"
-	var Year string = "2024年"
+	var Year string = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 
 	t.Run("TemporayPostSignUpTemplate テンプレート", func(t *testing.T) {
 		emailTemplateService := NewEmailTemplateManager()
