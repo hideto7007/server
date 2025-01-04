@@ -87,7 +87,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.UserName)
+	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.Email)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -145,8 +145,8 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	responseOk := utils.ResponseWithSlice[common.GoogleUserInfo]{
 		Result: []common.GoogleUserInfo{
 			{
-				UserId:   userInfo.UserId,
-				UserName: userInfo.UserName,
+				UserId:   result[0].UserId,
+				UserName: result[0].UserName,
 			},
 		},
 	}
