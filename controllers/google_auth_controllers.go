@@ -187,7 +187,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 
 	subject, body, err := gm.EmailTemplateService.PostSignUpTemplate(
 		userInfo.Name,
-		userInfo.UserName,
+		userInfo.Email,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
