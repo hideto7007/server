@@ -22,6 +22,7 @@ type Env struct {
 	VueClient          string
 	DockerClient       string
 	SwaggerClient      string
+	RedirectPath       string
 	GoogleAccounts     string
 	GoogleApis         string
 	JwtSecret          string
@@ -91,6 +92,7 @@ func LeadEnv(env string, path string) Env {
 		PsqlSslModel:       os.Getenv("PSQL_SSLMODEL"),
 		ReactClient:        os.Getenv("REACT_CLIENT"),
 		VueClient:          os.Getenv("VUE_CLIENT"),
+		RedirectPath:       os.Getenv("REDIRECT_PATH"),
 		DockerClient:       os.Getenv("DOCKER_CLIENT"),
 		SwaggerClient:      os.Getenv("SWAGGER_CLIENT"),
 		GoogleAccounts:     os.Getenv("GOOGLE_ACCOUNTS_CLIENT"),

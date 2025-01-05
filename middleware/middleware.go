@@ -84,6 +84,7 @@ func CORSMiddleware() gin.HandlerFunc {
 		AllowOrigins: []string{
 			config.GlobalEnv.ReactClient,
 			config.GlobalEnv.VueClient,
+			config.GlobalEnv.RedirectPath,
 			config.GlobalEnv.SwaggerClient,
 			config.GlobalEnv.DockerClient,
 			config.GlobalEnv.GoogleAccounts,
