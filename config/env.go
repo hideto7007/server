@@ -7,6 +7,8 @@ import (
 )
 
 type Env struct {
+	Protocol           string
+	ClinetDomain       string
 	Domain             string
 	Secure             bool
 	HttpOnly           bool
@@ -65,20 +67,26 @@ func InitGoogleEnvs() {
 const ENV = "ENV"
 
 func LeadEnv(env string, path string) Env {
+	var protocol string = "http"
 	var secure bool = false
-	var domain string = "localhost"
+	var domain string = "localhost:8080"
+	var clinetDomain string = "localhost:3000"
 	var httpOnly bool = false
-	var redirectURI string = fmt.Sprintf("http://localhost:8080/%s", path)
+	var redirectURI string = fmt.Sprintf("%s://%s/%s", protocol, domain, path)
 
 	// ローカル以外の場合
 	if env != "local" {
-		domain = env
+		protocol = "https"
+		domain = os.Getenv("DOMAIN")
+		clinetDomain = domain
 		secure = true
 		httpOnly = true
-		RedirectURI = fmt.Sprintf("%s/%s", env, path)
+		RedirectURI = fmt.Sprintf("%s://%s/%s", protocol, domain, path)
 	}
 
 	EnvInfo := Env{
+		Protocol:           protocol,
+		ClinetDomain:       clinetDomain,
 		Domain:             domain,
 		Secure:             secure,
 		HttpOnly:           httpOnly,

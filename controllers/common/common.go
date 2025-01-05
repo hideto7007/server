@@ -25,6 +25,7 @@ type (
 			utils.ErrorResponse,
 		)
 		GetRevoke(client *http.Client, url string, AccessToken string) (*http.Response, error)
+		RedirectSignIn(UserId int, UserName string, flag bool) string
 	}
 
 	ControllersCommonManager struct {
@@ -198,4 +199,28 @@ func (gm *ControllersCommonManager) GetRevoke(client *http.Client, url string, A
 	revokeURL := fmt.Sprintf("%s%s", url, AccessToken)
 	resp, err := client.Get(revokeURL)
 	return resp, err
+}
+
+func (gm *ControllersCommonManager) RedirectSignIn(UserId int, UserName string, flag bool) string {
+	// リダイレクト
+	var url string
+	var path string = "/money_management/signin?sign_type=external"
+	var baseUrl string = fmt.Sprintf(
+		"%s://%s%s",
+		config.GlobalEnv.Protocol,
+		config.GlobalEnv.ClinetDomain,
+		path,
+	)
+	if flag {
+		url = fmt.Sprintf(
+			"%s&user_id=%d&user_name=%s",
+			baseUrl,
+			UserId,
+			UserName,
+		)
+	} else {
+		url = baseUrl
+	}
+
+	return url
 }

@@ -56,7 +56,7 @@ func (gm *GoogleConfigManager) GoogleAuthURL(RedirectURI string) string {
 	scopes := strings.Join(scopesList, "+")
 	state, _ := GenerateRandomState(32)
 	AuthURL := fmt.Sprintf(
-		"%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s",
+		"%s?client_id=%s&redirect_uri=%s&response_type=code&prompt=select_account&scope=%s&state=%s",
 		google.Endpoint.AuthURL,
 		GlobalEnv.GoogleClientID,
 		RedirectURI,

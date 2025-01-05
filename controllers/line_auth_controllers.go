@@ -145,15 +145,9 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		return
 	}
 
-	responseOk := utils.ResponseWithSlice[config.LineUserInfo]{
-		Result: []config.LineUserInfo{
-			{
-				UserId:   result[0].UserId,
-				UserName: userInfo.UserName,
-			},
-		},
-	}
-	c.JSON(http.StatusOK, responseOk)
+	// リダイレクト
+	url := gm.ControllersCommonService.RedirectSignIn(result[0].UserId, result[0].UserName, true)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
@@ -217,11 +211,9 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 		return
 	}
 
-	responseOk := utils.ResponseWithSingle[string]{
-		Result: "Line外部認証の登録成功しました。",
-	}
-
-	c.JSON(http.StatusOK, responseOk)
+	// リダイレクト
+	url := gm.ControllersCommonService.RedirectSignIn(0, "", false)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
@@ -312,8 +304,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
-	Okresponse := utils.ResponseWithSingle[string]{
-		Result: "サインイン削除に成功",
-	}
-	c.JSON(http.StatusOK, Okresponse)
+	// リダイレクト
+	url := gm.ControllersCommonService.RedirectSignIn(0, "", false)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }

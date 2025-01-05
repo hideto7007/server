@@ -142,15 +142,9 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		return
 	}
 
-	responseOk := utils.ResponseWithSlice[common.GoogleUserInfo]{
-		Result: []common.GoogleUserInfo{
-			{
-				UserId:   result[0].UserId,
-				UserName: result[0].UserName,
-			},
-		},
-	}
-	c.JSON(http.StatusOK, responseOk)
+	// リダイレクト
+	url := gm.ControllersCommonService.RedirectSignIn(result[0].UserId, result[0].UserName, true)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
@@ -177,7 +171,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	registerData := requesGoogleSignUpData{
 		Data: []models.RequestSignUpData{
 			{
-				UserName:     userInfo.UserName,
+				UserName:     userInfo.Email,
 				UserPassword: "google",
 				NickName:     userInfo.Name,
 			},
@@ -205,7 +199,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(userInfo.UserName, subject, body, true); err != nil {
+	if err := gm.UtilsFetcher.SendMail(userInfo.Email, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
@@ -213,11 +207,9 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		return
 	}
 
-	responseOk := utils.ResponseWithSingle[string]{
-		Result: "google外部認証の登録成功しました。",
-	}
-
-	c.JSON(http.StatusOK, responseOk)
+	// リダイレクト
+	url := gm.ControllersCommonService.RedirectSignIn(0, "", false)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
@@ -311,8 +303,8 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
-	Okresponse := utils.ResponseWithSingle[string]{
-		Result: "サインイン削除に成功",
-	}
-	c.JSON(http.StatusOK, Okresponse)
+
+	// リダイレクト
+	url := gm.ControllersCommonService.RedirectSignIn(0, "", false)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }

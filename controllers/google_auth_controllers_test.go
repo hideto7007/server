@@ -576,7 +576,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		googleManager.GoogleSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 
 		var responseBody utils.ResponseWithSlice[common.GoogleUserInfo]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
@@ -900,7 +900,7 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		googleManager.GoogleSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 
 		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
@@ -1437,7 +1437,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		googleManager.GoogleDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 
 		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)

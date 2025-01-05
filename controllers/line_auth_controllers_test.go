@@ -582,7 +582,8 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusOK, w.Code)
+		// assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 
 		var responseBody utils.ResponseWithSlice[common.GoogleUserInfo]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
@@ -912,7 +913,7 @@ func TestLineSignUpCallback(t *testing.T) {
 		lineManager.LineSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 
 		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
@@ -1443,7 +1444,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		lineManager.LineDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 
 		var responseBody utils.ResponseWithSingle[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
