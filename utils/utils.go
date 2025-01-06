@@ -6,7 +6,9 @@ import (
 	"server/config"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 )
@@ -105,6 +107,43 @@ func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
 		JwtSecret:  JwtSecret,
 		MailDialer: mailDialer,
 	}
+}
+
+// HandleError 共通エラーハンドリング
+func HandleError(c *gin.Context, status int, response ErrorResponse) {
+
+	// エラーレスポンスを返す
+	if response.ErrorMsg != "" {
+		// エラーをログに記録
+		logrus.WithFields(logrus.Fields{
+			"error":      response.ErrorMsg,
+			"status":     status,
+			"client_ip":  c.ClientIP(),
+			"method":     c.Request.Method,
+			"path":       c.Request.URL.Path,
+			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
+		}).Error("APIエラー発生")
+
+		c.JSON(status, ErrorResponse{
+			ErrorMsg: response.ErrorMsg,
+		})
+	} else {
+		// エラーをログに記録
+		logrus.WithFields(logrus.Fields{
+			"error":      response.Result,
+			"status":     status,
+			"client_ip":  c.ClientIP(),
+			"method":     c.Request.Method,
+			"path":       c.Request.URL.Path,
+			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
+		}).Error("APIエラー発生")
+
+		c.JSON(status, ErrorResponse{
+			Result: response.Result,
+		})
+	}
+
+	c.Abort()
 }
 
 // トークン生成関数

@@ -127,7 +127,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -140,7 +140,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -153,7 +153,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -163,7 +163,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "新規トークンの生成に失敗しました。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -172,7 +172,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -188,7 +188,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(サインイン): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -197,7 +197,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -234,7 +234,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -243,13 +243,13 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	} else if signInUserId != userIdCheck {
 		response := utils.ErrorResponse{
 			ErrorMsg: "サインインユーザーが異なっています。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -258,7 +258,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "リフレッシュトークンがありません。再ログインしてください。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -268,7 +268,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "リフレッシュトークンが無効です。再ログインしてください。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -278,7 +278,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "無効なリフレッシュトークン。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -289,7 +289,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -321,7 +321,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -335,7 +335,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -359,7 +359,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -368,7 +368,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(仮登録): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -377,7 +377,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール仮登録送信エラー(仮登録): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -415,7 +415,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -425,7 +425,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -441,7 +441,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -450,7 +450,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -459,7 +459,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(メール再通知): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -468,7 +468,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(メール再通知): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -496,7 +496,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -506,7 +506,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール認証コードが間違っています。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -516,7 +516,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -537,7 +537,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -568,7 +568,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -581,7 +581,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(登録): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -590,7 +590,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -616,7 +616,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -632,7 +632,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -645,14 +645,14 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "更新チェックエラー",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 	if err := dbFetcher.PutSignInEdit(requestData.Data[0]); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -671,7 +671,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(更新): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -680,7 +680,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(更新): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -704,7 +704,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -720,7 +720,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -733,7 +733,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "サインインの削除に失敗しました。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -751,7 +751,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(削除): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -760,7 +760,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -789,7 +789,7 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -806,7 +806,7 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(サインアウト): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -815,7 +815,7 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(サインアウト): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 

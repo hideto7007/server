@@ -4,6 +4,7 @@ package middleware
 import (
 	"log"
 	"net/http"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -13,17 +14,20 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// authHeader := c.GetHeader("Authorization")
+		requestID, _ := c.Get("request_id")
 		authToken, err1 := c.Cookie(utils.AuthToken)
 		if authToken == "" || err1 != nil {
-			log.Println("ERROR : ", err1.Error())
 			response := utils.ErrorResponse{
 				ErrorMsg: "トークンが必要です。",
 			}
+			logrus.WithField("request_id", requestID).Error(err1.Error())
 			c.JSON(http.StatusUnauthorized, response)
 			c.Abort()
 			return
@@ -36,10 +40,10 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 			return utils.JwtSecret, nil
 		})
 		if err != nil || !token.Valid {
-			log.Println("ERROR: ", err)
 			response := utils.ErrorResponse{
 				ErrorMsg: "無効なトークンです",
 			}
+			logrus.WithField("request_id", requestID).Error(err.Error())
 			c.JSON(http.StatusUnauthorized, response)
 			c.Abort()
 			return
@@ -116,4 +120,47 @@ func CORSMiddleware() gin.HandlerFunc {
 	log.Printf("MaxAge: %v", config.MaxAge)
 
 	return cors.New(config)
+}
+
+func RequestLoggerMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		startTime := time.Now()
+		requestID := uuid.New().String() // リクエストIDを生成
+		c.Set("request_id", requestID)
+
+		c.Writer.Header().Set("X-Request-ID", requestID)
+
+		// リクエスト実行前ログ
+		logrus.WithFields(logrus.Fields{
+			"request_id": requestID,
+			"method":     c.Request.Method,
+			"path":       c.Request.URL.Path,
+			"client_ip":  c.ClientIP(),
+		}).Info("Request started")
+
+		c.Next()
+
+		// レスポンス後ログ
+		logrus.WithFields(logrus.Fields{
+			"request_id": requestID,
+			"status":     c.Writer.Status(),
+			"latency":    time.Since(startTime).Milliseconds(),
+		}).Info("Request completed")
+
+		// エラーが発生している場合
+		if len(c.Errors) > 0 {
+			for _, e := range c.Errors {
+				// エラーログの出力
+				logrus.WithFields(logrus.Fields{
+					"request_id": c.GetString("request_id"),
+					"client_ip":  c.ClientIP(),
+					"method":     c.Request.Method,
+					"path":       c.Request.URL.Path,
+					"status":     c.Writer.Status(),
+					"error":      e.Err.Error(),
+					"stack":      string(debug.Stack()), // オプションでスタックトレース
+				}).Error("APIエラー発生")
+			}
+		}
+	}
 }

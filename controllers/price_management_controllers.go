@@ -100,7 +100,7 @@ func (pm *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -119,10 +119,10 @@ func (pm *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, response)
 	} else {
-		response := utils.ResponseWithSlice[PriceInfo]{
+		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 	}
 
 }

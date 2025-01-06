@@ -67,7 +67,7 @@ func (aid *apiIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (aid *apiIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -109,7 +109,7 @@ func (aid *apiIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -123,7 +123,7 @@ func (aid *apiIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -151,7 +151,7 @@ func (aid *apiIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			Result: errMsgList,
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -165,7 +165,7 @@ func (aid *apiIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -189,7 +189,7 @@ func (aid *apiIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -197,7 +197,7 @@ func (aid *apiIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "登録するデータが存在しません。",
 		}
-		c.JSON(http.StatusNotFound, response)
+		utils.HandleError(c, http.StatusNotFound, response)
 		return
 	}
 
@@ -219,7 +219,7 @@ func (aid *apiIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
-			c.JSON(http.StatusBadRequest, response)
+			utils.HandleError(c, http.StatusBadRequest, response)
 			return
 		}
 	}
@@ -230,7 +230,7 @@ func (aid *apiIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "新規登録時にエラーが発生。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -254,7 +254,7 @@ func (aid *apiIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -262,7 +262,7 @@ func (aid *apiIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "更新するデータが存在しません。",
 		}
-		c.JSON(http.StatusNotFound, response)
+		utils.HandleError(c, http.StatusNotFound, response)
 		return
 	}
 
@@ -285,7 +285,7 @@ func (aid *apiIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
-			c.JSON(http.StatusBadRequest, response)
+			utils.HandleError(c, http.StatusBadRequest, response)
 			return
 		}
 	}
@@ -296,7 +296,7 @@ func (aid *apiIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "更新時にエラーが発生。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -320,7 +320,7 @@ func (aid *apiIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusBadRequest, response)
 		return
 	}
 
@@ -328,7 +328,7 @@ func (aid *apiIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "削除するデータが存在しません。",
 		}
-		c.JSON(http.StatusNotFound, response)
+		utils.HandleError(c, http.StatusNotFound, response)
 		return
 	}
 
@@ -341,7 +341,7 @@ func (aid *apiIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 				RecodeRows: idx + 1,
 				Result:     errMsgList,
 			}
-			c.JSON(http.StatusBadRequest, response)
+			utils.HandleError(c, http.StatusBadRequest, response)
 			return
 		}
 	}
@@ -352,7 +352,7 @@ func (aid *apiIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "削除中にエラーが発生しました",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 

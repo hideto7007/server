@@ -85,7 +85,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	httpStatus, userInfo, response = gm.ControllersCommonService.LineAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
-		c.JSON(httpStatus, response)
+		utils.HandleError(c, httpStatus, response)
 		return
 	}
 
@@ -98,7 +98,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 	// UtilsFetcher を使用してトークンを生成
@@ -107,7 +107,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "新規トークンの生成に失敗しました。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -116,7 +116,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(サインイン): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -141,7 +141,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -164,7 +164,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 	httpStatus, userInfo, response = gm.ControllersCommonService.LineAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
-		c.JSON(httpStatus, response)
+		utils.HandleError(c, httpStatus, response)
 		return
 	}
 
@@ -185,7 +185,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "既に登録されたメールアドレスです。",
 		}
-		c.JSON(http.StatusConflict, response)
+		utils.HandleError(c, http.StatusConflict, response)
 		return
 	}
 
@@ -198,7 +198,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(登録): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -207,7 +207,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -230,7 +230,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	httpStatus, userInfo, response = gm.ControllersCommonService.LineAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
-		c.JSON(httpStatus, response)
+		utils.HandleError(c, httpStatus, response)
 		return
 	}
 
@@ -242,7 +242,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -256,7 +256,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -273,7 +273,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "サインインの削除に失敗しました。",
 		}
-		c.JSON(http.StatusUnauthorized, response)
+		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
 
@@ -292,7 +292,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(削除): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 
@@ -301,7 +301,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 		return
 	}
 	// リダイレクト
