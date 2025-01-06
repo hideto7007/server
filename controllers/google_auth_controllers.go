@@ -79,7 +79,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	httpStatus, userInfo, response = gm.ControllersCommonService.GoogleAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
-		utils.HandleError(c, httpStatus, response)
+		utils.RedirectHandleError(c, httpStatus, response, "外部認証情報取得に失敗しました。")
 		return
 	}
 
@@ -92,25 +92,25 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		utils.RedirectHandleError(c, http.StatusUnauthorized, response, "ユーザー情報取得に失敗しました。")
 		return
 	}
 	// UtilsFetcher を使用してトークンを生成
 	newToken, err := gm.UtilsFetcher.NewToken(result[0].UserId, utils.AuthTokenHour)
 	if err != nil {
 		response := utils.ErrorResponse{
-			ErrorMsg: "新規トークンの生成に失敗しました。",
+			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "新規トークンの生成に失敗しました。")
 		return
 	}
 
 	refreshToken, err := gm.UtilsFetcher.RefreshToken(result[0].UserId, utils.RefreshAuthTokenHour)
 	if err != nil {
 		response := utils.ErrorResponse{
-			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
+			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "リフレッシュトークンの生成に失敗しました。")
 		return
 	}
 
@@ -129,7 +129,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(サインイン): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "予期せぬエラーが発生しました。")
 		return
 	}
 
@@ -138,7 +138,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "予期せぬエラーが発生しました。")
 		return
 	}
 
@@ -160,7 +160,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	httpStatus, userInfo, response = gm.ControllersCommonService.GoogleAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
-		utils.HandleError(c, httpStatus, response)
+		utils.RedirectHandleError(c, httpStatus, response, "外部認証情報取得に失敗しました。")
 		return
 	}
 
@@ -179,9 +179,9 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 	}
 	if err := dbFetcher.PostSignUp(registerData.Data[0]); err != nil {
 		response := utils.ErrorResponse{
-			ErrorMsg: "既に登録されたメールアドレスです。",
+			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusConflict, response)
+		utils.RedirectHandleError(c, http.StatusConflict, response, "既に登録されたメールアドレスです。")
 		return
 	}
 
@@ -194,7 +194,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(登録): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "予期せぬエラーが発生しました。")
 		return
 	}
 
@@ -203,7 +203,7 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "予期せぬエラーが発生しました。")
 		return
 	}
 
@@ -226,7 +226,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	httpStatus, userInfo, response = gm.ControllersCommonService.GoogleAuthCommon(c, params)
 
 	if httpStatus != http.StatusOK {
-		utils.HandleError(c, httpStatus, response)
+		utils.RedirectHandleError(c, httpStatus, response, "外部認証情報取得に失敗しました。")
 		return
 	}
 
@@ -240,9 +240,9 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		response := utils.ErrorResponse{
-			ErrorMsg: "無効なトークンのため削除できません。",
+			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "無効なトークンのため削除できません。")
 		return
 	}
 
@@ -256,7 +256,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		utils.RedirectHandleError(c, http.StatusUnauthorized, response, "予期せぬエラーが発生しました。")
 		return
 	}
 
@@ -271,9 +271,9 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	err = deleteDbFetcher.DeleteSignIn(data)
 	if err != nil {
 		response := utils.ErrorResponse{
-			ErrorMsg: "サインインの削除に失敗しました。",
+			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		utils.RedirectHandleError(c, http.StatusUnauthorized, response, "削除中にエラーが発生しました。")
 		return
 	}
 
@@ -291,7 +291,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(削除): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "予期せぬエラーが発生しました。")
 		return
 	}
 
@@ -300,7 +300,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		utils.RedirectHandleError(c, http.StatusInternalServerError, response, "予期せぬエラーが発生しました。")
 		return
 	}
 

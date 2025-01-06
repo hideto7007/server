@@ -2,6 +2,9 @@
 package utils
 
 import (
+	"fmt"
+	"net/http"
+	"net/url"
 	"server/common"
 	"server/config"
 	"time"
@@ -142,6 +145,49 @@ func HandleError(c *gin.Context, status int, response ErrorResponse) {
 			Result: response.Result,
 		})
 	}
+
+	c.Abort()
+}
+
+// RedirectHandleError リダイレクト用共通エラーハンドリング
+func RedirectHandleError(c *gin.Context, status int, response ErrorResponse, frontMsg string) {
+
+	errorMessage := url.QueryEscape(frontMsg)
+	var path string = "/money_management/signin?sign_type=external"
+	var baseUrl string = fmt.Sprintf(
+		"%s://%s%s",
+		config.GlobalEnv.Protocol,
+		config.GlobalEnv.ClinetDomain,
+		path,
+	)
+	redirectURL := fmt.Sprintf("%s&error=%s", baseUrl, errorMessage)
+	// エラーレスポンスを返す
+	if response.ErrorMsg != "" {
+		// エラーをログに記録
+		logrus.WithFields(logrus.Fields{
+			"error":      response.ErrorMsg,
+			"status":     status,
+			"client_ip":  c.ClientIP(),
+			"method":     c.Request.Method,
+			"path":       c.Request.URL.Path,
+			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
+		}).Error("APIエラー発生")
+	} else {
+		// エラーをログに記録
+		logrus.WithFields(logrus.Fields{
+			"error":      response.Result,
+			"status":     status,
+			"client_ip":  c.ClientIP(),
+			"method":     c.Request.Method,
+			"path":       c.Request.URL.Path,
+			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
+		}).Error("APIエラー発生")
+
+		c.JSON(status, ErrorResponse{
+			Result: response.Result,
+		})
+	}
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 
 	c.Abort()
 }
