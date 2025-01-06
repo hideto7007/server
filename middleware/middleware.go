@@ -2,6 +2,8 @@
 package middleware
 
 import (
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 	"runtime/debug"
@@ -129,12 +131,24 @@ func RequestLoggerMiddleware() gin.HandlerFunc {
 		c.Set("request_id", requestID)
 
 		c.Writer.Header().Set("X-Request-ID", requestID)
+		// リクエストボディを読み取る
+		var requestBody string
+		if c.Request.Body != nil {
+			bodyBytes, err := io.ReadAll(c.Request.Body)
+			if err == nil {
+				requestBody = string(bodyBytes)
+				// リクエストボディを再設定（再利用可能にする）
+				c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+			}
+		}
 
 		// リクエスト実行前ログ
 		logrus.WithFields(logrus.Fields{
 			"request_id": requestID,
 			"method":     c.Request.Method,
 			"path":       c.Request.URL.Path,
+			"params":     c.Request.URL.Query(),
+			"body":       requestBody,
 			"client_ip":  c.ClientIP(),
 		}).Info("Request started")
 
@@ -156,6 +170,7 @@ func RequestLoggerMiddleware() gin.HandlerFunc {
 					"client_ip":  c.ClientIP(),
 					"method":     c.Request.Method,
 					"path":       c.Request.URL.Path,
+					"params":     c.Request.URL.Query(),
 					"status":     c.Writer.Status(),
 					"error":      e.Err.Error(),
 					"stack":      string(debug.Stack()), // オプションでスタックトレース
