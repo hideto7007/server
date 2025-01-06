@@ -142,7 +142,8 @@ func HandleError(c *gin.Context, status int, response ErrorResponse) {
 		}).Error("APIエラー発生")
 
 		c.JSON(status, ErrorResponse{
-			Result: response.Result,
+			RecodeRows: response.RecodeRows,
+			Result:     response.Result,
 		})
 	}
 
@@ -188,7 +189,6 @@ func RedirectHandleError(c *gin.Context, status int, response ErrorResponse, fro
 		})
 	}
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
-
 	c.Abort()
 }
 

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,10 +9,10 @@ import (
 	"strings"
 
 	"server/config"
-	"server/controllers/common"
 	controllers_common "server/controllers/common"
 	"server/models"
 	"server/templates"
+	"server/test_utils"
 	"server/utils"
 	"testing"
 
@@ -159,16 +158,12 @@ func TestGoogleSignInCallback(t *testing.T) {
 		googleManager.GoogleSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "テストエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "外部認証情報取得に失敗しました。")
 	})
 
 	t.Run("GoogleSignInCallback DB取得エラー", func(t *testing.T) {
@@ -214,16 +209,12 @@ func TestGoogleSignInCallback(t *testing.T) {
 		googleManager.GoogleSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "sql取得失敗",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "ユーザー情報取得に失敗しました。")
 	})
 
 	t.Run("GoogleSignInCallback トークン生成に失敗 1", func(t *testing.T) {
@@ -275,16 +266,12 @@ func TestGoogleSignInCallback(t *testing.T) {
 		googleManager.GoogleSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "新規トークンの生成に失敗しました。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "新規トークンの生成に失敗しました。")
 	})
 
 	t.Run("GoogleSignInCallback トークン生成に失敗 2", func(t *testing.T) {
@@ -340,16 +327,12 @@ func TestGoogleSignInCallback(t *testing.T) {
 		googleManager.GoogleSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "リフレッシュトークンの生成に失敗しました。")
 	})
 
 	t.Run("GoogleSignInCallback メールテンプレート生成エラー(サインイン)", func(t *testing.T) {
@@ -415,16 +398,13 @@ func TestGoogleSignInCallback(t *testing.T) {
 		googleManager.GoogleSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(サインイン): テンプレート生成エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("GoogleSignInCallback メール送信エラー(サインイン)", func(t *testing.T) {
@@ -488,16 +468,12 @@ func TestGoogleSignInCallback(t *testing.T) {
 		googleManager.GoogleSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(サインイン): メール送信エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("GoogleSignInCallback result 成功", func(t *testing.T) {
@@ -567,6 +543,10 @@ func TestGoogleSignInCallback(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
+		mockControllersCommonService.EXPECT().
+			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("http://localhost:8080/test?user_id=1&user_name=test@example.com")
+
 		googleManager := GoogleManager{
 			UtilsFetcher:             mockUtilsFetcher,
 			EmailTemplateService:     templates.NewEmailTemplateManager(),
@@ -577,20 +557,11 @@ func TestGoogleSignInCallback(t *testing.T) {
 
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		var responseBody utils.ResponseWithSlice[common.GoogleUserInfo]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedOk := utils.ResponseWithSlice[common.GoogleUserInfo]{
-			Result: []common.GoogleUserInfo{
-				{
-					UserId:   userInfo.UserId,
-					UserName: userInfo.UserName,
-				},
-			},
-		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
+		location := w.Header().Get("Location")
+		userId, userName, err := test_utils.RedirectSuccess(location)
+		assert.Nil(t, err)
+		assert.Equal(t, userId, userInfo.UserId)
+		assert.Equal(t, userName, userInfo.UserName)
 	})
 }
 
@@ -629,16 +600,12 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		googleManager.GoogleSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "テストエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "外部認証情報取得に失敗しました。")
 	})
 
 	t.Run("GoogleSignUpCallback DB取得エラー", func(t *testing.T) {
@@ -683,16 +650,12 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		googleManager.GoogleSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusConflict, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "既に登録されたメールアドレスです。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "既に登録されたメールアドレスです。")
 	})
 
 	t.Run("GoogleSignUpCallback メールテンプレート生成エラー(登録)", func(t *testing.T) {
@@ -750,16 +713,12 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		googleManager.GoogleSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(登録): メールテンプレートエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("GoogleSignUpCallback メール送信エラー(登録)", func(t *testing.T) {
@@ -820,16 +779,12 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		googleManager.GoogleSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(登録): メール送信エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("GoogleSignUpCallback result 成功", func(t *testing.T) {
@@ -891,6 +846,10 @@ func TestGoogleSignUpCallback(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
+		mockControllersCommonService.EXPECT().
+			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("http://localhost:8080/test")
+
 		googleManager := GoogleManager{
 			UtilsFetcher:             mockUtilsFetcher,
 			EmailTemplateService:     templates.NewEmailTemplateManager(),
@@ -901,15 +860,6 @@ func TestGoogleSignUpCallback(t *testing.T) {
 
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedOk := utils.ResponseWithSingle[string]{
-			Result: "google外部認証の登録成功しました。",
-		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
 
@@ -954,16 +904,12 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		googleManager.GoogleDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "テストエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "外部認証情報取得に失敗しました。")
 	})
 
 	t.Run("GoogleDeleteCallback 無効なトークンのため削除できません", func(t *testing.T) {
@@ -988,7 +934,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		response := utils.ErrorResponse{}
 
 		resp := &http.Response{
-			StatusCode: http.StatusInternalServerError,
+			StatusCode: http.StatusTemporaryRedirect,
 			Body:       io.NopCloser(strings.NewReader("Internal Server Error")),
 		}
 
@@ -1009,16 +955,12 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		googleManager.GoogleDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "無効なトークンのため削除できません。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "無効なトークンのため削除できません。")
 	})
 
 	t.Run("GoogleDeleteCallback DB取得エラー", func(t *testing.T) {
@@ -1074,16 +1016,12 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		googleManager.GoogleDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "sql取得失敗",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("GoogleDeleteCallback DB削除エラー", func(t *testing.T) {
@@ -1152,16 +1090,12 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		googleManager.GoogleDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "サインインの削除に失敗しました。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "削除中にエラーが発生しました。")
 	})
 
 	t.Run("GoogleDeleteCallback メールテンプレート生成エラー(削除)", func(t *testing.T) {
@@ -1244,16 +1178,12 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		googleManager.GoogleDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(削除): メールテンプレートエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("GoogleDeleteCallback メール送信エラー(削除)", func(t *testing.T) {
@@ -1340,16 +1270,12 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		googleManager.GoogleDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(削除): メール送信エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("GoogleDeleteCallback result 成功", func(t *testing.T) {
@@ -1428,6 +1354,10 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
+		mockControllersCommonService.EXPECT().
+			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("http://localhost:8080/test")
+
 		googleManager := GoogleManager{
 			UtilsFetcher:             mockUtilsFetcher,
 			EmailTemplateService:     templates.NewEmailTemplateManager(),
@@ -1438,14 +1368,5 @@ func TestGoogleDeleteCallback(t *testing.T) {
 
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedOk := utils.ResponseWithSingle[string]{
-			Result: "サインイン削除に成功",
-		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }

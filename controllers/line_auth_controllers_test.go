@@ -1,16 +1,15 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 
 	"server/config"
-	"server/controllers/common"
 	"server/models"
 	"server/templates"
+	"server/test_utils"
 	"server/utils"
 	"testing"
 
@@ -159,16 +158,12 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "テストエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "外部認証情報取得に失敗しました。")
 	})
 
 	t.Run("LineSignInCallback DB取得エラー", func(t *testing.T) {
@@ -216,16 +211,12 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "sql取得失敗",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "ユーザー情報取得に失敗しました。")
 	})
 
 	t.Run("LineSignInCallback トークン生成に失敗 1", func(t *testing.T) {
@@ -279,16 +270,12 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "新規トークンの生成に失敗しました。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "新規トークンの生成に失敗しました。")
 	})
 
 	t.Run("LineSignInCallback トークン生成に失敗 2", func(t *testing.T) {
@@ -346,16 +333,12 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "リフレッシュトークンの生成に失敗しました。")
 	})
 
 	t.Run("LineSignInCallback メールテンプレート生成エラー(サインイン)", func(t *testing.T) {
@@ -423,16 +406,12 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(サインイン): テンプレート生成エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("LineSignInCallback メール送信エラー(サインイン)", func(t *testing.T) {
@@ -498,16 +477,12 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(サインイン): メール送信エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("LineSignInCallback result 成功", func(t *testing.T) {
@@ -573,6 +548,10 @@ func TestLineSignInCallback(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
+		mockControllersCommonService.EXPECT().
+			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("http://localhost:8080/test?user_id=1&user_name=test@example.com")
+
 		lineManager := LineManager{
 			UtilsFetcher:             mockUtilsFetcher,
 			EmailTemplateService:     templates.NewEmailTemplateManager(),
@@ -582,22 +561,12 @@ func TestLineSignInCallback(t *testing.T) {
 		lineManager.LineSignInCallback(c)
 
 		// ステータスコードの確認
-		// assert.Equal(t, http.StatusOK, w.Code)
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		var responseBody utils.ResponseWithSlice[common.GoogleUserInfo]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedOk := utils.ResponseWithSlice[common.GoogleUserInfo]{
-			Result: []common.GoogleUserInfo{
-				{
-					UserId:   userInfo.UserId,
-					UserName: userInfo.UserName,
-				},
-			},
-		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
+		location := w.Header().Get("Location")
+		userId, userName, err := test_utils.RedirectSuccess(location)
+		assert.Nil(t, err)
+		assert.Equal(t, userId, userInfo.UserId)
+		assert.Equal(t, userName, userInfo.UserName)
 	})
 }
 
@@ -638,16 +607,12 @@ func TestLineSignUpCallback(t *testing.T) {
 		lineManager.LineSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "テストエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "外部認証情報取得に失敗しました。")
 	})
 
 	t.Run("LineSignUpCallback DB取得エラー", func(t *testing.T) {
@@ -696,16 +661,12 @@ func TestLineSignUpCallback(t *testing.T) {
 		lineManager.LineSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusConflict, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "既に登録されたメールアドレスです。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "既に登録されたメールアドレスです。")
 	})
 
 	t.Run("LineSignUpCallback メールテンプレート生成エラー(登録)", func(t *testing.T) {
@@ -765,16 +726,12 @@ func TestLineSignUpCallback(t *testing.T) {
 		lineManager.LineSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(登録): メールテンプレートエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("LineSignUpCallback メール送信エラー(登録)", func(t *testing.T) {
@@ -837,16 +794,12 @@ func TestLineSignUpCallback(t *testing.T) {
 		lineManager.LineSignUpCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(登録): メール送信エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("LineSignUpCallback result 成功", func(t *testing.T) {
@@ -904,6 +857,10 @@ func TestLineSignUpCallback(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
+		mockControllersCommonService.EXPECT().
+			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("http://localhost:8080/test")
+
 		lineManager := LineManager{
 			UtilsFetcher:             mockUtilsFetcher,
 			EmailTemplateService:     templates.NewEmailTemplateManager(),
@@ -914,15 +871,6 @@ func TestLineSignUpCallback(t *testing.T) {
 
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedOk := utils.ResponseWithSingle[string]{
-			Result: "Line外部認証の登録成功しました。",
-		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
 
@@ -968,16 +916,12 @@ func TestLineDeleteCallback(t *testing.T) {
 		lineManager.LineDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "テストエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "外部認証情報取得に失敗しました。")
 	})
 
 	t.Run("LineDeleteCallback 無効なトークンのため削除できません", func(t *testing.T) {
@@ -1023,16 +967,12 @@ func TestLineDeleteCallback(t *testing.T) {
 		lineManager.LineDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "取得エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "無効なトークンのため削除できません。")
 	})
 
 	t.Run("LineDeleteCallback DB取得エラー", func(t *testing.T) {
@@ -1088,16 +1028,12 @@ func TestLineDeleteCallback(t *testing.T) {
 		lineManager.LineDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "sql取得失敗",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("LineDeleteCallback DB削除エラー", func(t *testing.T) {
@@ -1166,16 +1102,12 @@ func TestLineDeleteCallback(t *testing.T) {
 		lineManager.LineDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusUnauthorized, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "サインインの削除に失敗しました。",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "削除中にエラーが発生しました。")
 	})
 
 	t.Run("LineDeleteCallback メールテンプレート生成エラー(削除)", func(t *testing.T) {
@@ -1258,16 +1190,12 @@ func TestLineDeleteCallback(t *testing.T) {
 		lineManager.LineDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(削除): メールテンプレートエラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("LineDeleteCallback メール送信エラー(削除)", func(t *testing.T) {
@@ -1354,16 +1282,12 @@ func TestLineDeleteCallback(t *testing.T) {
 		lineManager.LineDeleteCallback(c)
 
 		// ステータスコードの確認
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		location := w.Header().Get("Location")
+		msg, err := test_utils.QueryUnescape(location)
+		assert.Nil(t, err)
 
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(削除): メール送信エラー",
-		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, msg, "予期せぬエラーが発生しました。")
 	})
 
 	t.Run("LineDeleteCallback result 成功", func(t *testing.T) {
@@ -1435,6 +1359,10 @@ func TestLineDeleteCallback(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
+		mockControllersCommonService.EXPECT().
+			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return("http://localhost:8080/test")
+
 		lineManager := LineManager{
 			UtilsFetcher:             mockUtilsFetcher,
 			EmailTemplateService:     templates.NewEmailTemplateManager(),
@@ -1445,14 +1373,5 @@ func TestLineDeleteCallback(t *testing.T) {
 
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		var responseBody utils.ResponseWithSingle[string]
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-
-		expectedOk := utils.ResponseWithSingle[string]{
-			Result: "サインイン削除に成功",
-		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
