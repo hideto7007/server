@@ -20,7 +20,7 @@ func main() {
 	// 環境変数の初期化
 	config.InitGoogleEnvs()
 
-	common.InitLogger()
+	common.InitLogger(config.GlobalEnv.OutPutLoggerFile)
 
 	r := gin.Default()
 	log.Println("start server...")

@@ -6,10 +6,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func InitLogger() {
-	file, err := os.OpenFile("takuwaeru.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+func InitLogger(logFile string) {
+	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.WithError(err).Fatal("ログファイルのオープンに失敗しました")
 	}
 
 	logrus.SetOutput(file)

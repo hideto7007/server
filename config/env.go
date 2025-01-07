@@ -40,6 +40,7 @@ type Env struct {
 	GoogleClientSecret string
 	LineClientID       string
 	LineClientSecret   string
+	OutPutLoggerFile   string
 }
 
 var (
@@ -118,6 +119,7 @@ func LeadEnv(env string, path string) Env {
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		LineClientID:       os.Getenv("LINE_CLIENT_ID"),
 		LineClientSecret:   os.Getenv("LINE_CLIENT_SECRET"),
+		OutPutLoggerFile:   os.Getenv("OUT_PUT_LOGGER_FILE"),
 	}
 
 	return EnvInfo

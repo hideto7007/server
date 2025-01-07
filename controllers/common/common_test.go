@@ -672,3 +672,30 @@ func TestGetRevoke(t *testing.T) {
 		assert.Equal(t, err, nil)
 	})
 }
+
+func TestRedirectSignIn(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	t.Run("RedirectSignIn true", func(t *testing.T) {
+		googleManager := ControllersCommonManager{
+			GoogleConfig: config.NewGoogleManager(),
+		}
+		result := googleManager.RedirectSignIn(1, "test", true)
+		userId, userName, err := test_utils.RedirectSuccess(result)
+		assert.Nil(t, err)
+		assert.Equal(t, userId, 1)
+		assert.Equal(t, userName, "test")
+	})
+
+	t.Run("RedirectSignIn false", func(t *testing.T) {
+		googleManager := ControllersCommonManager{
+			GoogleConfig: config.NewGoogleManager(),
+		}
+		result := googleManager.RedirectSignIn(1, "test", false)
+		userId, userName, err := test_utils.RedirectSuccess(result)
+		assert.Nil(t, err)
+		assert.Equal(t, userId, 0)
+		assert.Equal(t, userName, "")
+	})
+}
