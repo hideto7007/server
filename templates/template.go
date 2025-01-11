@@ -277,10 +277,7 @@ var registerEmailCheckNoticeTemplate = template.Must(template.Must(commonTemplat
 				</div>
 				<div class="body">
 					<p>こちらのリンクからパスワード再設定を行なってください。</p>
-
-					<div class="info-section">
-						<a href="{{.Link}}">こちらをクリックしてパスワードを再設定してください。</a>
-					</div>
+						{{.Link}}
 					{{template "Support"}}
 				</div>
 				{{template "Footer" .}}
@@ -485,8 +482,6 @@ func (et *EmailTemplateManager) RegisterEmailCheckNoticeTemplate(Link, DateTime 
 	subject := "【たくわえる】パスワード再設定通知のお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
-
-	Link = "https://example.com/reset-password"
 
 	// テンプレートに渡すデータを作成
 	data := GenericEmailData{
