@@ -2828,7 +2828,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -2861,7 +2861,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -2930,7 +2930,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
@@ -2984,7 +2984,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3048,7 +3048,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
@@ -3101,7 +3101,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3148,7 +3148,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3220,7 +3220,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3296,7 +3296,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return(fmt.Errorf("メール送信エラー"))
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3372,7 +3372,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return(nil)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3448,7 +3448,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return(nil)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3499,7 +3499,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -3532,7 +3532,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3593,7 +3593,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3658,7 +3658,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
@@ -3713,7 +3713,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3777,7 +3777,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3846,7 +3846,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3914,7 +3914,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Return(nil)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
