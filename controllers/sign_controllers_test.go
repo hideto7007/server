@@ -4159,3 +4159,280 @@ func TestSignOutApi(t *testing.T) {
 		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})
 }
+
+func TestRegisterEmailCheckNotice(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	t.Run("RegisterEmailCheckNotice バリデーション 必須", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "ユーザー名は必須です。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("RegisterEmailCheckNotice バリデーション メールアドレス不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=@exmaple", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "正しいメールアドレス形式である必要があります。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("RegisterEmailCheckNotice sql取得で失敗", func(t *testing.T) {
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return -1, fmt.Errorf("登録ユーザーが存在しません")
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "登録ユーザーが存在しません",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("RegisterEmailCheckNotice メールテンプレート生成エラー", func(t *testing.T) {
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			RegisterEmailCheckNoticeTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール再通知): メールテンプレートエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("RegisterEmailCheckNotice メール送信エラー(削除)", func(t *testing.T) {
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			RegisterEmailCheckNoticeTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メール送信エラー(パスワード再発行メール再通知): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("RegisterEmailCheckNotice result 成功", func(t *testing.T) {
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			RegisterEmailCheckNoticeTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "パスワード再設定通知成功",
+		}
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
+	})
+}
