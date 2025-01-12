@@ -123,7 +123,7 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate string, EndDate 
 	rows, err := pf.db.Query(DB.GetIncomeDataInRangeSyntax, start, end, UserId)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 
@@ -174,7 +174,7 @@ func (pf *PostgreSQLDataFetcher) GetDateRange(UserId int) ([]PaymentDate, error)
 	rows, err := pf.db.Query(DB.GetDateRangeSyntax, UserId)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 
@@ -237,7 +237,7 @@ func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId int) ([]Years
 	rows, err := pf.db.Query(DB.GetYearsIncomeAndDeductionSyntax, UserId)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 
@@ -288,8 +288,7 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
 	// deferでロールバックまたはコミットを管理
@@ -355,8 +354,7 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
 	// deferでロールバックまたはコミットを管理
@@ -421,8 +419,7 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
 	// deferでロールバックまたはコミットを管理

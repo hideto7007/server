@@ -127,8 +127,7 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserName)
 
 	if err != nil {
-		fmt.Printf("Query failed: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 
@@ -190,8 +189,7 @@ func (pf *SignDataFetcher) GetExternalAuth(UserName string) ([]ExternalAuthData,
 	rows, err := pf.db.Query(DB.GetExternalAuthSyntax, UserName)
 
 	if err != nil {
-		fmt.Printf("Query failed: %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 
@@ -343,8 +341,7 @@ func (pf *SignDataFetcher) PutCheck(data RequestSignInEditData) (string, error) 
 	// データベースクエリを実行
 	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserName)
 	if err != nil {
-		fmt.Printf("Query failed: %v\n", err)
-		return "", err
+		return "", fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 

@@ -4,7 +4,6 @@ package common
 import (
 	// "fmt"
 
-	"fmt"
 	"strconv"
 	"time"
 
@@ -79,7 +78,6 @@ func (cf *commonFetcherImpl) TimeToStr(t time.Time) string {
 func (cf *commonFetcherImpl) StrToTime(dateStr string) (time.Time, error) {
 	parsedTime, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		fmt.Println("変換エラー:", err)
 		return time.Time{}, err
 	}
 	return parsedTime, nil
@@ -99,7 +97,6 @@ func (cf *commonFetcherImpl) StrToInt(str string) (int, error) {
 	var replaceInt int
 	replaceInt, err := strconv.Atoi(str)
 	if err != nil {
-		fmt.Println("変換エラー:", err)
 		return replaceInt, err
 	}
 	return replaceInt, nil
