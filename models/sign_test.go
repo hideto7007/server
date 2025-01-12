@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"regexp"
@@ -1042,5 +1043,387 @@ func TestDeleteSignIn(t *testing.T) {
 		assert.Contains(t, err.Error(), "transaction begin error")
 
 		t.Log("transaction begin error DeleteSignIn log", err)
+	})
+}
+
+func TestGetUserId(t *testing.T) {
+	UserName := "text@example.com"
+	t.Run("GetUserId 登録ユーザーが存在しない", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
+			WithArgs(UserName).
+			WillReturnError(sql.ErrNoRows)
+
+		// テスト実行
+		userId, err := dbFetcher.GetUserId(UserName)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, -1, userId)
+		assert.Equal(t, err.Error(), "登録ユーザーが存在しません")
+	})
+	t.Run("GetUserId dbエラー", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
+			WithArgs(UserName).
+			WillReturnError(fmt.Errorf("dbエラー"))
+
+		// テスト実行
+		userId, err := dbFetcher.GetUserId(UserName)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, -1, userId)
+		assert.Equal(t, err.Error(), "dbエラー")
+	})
+	t.Run("GetUserId 登録ユーザー存在", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// テスト用の行データを設定
+		row := sqlmock.NewRows([]string{
+			"user_id", "user_name", "user_password",
+		}).AddRow(
+			"1",
+			"test@exmple.com",
+			"Test12345!",
+		)
+
+		// クエリ実行時にエラーを返すようにモックを設定
+		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
+			WithArgs(UserName).
+			WillReturnRows(row)
+
+		// テスト実行
+		userId, err := dbFetcher.GetUserId(UserName)
+
+		// 検証
+		assert.Equal(t, 1, userId)
+		assert.Nil(t, err)
+	})
+}
+
+func TestNewPasswordUpdate(t *testing.T) {
+	Data := RequestNewPasswordUpdateData{
+		TokenId:         "b2781af7-794a-1871-9865-bdc3c19291ff1",
+		CurrentPassword: "Test12345!",
+		NewUserPassword: "Test12345!",
+		ConfirmPassword: "Test12345!",
+	}
+	UserId := Data.TokenId[utils.Uuid:]
+	t.Run("NewPasswordUpdate 登録ユーザーが存在しない", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnError(sql.ErrNoRows)
+
+		// テスト実行
+		userName, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, "", userName)
+		assert.Equal(t, err.Error(), "登録ユーザーが存在しません")
+	})
+	t.Run("NewPasswordUpdate dbエラー", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnError(fmt.Errorf("dbエラー"))
+
+		// テスト実行
+		userName, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, "", userName)
+		assert.Equal(t, err.Error(), "dbエラー")
+	})
+	t.Run("NewPasswordUpdate パスワードの不整合", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			mockUtilsFetcher,
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		mockUtilsFetcher.EXPECT().
+			CompareHashPassword(gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("エラー"))
+
+		row := sqlmock.NewRows([]string{
+			"user_name", "user_password",
+		}).AddRow(
+			"test@exmaple.com",
+			"Test12345!",
+		)
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnRows(row)
+
+		// テスト実行
+		userName, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, "", userName)
+		assert.Equal(t, "現在のパスワードと一致しませんでした。", err.Error())
+	})
+	t.Run("NewPasswordUpdate トランザクション失敗", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			mockUtilsFetcher,
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		row := sqlmock.NewRows([]string{
+			"user_name", "user_password",
+		}).AddRow(
+			"test@exmaple.com",
+			"Test12345!",
+		)
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnRows(row)
+
+		mockUtilsFetcher.EXPECT().
+			CompareHashPassword(gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		// トランザクションの開始に失敗させる
+		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+
+		// テスト実行
+		userName, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, "", userName)
+		assert.Equal(t, "トランザクションの開始に失敗しました: transaction begin error", err.Error())
+	})
+	t.Run("NewPasswordUpdate 新しいパスワードと確認用のパスワードが一致しませんでした。", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			mockUtilsFetcher,
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		row := sqlmock.NewRows([]string{
+			"user_name", "user_password",
+		}).AddRow(
+			"test@exmaple.com",
+			"Test12345!",
+		)
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnRows(row)
+
+		mockUtilsFetcher.EXPECT().
+			CompareHashPassword(gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		// トランザクション
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutPasswordSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit()
+
+		// 変更のパスワード一時保存
+		tmpPs := Data.ConfirmPassword
+
+		Data.ConfirmPassword = "Test1234567!"
+
+		// テスト実行
+		userName, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, "", userName)
+		assert.Equal(t, "新しいパスワードと確認用のパスワードが一致しませんでした。", err.Error())
+		Data.ConfirmPassword = tmpPs
+	})
+	t.Run("NewPasswordUpdate 更新失敗", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			mockUtilsFetcher,
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		row := sqlmock.NewRows([]string{
+			"user_name", "user_password",
+		}).AddRow(
+			"test@exmaple.com",
+			"Test12345!",
+		)
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnRows(row)
+
+		mockUtilsFetcher.EXPECT().
+			CompareHashPassword(gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		mockUtilsFetcher.EXPECT().
+			EncryptPassword(gomock.Any()).
+			Return("hashPassword", nil)
+
+		// トランザクション
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutPasswordSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnError(errors.New("update failed")) // Execの結果にエラーを返す
+		mock.ExpectRollback() // エラー発生時にはロールバックを期待
+
+		// テスト実行
+		userName, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, "", userName)
+		assert.Equal(t, "パスワード更新クエリの実行に失敗しました: update failed", err.Error())
+	})
+	t.Run("NewPasswordUpdate 更新成功", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			mockUtilsFetcher,
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		row := sqlmock.NewRows([]string{
+			"user_name", "user_password",
+		}).AddRow(
+			"test@exmaple.com",
+			"Test12345!",
+		)
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnRows(row)
+
+		mockUtilsFetcher.EXPECT().
+			CompareHashPassword(gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		mockUtilsFetcher.EXPECT().
+			EncryptPassword(gomock.Any()).
+			Return("hashPassword", nil)
+
+		// トランザクション
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutPasswordSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectRollback()
+
+		// テスト実行
+		userName, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.NoError(t, err)
+		assert.Equal(t, "test@exmaple.com", userName)
+		assert.Nil(t, err)
 	})
 }

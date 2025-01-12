@@ -477,10 +477,10 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 		}
 		return "", err
 	}
-	// パスワードの整合性""を確認
+	// パスワードの整合性を確認
 	err := pf.UtilsFetcher.CompareHashPassword(record.UserPassword, data.CurrentPassword)
 	if err != nil {
-		return "", fmt.Errorf("現在のパスワードと一致しませんでした")
+		return "", fmt.Errorf("現在のパスワードと一致しませんでした。")
 	}
 
 	// 2. 新しいパスワードへ更新

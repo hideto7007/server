@@ -4332,7 +4332,6 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
 		// モックの挙動を定義
-
 		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
 			Return("2024年12月2日")
