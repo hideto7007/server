@@ -15,6 +15,8 @@ type (
 		PostSignInTemplate(UserName, DateTime string) (string, string, error)
 		DeleteSignInTemplate(Name, UserName, DateTime string) (string, string, error)
 		SignOutTemplate(UserName, DateTime string) (string, string, error)
+		RegisterEmailCheckNoticeTemplate(Link, DateTime string) (string, string, error)
+		NewPasswordUpdateTemplate(NewPassword, DateTime string) (string, string, error)
 	}
 	// データ構造体
 	TemporayPostSignUpEmailData struct {
@@ -31,6 +33,8 @@ type (
 		Year        string
 		Update      string
 		UpdateValue string
+		Link        string
+		NewPassword string
 	}
 
 	EmailTemplateManager struct{}
@@ -259,6 +263,63 @@ var deleteSignInTemplate = template.Must(template.Must(commonTemplate.Clone()).P
 	</html>
 `))
 
+var registerEmailCheckNoticeTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+	{{template "Style"}}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>パスワード再設定通知</title>
+		</head>
+		<body>
+			<div class="container">
+				<div class="header">
+					パスワード再設定
+				</div>
+				<div class="body">
+					<p>こちらのリンクからパスワード再設定を行なってください。</p>
+						{{.Link}}
+					{{template "Support"}}
+				</div>
+				{{template "Footer" .}}
+			</div>
+		</body>
+	</html>
+`))
+
+var newPasswordUpdateTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
+	{{template "Style"}}
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<title>パスワード再発行成功</title>
+		</head>
+		<body>
+			<div class="container">
+				<div class="header">
+					たくわえる<br>
+					パスワード再発行成功
+				</div>
+				<div class="body">
+					<p>こちらが新しいパスワードです。</p>
+
+					<div class="info-section">
+						<h4>新しいパスワード</h4>
+						<p>{{.NewPassword}}</p>
+						<h4>更新日時</h4>
+						<p>{{.DateTime}}</p>
+					</div>
+						<p>
+							こちらはご登録ユーザーでパスワード再発行した際に通知されます。<br>
+							今後、サインインされる場合はこちらのパスワードをご使用ください。
+						</p>
+					{{template "Support"}}
+				</div>
+				{{template "Footer" .}}
+			</div>
+		</body>
+	</html>
+`))
+
 var deleteSignOutTemplate = template.Must(template.Must(commonTemplate.Clone()).Parse(`
 	{{template "Style"}}
 	<!DOCTYPE html>
@@ -414,6 +475,48 @@ func (et *EmailTemplateManager) SignOutTemplate(UserName, DateTime string) (stri
 	// テンプレートの実行と結果の取得
 	var body bytes.Buffer
 	if err := deleteSignOutTemplate.Execute(&body, data); err != nil {
+		return "", "", err // エラー時に空の件名と本文を返す
+	}
+
+	return subject, body.String(), nil
+}
+
+func (et *EmailTemplateManager) RegisterEmailCheckNoticeTemplate(Link, DateTime string) (string, string, error) {
+	subject := "【たくわえる】パスワード再設定通知のお知らせ"
+	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
+	// メールテンプレート定義
+
+	// テンプレートに渡すデータを作成
+	data := GenericEmailData{
+		Link:     Link,
+		DateTime: DateTime,
+		Year:     year,
+	}
+
+	// テンプレートの実行と結果の取得
+	var body bytes.Buffer
+	if err := registerEmailCheckNoticeTemplate.Execute(&body, data); err != nil {
+		return "", "", err // エラー時に空の件名と本文を返す
+	}
+
+	return subject, body.String(), nil
+}
+
+func (et *EmailTemplateManager) NewPasswordUpdateTemplate(NewPassword, DateTime string) (string, string, error) {
+	subject := "【たくわえる】パスワード再発行成功のお知らせ"
+	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
+	// メールテンプレート定義
+
+	// テンプレートに渡すデータを作成
+	data := GenericEmailData{
+		NewPassword: NewPassword,
+		DateTime:    DateTime,
+		Year:        year,
+	}
+
+	// テンプレートの実行と結果の取得
+	var body bytes.Buffer
+	if err := newPasswordUpdateTemplate.Execute(&body, data); err != nil {
 		return "", "", err // エラー時に空の件名と本文を返す
 	}
 

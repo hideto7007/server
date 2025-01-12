@@ -17,6 +17,8 @@ func TestEmailTemplateService(t *testing.T) {
 	var UpdateValue string = "Update"
 	var DateTime string = "2024年12月07日 20:00"
 	var Year string = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
+	var Link string = "http://exmaple/test"
+	var NewPassword string = "Test12345!"
 
 	t.Run("TemporayPostSignUpTemplate テンプレート", func(t *testing.T) {
 		emailTemplateService := NewEmailTemplateManager()
@@ -137,6 +139,46 @@ func TestEmailTemplateService(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, subject, "【たくわえる】サインアウトのお知らせ")
+		assert.Equal(t, body, expectedBody.String())
+	})
+
+	t.Run("RegisterEmailCheckNoticeTemplate テンプレート", func(t *testing.T) {
+		emailTemplateService := NewEmailTemplateManager()
+
+		subject, body, err := emailTemplateService.RegisterEmailCheckNoticeTemplate(Link, DateTime)
+
+		data := GenericEmailData{
+			Link:     Link,
+			DateTime: DateTime,
+			Year:     Year,
+		}
+
+		var expectedBody bytes.Buffer
+		registerEmailCheckNoticeTemplate.Execute(&expectedBody, data)
+
+		assert.NoError(t, err)
+
+		assert.Equal(t, subject, "【たくわえる】パスワード再設定通知のお知らせ")
+		assert.Equal(t, body, expectedBody.String())
+	})
+
+	t.Run("NewPasswordUpdateTemplate テンプレート", func(t *testing.T) {
+		emailTemplateService := NewEmailTemplateManager()
+
+		subject, body, err := emailTemplateService.NewPasswordUpdateTemplate(NewPassword, DateTime)
+
+		data := GenericEmailData{
+			NewPassword: NewPassword,
+			DateTime:    DateTime,
+			Year:        Year,
+		}
+
+		var expectedBody bytes.Buffer
+		newPasswordUpdateTemplate.Execute(&expectedBody, data)
+
+		assert.NoError(t, err)
+
+		assert.Equal(t, subject, "【たくわえる】パスワード再発行成功のお知らせ")
 		assert.Equal(t, body, expectedBody.String())
 	})
 }

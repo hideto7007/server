@@ -31,6 +31,8 @@ type (
 		PutSignInEditApi(c *gin.Context)
 		DeleteSignInApi(c *gin.Context)
 		SignOutApi(c *gin.Context)
+		RegisterEmailCheckNotice(c *gin.Context)
+		NewPasswordUpdate(c *gin.Context)
 	}
 
 	// JSONデータを受け取るための構造体を定義
@@ -57,6 +59,10 @@ type (
 
 	requestSignInDeleteData struct {
 		Data []models.RequestSignInDeleteData `json:"data"`
+	}
+
+	requestNewPasswordUpdateData struct {
+		Data []models.RequestNewPasswordUpdateData `json:"data"`
 	}
 
 	SignInResult struct {
@@ -822,6 +828,146 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 	// サインイン削除の成功レスポンス
 	response := utils.ResponseWithSingle[string]{
 		Result: "サインアウトに成功",
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// RegisterEmailCheckNotice はパスワード再発行時にすでに登録済みかを確認するために使用する
+//
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
+	UserName := c.Query("user_name")
+
+	validator := validation.EmailCheckRequestData{
+		UserName: UserName,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		response := utils.ErrorResponse{
+			Result: errMsgList,
+		}
+		utils.HandleError(c, http.StatusBadRequest, response)
+		return
+	}
+
+	dbFetcher, _, _ := models.NewSignDataFetcher(
+		config.GetDataBaseSource(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
+	// user_id取得
+	userId, err := dbFetcher.GetUserId(UserName)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: err.Error(),
+		}
+		utils.HandleError(c, http.StatusUnauthorized, response)
+		return
+	}
+
+	tokenId := uuid.New().String() + common.AnyToStr(userId)
+
+	var link string = fmt.Sprintf("%ssign_password_reset?token_id=%s", utils.GetBaseURL(), tokenId)
+
+	subject, body, err := af.EmailTemplateService.RegisterEmailCheckNoticeTemplate(
+		link,
+		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール再通知): " + err.Error(),
+		}
+		utils.HandleError(c, http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(UserName, subject, body, true); err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(パスワード再発行メール再通知): " + err.Error(),
+		}
+		utils.HandleError(c, http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール再通知成功のレスポンス
+	response := utils.ResponseWithSingle[string]{
+		Result: "パスワード再設定通知成功",
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+// NewPasswordUpdate はパスワード再発行時の更新API
+//
+// 引数:
+//   - c: Ginコンテキスト
+//
+
+func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
+	var requestData requestNewPasswordUpdateData
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		// エラーメッセージを出力して確認
+		response := utils.ErrorResponse{
+			ErrorMsg: err.Error(),
+		}
+		utils.HandleError(c, http.StatusBadRequest, response)
+		return
+	}
+
+	validator := validation.RequestNewPasswordUpdateData{
+		TokenId:         requestData.Data[0].TokenId,
+		CurrentPassword: requestData.Data[0].CurrentPassword,
+		NewUserPassword: requestData.Data[0].NewUserPassword,
+		ConfirmPassword: requestData.Data[0].ConfirmPassword,
+	}
+
+	if valid, errMsgList := validator.Validate(); !valid {
+		response := utils.ErrorResponse{
+			Result: errMsgList,
+		}
+		utils.HandleError(c, http.StatusBadRequest, response)
+		return
+	}
+
+	dbFetcher, _, _ := models.NewSignDataFetcher(
+		config.GetDataBaseSource(),
+		utils.NewUtilsFetcher(utils.JwtSecret),
+	)
+	userName, err := dbFetcher.NewPasswordUpdate(requestData.Data[0])
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: err.Error(),
+		}
+		utils.HandleError(c, http.StatusUnauthorized, response)
+		return
+	}
+
+	subject, body, err := af.EmailTemplateService.NewPasswordUpdateTemplate(
+		requestData.Data[0].NewUserPassword,
+		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+	)
+	if err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール): " + err.Error(),
+		}
+		utils.HandleError(c, http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール送信ユーティリティを呼び出し
+	if err := af.UtilsFetcher.SendMail(userName, subject, body, true); err != nil {
+		response := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(パスワード再発行メール): " + err.Error(),
+		}
+		utils.HandleError(c, http.StatusInternalServerError, response)
+		return
+	}
+
+	// メール再通知成功のレスポンス
+	response := utils.ResponseWithSingle[string]{
+		Result: "パスワード再発行成功",
 	}
 	c.JSON(http.StatusOK, response)
 }

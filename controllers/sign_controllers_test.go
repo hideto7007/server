@@ -2828,7 +2828,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -2861,7 +2861,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -2930,7 +2930,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
@@ -2984,7 +2984,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3048,7 +3048,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
@@ -3101,7 +3101,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3148,7 +3148,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3220,7 +3220,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3296,7 +3296,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return(fmt.Errorf("メール送信エラー"))
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3372,7 +3372,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return(nil)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3448,7 +3448,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Return(nil)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_edit", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3499,7 +3499,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -3532,7 +3532,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3593,7 +3593,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3658,7 +3658,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
@@ -3713,7 +3713,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3777,7 +3777,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3846,7 +3846,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -3914,7 +3914,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Return(nil)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/signin_delete", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
@@ -4155,6 +4155,765 @@ func TestSignOutApi(t *testing.T) {
 
 		expectedOk := utils.ResponseWithSingle[string]{
 			Result: "サインアウトに成功",
+		}
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
+	})
+}
+
+func TestRegisterEmailCheckNotice(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	t.Run("RegisterEmailCheckNotice バリデーション 必須", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "ユーザー名は必須です。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("RegisterEmailCheckNotice バリデーション メールアドレス不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=@exmaple", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_name",
+					Message: "正しいメールアドレス形式である必要があります。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("RegisterEmailCheckNotice sql取得で失敗", func(t *testing.T) {
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return -1, fmt.Errorf("登録ユーザーが存在しません")
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "登録ユーザーが存在しません",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("RegisterEmailCheckNotice メールテンプレート生成エラー", func(t *testing.T) {
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			RegisterEmailCheckNoticeTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール再通知): メールテンプレートエラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("RegisterEmailCheckNotice メール送信エラー(削除)", func(t *testing.T) {
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			RegisterEmailCheckNoticeTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ResponseWithSlice[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[string]{
+			ErrorMsg: "メール送信エラー(パスワード再発行メール再通知): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("RegisterEmailCheckNotice result 成功", func(t *testing.T) {
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			RegisterEmailCheckNoticeTemplate(gomock.Any(), gomock.Any()).
+			Return("件名", "本文", nil)
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"GetUserId",
+			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.RegisterEmailCheckNotice(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "パスワード再設定通知成功",
+		}
+		assert.Equal(t, responseBody.Result, expectedOk.Result)
+	})
+}
+
+func TestNewPasswordUpdate(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+
+	t.Run("TestNewPasswordUpdate JSON不正", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		// Invalid JSON
+		invalidJSON := `{"data": [`
+
+		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBufferString(invalidJSON))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.NewPasswordUpdate(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		var response utils.ErrorResponse
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		assert.Contains(t, response.ErrorMsg, "unexpected EOF")
+	})
+
+	t.Run("TestNewPasswordUpdate バリデーション 必須", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		data := testData{
+			Data: []models.RequestNewPasswordUpdateData{
+				{
+					TokenId:         "",
+					CurrentPassword: "",
+					NewUserPassword: "",
+					ConfirmPassword: "",
+				},
+			},
+		}
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.NewPasswordUpdate(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "token_id",
+					Message: "トークンidは必須です。",
+				},
+				{
+					Field:   "current_password",
+					Message: "現在のパスワードは必須です。",
+				},
+				{
+					Field:   "new_user_password",
+					Message: "新しいパスワードは必須です。",
+				},
+				{
+					Field:   "confirm_password",
+					Message: "確認パスワードは必須です。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("TestNewPasswordUpdate バリデーション パスワード不正", func(t *testing.T) {
+
+		dataList := []testData{
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
+						CurrentPassword: "Test12345",
+						NewUserPassword: "Test12345!",
+						ConfirmPassword: "Test12345!",
+					},
+				},
+			},
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
+						CurrentPassword: "Test12345!",
+						NewUserPassword: "Test12345",
+						ConfirmPassword: "Test12345!",
+					},
+				},
+			},
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
+						CurrentPassword: "Test12345!",
+						NewUserPassword: "Test12345!",
+						ConfirmPassword: "Test12345",
+					},
+				},
+			},
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
+						CurrentPassword: "Test12345!",
+						NewUserPassword: "Test12345",
+						ConfirmPassword: "Test12345!",
+					},
+				},
+			},
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
+						CurrentPassword: "Test12345",
+						NewUserPassword: "Test12345",
+						ConfirmPassword: "Test12345!",
+					},
+				},
+			},
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
+						CurrentPassword: "Test12345",
+						NewUserPassword: "Test12345",
+						ConfirmPassword: "Test12345",
+					},
+				},
+			},
+		}
+
+		expectedErrorMessageList := []utils.ErrorResponse{
+			{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "current_password",
+						Message: "現在のパスワードの形式が間違っています。",
+					},
+				},
+			},
+			{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "new_user_password",
+						Message: "新しいパスワードの形式が間違っています。",
+					},
+				},
+			},
+			{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "confirm_password",
+						Message: "確認パスワードの形式が間違っています。",
+					},
+				},
+			},
+			{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "new_user_password",
+						Message: "新しいパスワードの形式が間違っています。",
+					},
+				},
+			},
+			{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "current_password",
+						Message: "現在のパスワードの形式が間違っています。",
+					},
+					{
+						Field:   "new_user_password",
+						Message: "新しいパスワードの形式が間違っています。",
+					},
+				},
+			},
+			{
+				Result: []utils.ErrorMessages{
+					{
+						Field:   "current_password",
+						Message: "現在のパスワードの形式が間違っています。",
+					},
+					{
+						Field:   "new_user_password",
+						Message: "新しいパスワードの形式が間違っています。",
+					},
+					{
+						Field:   "confirm_password",
+						Message: "確認パスワードの形式が間違っています。",
+					},
+				},
+			},
+		}
+
+		for i, data := range dataList {
+			w := httptest.NewRecorder()
+			c, _ := gin.CreateTestContext(w)
+
+			body, _ := json.Marshal(data)
+			c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
+			c.Request.Header.Set("Content-Type", "application/json")
+
+			fetcher := apiSignDataFetcher{
+				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+				CommonFetcher:        common.NewCommonFetcher(),
+				EmailTemplateService: templates.NewEmailTemplateManager(),
+				RedisService:         config.NewRedisManager(),
+			}
+			fetcher.NewPasswordUpdate(c)
+
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+
+			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+			assert.NoError(t, err)
+
+			expectedErrorMessage := expectedErrorMessageList[i]
+			assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
+		}
+	})
+
+	t.Run("TestNewPasswordUpdate sql処理で失敗しパスワード更新できない", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestNewPasswordUpdateData{
+				{
+					TokenId:         "token12",
+					CurrentPassword: "Test12345!",
+					NewUserPassword: "Test12345!",
+					ConfirmPassword: "Test12345!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"NewPasswordUpdate",
+			func(_ *models.SignDataFetcher, data models.RequestNewPasswordUpdateData) (string, error) {
+				return "", fmt.Errorf("sql更新失敗")
+			})
+		defer patches.Reset()
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.NewPasswordUpdate(c)
+
+		assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+		var responseBody utils.ErrorResponse
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "sql更新失敗",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("TestNewPasswordUpdate メールテンプレート生成エラー(パスワード再発行メール)", func(t *testing.T) {
+
+		data := testData{
+			Data: []models.RequestNewPasswordUpdateData{
+				{
+					TokenId:         "token12",
+					CurrentPassword: "Test12345!",
+					NewUserPassword: "Test12345!",
+					ConfirmPassword: "Test12345!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"NewPasswordUpdate",
+			func(_ *models.SignDataFetcher, data models.RequestNewPasswordUpdateData) (string, error) {
+				return "test@exmaple.com", nil
+			})
+		defer patches.Reset()
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		// EmailTemplateService のモックを作成
+		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockEmailTemplateService.EXPECT().
+			NewPasswordUpdateTemplate(gomock.Any(), gomock.Any()).
+			Return("", "", fmt.Errorf("テンプレート生成エラー"))
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: mockEmailTemplateService,
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.NewPasswordUpdate(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ErrorResponse
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール): テンプレート生成エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("TestNewPasswordUpdate メール送信エラー(パスワード再発行メール)", func(t *testing.T) {
+		data := testData{
+			Data: []models.RequestNewPasswordUpdateData{
+				{
+					TokenId:         "token12",
+					CurrentPassword: "Test12345!",
+					NewUserPassword: "Test12345!",
+					ConfirmPassword: "Test12345!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"NewPasswordUpdate",
+			func(_ *models.SignDataFetcher, data models.RequestNewPasswordUpdateData) (string, error) {
+				return "test@exmaple.com", nil
+			})
+		defer patches.Reset()
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(fmt.Errorf("メール送信エラー"))
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.NewPasswordUpdate(c)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		var responseBody utils.ErrorResponse
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorResponse{
+			ErrorMsg: "メール送信エラー(パスワード再発行メール): メール送信エラー",
+		}
+		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+	})
+
+	t.Run("TestNewPasswordUpdate result 成功", func(t *testing.T) {
+		data := testData{
+			Data: []models.RequestNewPasswordUpdateData{
+				{
+					TokenId:         "token12",
+					CurrentPassword: "Test12345!",
+					NewUserPassword: "Test12345!",
+					ConfirmPassword: "Test12345!",
+				},
+			},
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"NewPasswordUpdate",
+			func(_ *models.SignDataFetcher, data models.RequestNewPasswordUpdateData) (string, error) {
+				return "test@exmaple.com", nil
+			})
+		defer patches.Reset()
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			DateTimeStr(gomock.Any(), gomock.Any()).
+			Return("2024年12月2日")
+
+		mockUtilsFetcher.EXPECT().
+			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil)
+
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
+		}
+		fetcher.NewPasswordUpdate(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var responseBody utils.ResponseWithSingle[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedOk := utils.ResponseWithSingle[string]{
+			Result: "パスワード再発行成功",
 		}
 		assert.Equal(t, responseBody.Result, expectedOk.Result)
 	})

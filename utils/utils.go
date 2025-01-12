@@ -92,6 +92,8 @@ var UserId = "user_id"
 var OauthState = "oauth_state"
 var AuthTokenHour = 1
 
+var Uuid = 36
+
 // 定義する場所 (utils パッケージ内)
 type ErrorResponse = ResponseWithSlice[ErrorMessages]
 
@@ -110,6 +112,16 @@ func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
 		JwtSecret:  JwtSecret,
 		MailDialer: mailDialer,
 	}
+}
+
+// クライアントベースURL
+func GetBaseURL() string {
+	return fmt.Sprintf(
+		"%s://%s%s",
+		config.GlobalEnv.Protocol,
+		config.GlobalEnv.ClinetDomain,
+		"/money_management/",
+	)
 }
 
 // HandleError 共通エラーハンドリング
@@ -151,9 +163,9 @@ func HandleError(c *gin.Context, status int, response ErrorResponse) {
 }
 
 // RedirectHandleError リダイレクト用共通エラーハンドリング
-func RedirectHandleError(c *gin.Context, status int, response ErrorResponse, frontMsg string) {
+func RedirectHandleError(c *gin.Context, status int, response ErrorResponse, msg string) {
 
-	errorMessage := url.QueryEscape(frontMsg)
+	errorMessage := url.QueryEscape(msg)
 	var path string = "/money_management/signin?sign_type=external"
 	var baseUrl string = fmt.Sprintf(
 		"%s://%s%s",
@@ -184,9 +196,6 @@ func RedirectHandleError(c *gin.Context, status int, response ErrorResponse, fro
 			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
 		}).Error("APIエラー発生")
 
-		c.JSON(status, ErrorResponse{
-			Result: response.Result,
-		})
 	}
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 	c.Abort()
