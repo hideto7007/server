@@ -12,6 +12,9 @@ import (
 )
 
 const UserPassword = "user_password"
+const CurrentPassword = "current_password"
+const NewUserPassword = "new_user_password"
+const ConfirmPassword = "confirm_password"
 
 // type (
 // 	signInValidationFetcher interface {
@@ -191,20 +194,10 @@ func (data RequestSignInData) Validate() (bool, []utils.ErrorMessages) {
 	}
 
 	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
-		var flag bool = true
-		for i := range errorMessagesList {
-			if errorMessagesList[i].Field == UserPassword {
-				errorMessagesList[i].Message = "パスワードの形式が間違っています。"
-				flag = false
-			}
-		}
-
-		if flag {
-			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
-				Field:   UserPassword,
-				Message: "パスワードの形式が間違っています。",
-			})
-		}
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+			Field:   UserPassword,
+			Message: "パスワードの形式が間違っています。",
+		})
 		validArray[1] = false
 	}
 
@@ -278,20 +271,10 @@ func (data TemporayRequestSignUpData) Validate() (bool, []utils.ErrorMessages) {
 	}
 
 	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
-		var flag bool = true
-		for i := range errorMessagesList {
-			if errorMessagesList[i].Field == UserPassword {
-				errorMessagesList[i].Message = "パスワードの形式が間違っています。"
-				flag = false
-			}
-		}
-
-		if flag {
-			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
-				Field:   UserPassword,
-				Message: "パスワードの形式が間違っています。",
-			})
-		}
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+			Field:   UserPassword,
+			Message: "パスワードの形式が間違っています。",
+		})
 		valid = false
 	}
 
@@ -371,28 +354,18 @@ func (data RequestSignInEditData) Validate() (bool, []utils.ErrorMessages) {
 	}
 
 	if UserId := validInt(data.UserId); !UserId && data.UserId != "" {
-		validArray[0] = false
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   "user_id",
 			Message: "ユーザーIDは整数値のみです。",
 		})
+		validArray[0] = false
 	}
 
 	if password := validPassword(data.UserPassword); !password && data.UserPassword != "" {
-		var flag bool = true
-		for i := range errorMessagesList {
-			if errorMessagesList[i].Field == UserPassword {
-				errorMessagesList[i].Message = "パスワードの形式が間違っています。"
-				flag = false
-			}
-		}
-
-		if flag {
-			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
-				Field:   UserPassword,
-				Message: "パスワードの形式が間違っています。",
-			})
-		}
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+			Field:   UserPassword,
+			Message: "パスワードの形式が間違っています。",
+		})
 		validArray[1] = false
 	}
 
@@ -470,6 +443,7 @@ func (data EmailCheckRequestData) Validate() (bool, []utils.ErrorMessages) {
 
 func (data RequestNewPasswordUpdateData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
+	validArray := [3]bool{true, true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -480,6 +454,36 @@ func (data RequestNewPasswordUpdateData) Validate() (bool, []utils.ErrorMessages
 				Field:   field,
 				Message: msg,
 			})
+		}
+	}
+
+	if currentPassword := validPassword(data.CurrentPassword); !currentPassword && data.CurrentPassword != "" {
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+			Field:   CurrentPassword,
+			Message: "現在のパスワードの形式が間違っています。",
+		})
+		validArray[0] = false
+	}
+
+	if newUserPassword := validPassword(data.NewUserPassword); !newUserPassword && data.NewUserPassword != "" {
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+			Field:   NewUserPassword,
+			Message: "新しいパスワードの形式が間違っています。",
+		})
+		validArray[1] = false
+	}
+
+	if confirmPassword := validPassword(data.ConfirmPassword); !confirmPassword && data.ConfirmPassword != "" {
+		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+			Field:   ConfirmPassword,
+			Message: "確認パスワードの形式が間違っています。",
+		})
+		validArray[2] = false
+	}
+
+	for _, validCheck := range validArray {
+		if !validCheck {
+			valid = false
 		}
 	}
 
