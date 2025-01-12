@@ -857,8 +857,8 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	// 外部認証時のメールアドレス存在チェックに使うメソッドが今回の使用用途にマッチするためここで使用する
-	_, err := dbFetcher.GetExternalAuth(UserName)
+	// user_id取得
+	userId, err := dbFetcher.GetUserId(UserName)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -867,7 +867,9 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 		return
 	}
 
-	var link string = fmt.Sprintf("%ssign_password_reset?user_name=%s", utils.GetBaseURL(), UserName)
+	tokenId := uuid.New().String() + common.AnyToStr(userId)
+
+	var link string = fmt.Sprintf("%ssign_password_reset?token_id=%s", utils.GetBaseURL(), tokenId)
 
 	subject, body, err := af.EmailTemplateService.RegisterEmailCheckNoticeTemplate(
 		link,
@@ -915,7 +917,7 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 	}
 
 	validator := validation.RequestNewPasswordUpdateData{
-		UserName:        requestData.Data[0].UserName,
+		TokenId:         requestData.Data[0].TokenId,
 		CurrentPassword: requestData.Data[0].CurrentPassword,
 		NewUserPassword: requestData.Data[0].NewUserPassword,
 		ConfirmPassword: requestData.Data[0].ConfirmPassword,
@@ -933,7 +935,7 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	err := dbFetcher.NewPasswordUpdate(requestData.Data[0])
+	userName, err := dbFetcher.NewPasswordUpdate(requestData.Data[0])
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -955,7 +957,7 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(userName, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(パスワード再発行メール): " + err.Error(),
 		}

@@ -22,6 +22,8 @@ type (
 		PutSignInEdit(data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
 		DeleteSignIn(data RequestSignInDeleteData) error
+		GetUserId(UserName string) (int, error)
+		NewPasswordUpdate(data RequestNewPasswordUpdateData) (string, error)
 	}
 
 	RequestSignInData struct {
@@ -48,7 +50,7 @@ type (
 	}
 
 	RequestNewPasswordUpdateData struct {
-		UserName        string `json:"user_name"`
+		TokenId         string `json:"token_id"`
 		CurrentPassword string `json:"current_password"`
 		NewUserPassword string `json:"new_user_password"`
 		ConfirmPassword string `json:"confirm_password"`
@@ -77,6 +79,7 @@ type (
 	}
 
 	NewPasswordUpdateData struct {
+		UserName     string
 		UserPassword string
 	}
 
@@ -422,6 +425,31 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 	return nil
 }
 
+// GetUserId user_idを返す
+//
+// 引数:
+//   - data: { user_name: string }
+//
+// 戻り値:
+//
+//	戻り値1: user_idを返し、ない場合は-1
+//	戻り値2: エラー内容(エラーがない場合はnil)
+//
+
+func (pf *SignDataFetcher) GetUserId(UserName string) (int, error) {
+
+	// データベースクエリを実行
+	row := pf.db.QueryRow(DB.GetSignInSyntax, UserName)
+	var record SignInData
+	if err := row.Scan(&record.UserId, &record.UserName, &record.UserPassword); err != nil {
+		if err == sql.ErrNoRows {
+			return -1, fmt.Errorf("登録ユーザーが存在しません")
+		}
+		return -1, err
+	}
+	return record.UserId, nil
+}
+
 // NewPasswordUpdate 新しいパスワードに更新
 //
 // 引数:
@@ -432,7 +460,7 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) error {
+func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) (string, error) {
 
 	var hashPassword string
 
@@ -441,19 +469,21 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 
 	// 1. 登録済みのユーザーパスワードの整合性チェック
 
+	userId := data.TokenId[utils.Uuid:]
+
 	// データベースクエリを実行
-	row := pf.db.QueryRow(DB.PasswordCheckSyntax, data.UserName)
+	row := pf.db.QueryRow(DB.PasswordCheckSyntax, userId)
 	var record NewPasswordUpdateData
-	if err := row.Scan(&record.UserPassword); err != nil {
+	if err := row.Scan(&record.UserName, &record.UserPassword); err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("登録ユーザーが存在しません")
+			return "", fmt.Errorf("登録ユーザーが存在しません")
 		}
-		return err
+		return "", err
 	}
-	// パスワードの整合性を確認
+	// パスワードの整合性""を確認
 	err := pf.UtilsFetcher.CompareHashPassword(record.UserPassword, data.CurrentPassword)
 	if err != nil {
-		return fmt.Errorf("現在のパスワードと一致しませんでした")
+		return "", fmt.Errorf("現在のパスワードと一致しませんでした")
 	}
 
 	// 2. 新しいパスワードへ更新
@@ -461,7 +491,7 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
+		return "", fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
 	// deferでロールバックまたはコミットを管理
@@ -474,7 +504,7 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 	}()
 
 	if data.NewUserPassword != data.ConfirmPassword {
-		return fmt.Errorf("新しいパスワードと確認用のパスワードが一致しませんでした。")
+		return "", fmt.Errorf("新しいパスワードと確認用のパスワードが一致しませんでした。")
 	}
 	hashPassword, _ = pf.UtilsFetcher.EncryptPassword(data.NewUserPassword)
 
@@ -482,10 +512,10 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 		DB.PutPasswordSyntax,
 		hashPassword,
 		time.Now(),
-		data.UserName,
+		userId,
 	); err != nil {
-		return fmt.Errorf("パスワード更新クエリの実行に失敗しました: %v", err)
+		return "", fmt.Errorf("パスワード更新クエリの実行に失敗しました: %v", err)
 	}
 
-	return nil
+	return record.UserName, nil
 }

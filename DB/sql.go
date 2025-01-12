@@ -55,9 +55,9 @@ const GetSignInSyntax = `
 			`
 
 const PasswordCheckSyntax = `
-			SELECT user_password
+			SELECT user_name, user_password
 			FROM users
-			WHERE user_name = $1;
+			WHERE user_id = $1;
 			`
 
 const GetExternalAuthSyntax = `
@@ -88,7 +88,7 @@ const PutPasswordSyntax = `
 				user_password = $1,
 				update_at  = $2
 			WHERE 
-				user_name = $3;
+				user_id = $3;
 			`
 
 const DeleteSignInSyntax = `

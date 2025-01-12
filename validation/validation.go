@@ -78,7 +78,7 @@ type EmailCheckRequestData struct {
 }
 
 type RequestNewPasswordUpdateData struct {
-	UserName        string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	TokenId         string `json:"token_id" valid:"required~トークンidは必須です。"`
 	CurrentPassword string `json:"current_password" valid:"required~現在のパスワードは必須です。"`
 	NewUserPassword string `json:"new_user_password" valid:"required~新しいパスワードは必須です。"`
 	ConfirmPassword string `json:"confirm_password" valid:"required~確認パスワードは必須です。"`

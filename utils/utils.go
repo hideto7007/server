@@ -92,6 +92,8 @@ var UserId = "user_id"
 var OauthState = "oauth_state"
 var AuthTokenHour = 1
 
+var Uuid = 36
+
 // 定義する場所 (utils パッケージ内)
 type ErrorResponse = ResponseWithSlice[ErrorMessages]
 
