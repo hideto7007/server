@@ -49,6 +49,22 @@ func (mr *MockEmailTemplateServiceMockRecorder) DeleteSignInTemplate(Name, UserN
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSignInTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).DeleteSignInTemplate), Name, UserName, DateTime)
 }
 
+// NewPasswordUpdateTemplate mocks base method.
+func (m *MockEmailTemplateService) NewPasswordUpdateTemplate(NewPassword, DateTime string) (string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NewPasswordUpdateTemplate", NewPassword, DateTime)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// NewPasswordUpdateTemplate indicates an expected call of NewPasswordUpdateTemplate.
+func (mr *MockEmailTemplateServiceMockRecorder) NewPasswordUpdateTemplate(NewPassword, DateTime interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewPasswordUpdateTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).NewPasswordUpdateTemplate), NewPassword, DateTime)
+}
+
 // PostSignInEditTemplate mocks base method.
 func (m *MockEmailTemplateService) PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, string, error) {
 	m.ctrl.T.Helper()
@@ -95,6 +111,22 @@ func (m *MockEmailTemplateService) PostSignUpTemplate(Name, UserName, DateTime s
 func (mr *MockEmailTemplateServiceMockRecorder) PostSignUpTemplate(Name, UserName, DateTime interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSignUpTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).PostSignUpTemplate), Name, UserName, DateTime)
+}
+
+// RegisterEmailCheckNoticeTemplate mocks base method.
+func (m *MockEmailTemplateService) RegisterEmailCheckNoticeTemplate(Link, DateTime string) (string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterEmailCheckNoticeTemplate", Link, DateTime)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RegisterEmailCheckNoticeTemplate indicates an expected call of RegisterEmailCheckNoticeTemplate.
+func (mr *MockEmailTemplateServiceMockRecorder) RegisterEmailCheckNoticeTemplate(Link, DateTime interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterEmailCheckNoticeTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).RegisterEmailCheckNoticeTemplate), Link, DateTime)
 }
 
 // SignOutTemplate mocks base method.

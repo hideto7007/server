@@ -74,6 +74,8 @@ func SetupRoutes(r *gin.Engine) {
 		Routes.PUT("/signin_edit", signAPI.PutSignInEditApi)
 		Routes.DELETE("/signin_delete", signAPI.DeleteSignInApi)
 		Routes.GET("/signout", signAPI.SignOutApi)
+		Routes.GET("/register_email_check_notice", signAPI.RegisterEmailCheckNotice)
+		Routes.PUT("/new_password_update", signAPI.NewPasswordUpdate)
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")

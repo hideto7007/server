@@ -47,6 +47,13 @@ type (
 		DeleteName string      `json:"delete_name"`
 	}
 
+	RequestNewPasswordUpdateData struct {
+		UserName        string `json:"user_name"`
+		CurrentPassword string `json:"current_password"`
+		NewUserPassword string `json:"new_user_password"`
+		ConfirmPassword string `json:"confirm_password"`
+	}
+
 	SignInData struct {
 		UserId       int
 		UserName     string
@@ -66,6 +73,10 @@ type (
 	SignInEditData struct {
 		UserId       int
 		UserName     string
+		UserPassword string
+	}
+
+	NewPasswordUpdateData struct {
 		UserPassword string
 	}
 
@@ -223,8 +234,7 @@ func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
 	// deferでロールバックまたはコミットを管理
@@ -265,7 +275,7 @@ func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 
 	var err error
-	createdAt := time.Now()
+	updateAt := time.Now()
 	// 初期値nullにするためポインター型で定義
 	var userName *string
 	var userPassword *string
@@ -276,8 +286,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
 	// deferでロールバックまたはコミットを管理
@@ -305,7 +314,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 	if _, err = tx.Exec(signInEdit,
 		userName,
 		userPassword,
-		createdAt,
+		updateAt,
 		data.UserId); err != nil {
 		return err
 	}
@@ -388,8 +397,7 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
 	// deferでロールバックまたはコミットを管理
@@ -409,6 +417,74 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 		data.UserName,
 	); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// NewPasswordUpdate 新しいパスワードに更新
+//
+// 引数:
+//   - data: { current_password: string, new_user_password: string, confirm_password: string }
+//
+// 戻り値:
+//
+//	戻り値1: エラー内容(エラーがない場合はnil)
+//
+
+func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) error {
+
+	var hashPassword string
+
+	// データベースのクローズをdeferで最初に宣言
+	defer pf.db.Close()
+
+	// 1. 登録済みのユーザーパスワードの整合性チェック
+
+	// データベースクエリを実行
+	row := pf.db.QueryRow(DB.PasswordCheckSyntax, data.UserName)
+	var record NewPasswordUpdateData
+	if err := row.Scan(&record.UserPassword); err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("登録ユーザーが存在しません")
+		}
+		return err
+	}
+	// パスワードの整合性を確認
+	err := pf.UtilsFetcher.CompareHashPassword(record.UserPassword, data.CurrentPassword)
+	if err != nil {
+		return fmt.Errorf("現在のパスワードと一致しませんでした")
+	}
+
+	// 2. 新しいパスワードへ更新
+
+	// トランザクションを開始
+	tx, err := pf.db.Begin()
+	if err != nil {
+		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
+	}
+
+	// deferでロールバックまたはコミットを管理
+	defer func() {
+		if p := recover(); p != nil || err != nil {
+			tx.Rollback() // パニックまたはエラー発生時にロールバック
+		} else {
+			err = tx.Commit() // エラーがなければコミット
+		}
+	}()
+
+	if data.NewUserPassword != data.ConfirmPassword {
+		return fmt.Errorf("新しいパスワードと確認用のパスワードが一致しませんでした。")
+	}
+	hashPassword, _ = pf.UtilsFetcher.EncryptPassword(data.NewUserPassword)
+
+	if _, err = tx.Exec(
+		DB.PutPasswordSyntax,
+		hashPassword,
+		time.Now(),
+		data.UserName,
+	); err != nil {
+		return fmt.Errorf("パスワード更新クエリの実行に失敗しました: %v", err)
 	}
 
 	return nil

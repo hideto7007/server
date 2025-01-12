@@ -73,6 +73,17 @@ type RequestSignOutData struct {
 	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
 }
 
+type EmailCheckRequestData struct {
+	UserName string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+}
+
+type RequestNewPasswordUpdateData struct {
+	UserName        string `json:"user_name" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	CurrentPassword string `json:"current_password" valid:"required~現在のパスワードは必須です。"`
+	NewUserPassword string `json:"new_user_password" valid:"required~新しいパスワードは必須です。"`
+	ConfirmPassword string `json:"confirm_password" valid:"required~確認パスワードは必須です。"`
+}
+
 type RequestGoogleCallbackData struct {
 	Code        string `json:"code" valid:"required~コードは必須です。"`
 	RedirectUri string `json:"redirect_uri" valid:"required~リダイレクトは必須です。"`
@@ -422,6 +433,42 @@ func (data RequestSignInDeleteData) Validate() (bool, []utils.ErrorMessages) {
 }
 
 func (data RequestSignOutData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data EmailCheckRequestData) Validate() (bool, []utils.ErrorMessages) {
+	var errorMessagesList []utils.ErrorMessages
+
+	valid, err := govalidator.ValidateStruct(data)
+
+	if err != nil {
+		errorMap := govalidator.ErrorsByField(err)
+		for field, msg := range errorMap {
+			errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
+				Field:   field,
+				Message: msg,
+			})
+		}
+	}
+
+	return valid, errorMessagesList
+}
+
+func (data RequestNewPasswordUpdateData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
 
 	valid, err := govalidator.ValidateStruct(data)

@@ -308,7 +308,10 @@ var newPasswordUpdateTemplate = template.Must(template.Must(commonTemplate.Clone
 						<h4>更新日時</h4>
 						<p>{{.DateTime}}</p>
 					</div>
-					<p>こちらはご登録ユーザーでパスワード再発行した際に通知されますので、ご自身で実行された場合は無視してください。</p>
+						<p>
+							こちらはご登録ユーザーでパスワード再発行した際に通知されます。<br>
+							今後、サインインされる場合はこちらのパスワードをご使用ください。
+						</p>
 					{{template "Support"}}
 				</div>
 				{{template "Footer" .}}
@@ -506,9 +509,9 @@ func (et *EmailTemplateManager) NewPasswordUpdateTemplate(NewPassword, DateTime 
 
 	// テンプレートに渡すデータを作成
 	data := GenericEmailData{
-		Link:     NewPassword,
-		DateTime: DateTime,
-		Year:     year,
+		NewPassword: NewPassword,
+		DateTime:    DateTime,
+		Year:        year,
 	}
 
 	// テンプレートの実行と結果の取得

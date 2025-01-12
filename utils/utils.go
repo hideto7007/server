@@ -112,6 +112,16 @@ func NewUtilsFetcher(JwtSecret []byte) UtilsFetcher {
 	}
 }
 
+// クライアントベースURL
+func GetBaseURL() string {
+	return fmt.Sprintf(
+		"%s://%s%s",
+		config.GlobalEnv.Protocol,
+		config.GlobalEnv.ClinetDomain,
+		"/money_management/",
+	)
+}
+
 // HandleError 共通エラーハンドリング
 func HandleError(c *gin.Context, status int, response ErrorResponse) {
 
