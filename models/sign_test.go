@@ -44,7 +44,7 @@ func TestGetSignIn(t *testing.T) {
 
 		// クエリエラーが発生したことを確認
 		assert.Error(t, err)
-		assert.EqualError(t, err, "クエリの実行に失敗しました")
+		assert.EqualError(t, err, "クエリー実行エラー： クエリの実行に失敗しました")
 	})
 
 	t.Run("GetSignIn rows.Scan時にエラー発生 UserIdで検証", func(t *testing.T) {
@@ -311,7 +311,7 @@ func TestGetExternalAuth(t *testing.T) {
 
 		// クエリエラーが発生したことを確認
 		assert.Error(t, err)
-		assert.EqualError(t, err, "クエリの実行に失敗しました")
+		assert.EqualError(t, err, "クエリー実行エラー： クエリの実行に失敗しました")
 	})
 
 	t.Run("GetExternalAuth rows.Scan時にエラー発生 UserIdで検証", func(t *testing.T) {
@@ -744,7 +744,7 @@ func TestPutCheck(t *testing.T) {
 
 		// クエリエラーが発生したことを確認
 		assert.Error(t, err)
-		assert.EqualError(t, err, "クエリの実行に失敗しました")
+		assert.EqualError(t, err, "クエリー実行エラー： クエリの実行に失敗しました")
 	})
 
 	t.Run("PutCheck rows.Scan時にエラー発生 UserIdで検証", func(t *testing.T) {
