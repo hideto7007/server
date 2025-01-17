@@ -95,10 +95,10 @@ func RedirectSuccess(location string) (int, string, error) {
 	queryParams := parsedURL.Query()
 
 	userId := queryParams.Get("user_id")
-	userName := queryParams.Get("user_name")
+	userEmail := queryParams.Get("user_email")
 
 	common := common.NewCommonFetcher()
 	id, _ := common.StrToInt(userId)
 
-	return id, userName, nil
+	return id, userEmail, nil
 }

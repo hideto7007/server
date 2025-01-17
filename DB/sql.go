@@ -49,33 +49,33 @@ const DeleteIncomeSyntax = `
 			`
 
 const GetSignInSyntax = `
-			SELECT user_id, user_name, user_password
+			SELECT user_id, user_email, user_password
 			FROM users
-			WHERE user_name = $1;
+			WHERE user_email = $1;
 			`
 
 const PasswordCheckSyntax = `
-			SELECT user_name, user_password
+			SELECT user_email, user_password
 			FROM users
 			WHERE user_id = $1;
 			`
 
 const GetExternalAuthSyntax = `
-			SELECT user_id, user_name
+			SELECT user_id, user_email
 			FROM users
-			WHERE user_name = $1;
+			WHERE user_email = $1;
 			`
 
 const PostSignUpSyntax = `
 			INSERT INTO users
-			(user_name, user_password, create_user, create_at, update_user, update_at, delete_flag)
+			(user_email, user_password, create_user, create_at, update_user, update_at, delete_flag)
 			VALUES ($1, $2, $3, $4, $5, $6, $7);
 			`
 
 const PutSignInEditSyntax = `
 			UPDATE users
 			SET
-				user_name = coalesce($1, user_name),
+				user_email = coalesce($1, user_email),
 				user_password = coalesce($2, user_password),
 				update_at  = $3
 			WHERE 
@@ -94,5 +94,5 @@ const PutPasswordSyntax = `
 const DeleteSignInSyntax = `
 			DELETE FROM users
 			WHERE user_id = $1
-			and user_name = $2;
+			and user_email = $2;
 			`

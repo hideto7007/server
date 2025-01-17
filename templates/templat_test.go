@@ -11,7 +11,7 @@ import (
 
 func TestEmailTemplateService(t *testing.T) {
 	var Name string = "test"
-	var UserName string = "test@example.com"
+	var UserEmail string = "test@example.com"
 	var ConfirmCode string = "1234"
 	var Update string = "ユーザーパスワード"
 	var UpdateValue string = "Update"
@@ -42,13 +42,13 @@ func TestEmailTemplateService(t *testing.T) {
 	t.Run("PostSignUpTemplate テンプレート", func(t *testing.T) {
 		emailTemplateService := NewEmailTemplateManager()
 
-		subject, body, err := emailTemplateService.PostSignUpTemplate(Name, UserName, DateTime)
+		subject, body, err := emailTemplateService.PostSignUpTemplate(Name, UserEmail, DateTime)
 
 		data := GenericEmailData{
-			Name:     Name,
-			UserName: UserName,
-			DateTime: DateTime,
-			Year:     Year,
+			Name:      Name,
+			UserEmail: UserEmail,
+			DateTime:  DateTime,
+			Year:      Year,
 		}
 
 		var expectedBody bytes.Buffer
@@ -84,12 +84,12 @@ func TestEmailTemplateService(t *testing.T) {
 	t.Run("PostSignInTemplate テンプレート", func(t *testing.T) {
 		emailTemplateService := NewEmailTemplateManager()
 
-		subject, body, err := emailTemplateService.PostSignInTemplate(UserName, DateTime)
+		subject, body, err := emailTemplateService.PostSignInTemplate(UserEmail, DateTime)
 
 		data := GenericEmailData{
-			UserName: UserName,
-			DateTime: DateTime,
-			Year:     Year,
+			UserEmail: UserEmail,
+			DateTime:  DateTime,
+			Year:      Year,
 		}
 
 		var expectedBody bytes.Buffer
@@ -104,13 +104,13 @@ func TestEmailTemplateService(t *testing.T) {
 	t.Run("DeleteSignInTemplate テンプレート", func(t *testing.T) {
 		emailTemplateService := NewEmailTemplateManager()
 
-		subject, body, err := emailTemplateService.DeleteSignInTemplate(Name, UserName, DateTime)
+		subject, body, err := emailTemplateService.DeleteSignInTemplate(Name, UserEmail, DateTime)
 
 		data := GenericEmailData{
-			Name:     Name,
-			UserName: UserName,
-			DateTime: DateTime,
-			Year:     Year,
+			Name:      Name,
+			UserEmail: UserEmail,
+			DateTime:  DateTime,
+			Year:      Year,
 		}
 
 		var expectedBody bytes.Buffer
@@ -125,12 +125,12 @@ func TestEmailTemplateService(t *testing.T) {
 	t.Run("SignOutTemplate テンプレート", func(t *testing.T) {
 		emailTemplateService := NewEmailTemplateManager()
 
-		subject, body, err := emailTemplateService.SignOutTemplate(UserName, DateTime)
+		subject, body, err := emailTemplateService.SignOutTemplate(UserEmail, DateTime)
 
 		data := GenericEmailData{
-			UserName: UserName,
-			DateTime: DateTime,
-			Year:     Year,
+			UserEmail: UserEmail,
+			DateTime:  DateTime,
+			Year:      Year,
 		}
 
 		var expectedBody bytes.Buffer

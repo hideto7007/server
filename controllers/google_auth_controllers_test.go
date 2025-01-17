@@ -122,8 +122,8 @@ func TestGoogleSignInCallback(t *testing.T) {
 
 	ResMock := []models.ExternalAuthData{
 		{
-			UserId:   1,
-			UserName: "test@example.com",
+			UserId:    1,
+			UserEmail: "test@example.com",
 		},
 	}
 
@@ -179,7 +179,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -195,7 +195,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
@@ -230,7 +230,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -244,7 +244,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -287,7 +287,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -301,7 +301,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -348,7 +348,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -362,7 +362,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -420,7 +420,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -434,7 +434,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -497,7 +497,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		userInfo := controllers_common.GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			UserName:      "test@example.com",
+			UserEmail:     "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
@@ -518,7 +518,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -545,7 +545,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 
 		mockControllersCommonService.EXPECT().
 			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
-			Return("http://localhost:8080/test?user_id=1&user_name=test@example.com")
+			Return("http://localhost:8080/test?user_id=1&user_email=test@example.com")
 
 		googleManager := GoogleManager{
 			UtilsFetcher:             mockUtilsFetcher,
@@ -558,10 +558,10 @@ func TestGoogleSignInCallback(t *testing.T) {
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 		location := w.Header().Get("Location")
-		userId, userName, err := test_utils.RedirectSuccess(location)
+		userId, userEmail, err := test_utils.RedirectSuccess(location)
 		assert.Nil(t, err)
 		assert.Equal(t, userId, userInfo.UserId)
-		assert.Equal(t, userName, userInfo.UserName)
+		assert.Equal(t, userEmail, userInfo.UserEmail)
 	})
 }
 
@@ -621,8 +621,8 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
-			Name:     "test",
+			UserEmail: "test@example.com",
+			Name:      "test",
 		}
 
 		response := utils.ErrorResponse{}
@@ -671,7 +671,7 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -734,7 +734,7 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -808,7 +808,7 @@ func TestGoogleSignUpCallback(t *testing.T) {
 		userInfo := controllers_common.GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			UserName:      "test@example.com",
+			UserEmail:     "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
@@ -927,9 +927,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		mockControllersCommonService := mock_controllers_common.NewMockControllersCommonService(ctrl)
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
-			Name:     "test",
-			Token:    MockToken,
+			UserEmail: "test@example.com",
+			Name:      "test",
+			Token:     MockToken,
 		}
 		response := utils.ErrorResponse{}
 
@@ -976,9 +976,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
-			Name:     "test",
-			Token:    MockToken,
+			UserEmail: "test@example.com",
+			Name:      "test",
+			Token:     MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1002,7 +1002,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
@@ -1037,9 +1037,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
-			Name:     "test",
-			Token:    MockToken,
+			UserEmail: "test@example.com",
+			Name:      "test",
+			Token:     MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1060,15 +1060,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1111,9 +1111,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
-			Name:     "test",
-			Token:    MockToken,
+			UserEmail: "test@example.com",
+			Name:      "test",
+			Token:     MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1139,15 +1139,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1199,9 +1199,9 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := controllers_common.GoogleUserInfo{
-			UserName: "test@example.com",
-			Name:     "test",
-			Token:    MockToken,
+			UserEmail: "test@example.com",
+			Name:      "test",
+			Token:     MockToken,
 		}
 
 		response := utils.ErrorResponse{}
@@ -1227,15 +1227,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1293,7 +1293,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		userInfo := controllers_common.GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			UserName:      "test@example.com",
+			UserEmail:     "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
@@ -1324,15 +1324,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()

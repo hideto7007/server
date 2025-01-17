@@ -37,7 +37,7 @@ type (
 	LineUserInfo struct {
 		Id          string             `json:"userId,omitempty"`
 		UserId      int                `json:"user_id"`
-		UserName    string             `json:"user_name"`
+		UserEmail   string             `json:"user_email"`
 		DisplayName string             `json:"displayName,omitempty"`
 		LineToken   *LineTokenResponse `json:"line_token,omitempty"`
 	}

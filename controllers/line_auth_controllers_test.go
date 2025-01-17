@@ -120,8 +120,8 @@ func TestLineSignInCallback(t *testing.T) {
 
 	ResMock := []models.ExternalAuthData{
 		{
-			UserId:   1,
-			UserName: "test@example.com",
+			UserId:    1,
+			UserEmail: "test@example.com",
 		},
 	}
 
@@ -179,7 +179,7 @@ func TestLineSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := &config.LineUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -197,7 +197,7 @@ func TestLineSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
@@ -232,7 +232,7 @@ func TestLineSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := &config.LineUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -246,7 +246,7 @@ func TestLineSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -291,7 +291,7 @@ func TestLineSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := &config.LineUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -307,7 +307,7 @@ func TestLineSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -354,7 +354,7 @@ func TestLineSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := &config.LineUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -370,7 +370,7 @@ func TestLineSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -427,7 +427,7 @@ func TestLineSignInCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := &config.LineUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -443,7 +443,7 @@ func TestLineSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -505,7 +505,7 @@ func TestLineSignInCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   mockResp,
 		}
@@ -523,7 +523,7 @@ func TestLineSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -550,7 +550,7 @@ func TestLineSignInCallback(t *testing.T) {
 
 		mockControllersCommonService.EXPECT().
 			RedirectSignIn(gomock.Any(), gomock.Any(), gomock.Any()).
-			Return("http://localhost:8080/test?user_id=1&user_name=test@example.com")
+			Return("http://localhost:8080/test?user_id=1&user_email=test@example.com")
 
 		lineManager := LineManager{
 			UtilsFetcher:             mockUtilsFetcher,
@@ -563,10 +563,10 @@ func TestLineSignInCallback(t *testing.T) {
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 		location := w.Header().Get("Location")
-		userId, userName, err := test_utils.RedirectSuccess(location)
+		userId, userEmail, err := test_utils.RedirectSuccess(location)
 		assert.Nil(t, err)
 		assert.Equal(t, userId, userInfo.UserId)
-		assert.Equal(t, userName, userInfo.UserName)
+		assert.Equal(t, userEmail, userInfo.UserEmail)
 	})
 }
 
@@ -630,7 +630,7 @@ func TestLineSignUpCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 		}
 
@@ -682,7 +682,7 @@ func TestLineSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := &config.LineUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -747,7 +747,7 @@ func TestLineSignUpCallback(t *testing.T) {
 		defer ctrl.Finish()
 
 		userInfo := &config.LineUserInfo{
-			UserName: "test@example.com",
+			UserEmail: "test@example.com",
 		}
 
 		response := utils.ErrorResponse{}
@@ -822,7 +822,7 @@ func TestLineSignUpCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   mockResp,
 		}
@@ -943,7 +943,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   MockResp,
 		}
@@ -990,7 +990,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   MockResp,
 		}
@@ -1014,7 +1014,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
@@ -1051,7 +1051,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   MockResp,
 		}
@@ -1072,15 +1072,15 @@ func TestLineDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1125,7 +1125,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   MockResp,
 		}
@@ -1151,15 +1151,15 @@ func TestLineDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1213,7 +1213,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   MockResp,
 		}
@@ -1239,15 +1239,15 @@ func TestLineDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1305,7 +1305,7 @@ func TestLineDeleteCallback(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234",
 			UserId:      1,
-			UserName:    "test@example.com",
+			UserEmail:   "test@example.com",
 			DisplayName: "test",
 			LineToken:   MockResp,
 		}
@@ -1329,15 +1329,15 @@ func TestLineDeleteCallback(t *testing.T) {
 
 		resMock := []models.ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@example.com",
+				UserId:    1,
+				UserEmail: "test@example.com",
 			},
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserName string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
