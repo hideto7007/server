@@ -34,9 +34,9 @@ func (m *MockEmailTemplateService) EXPECT() *MockEmailTemplateServiceMockRecorde
 }
 
 // DeleteSignInTemplate mocks base method.
-func (m *MockEmailTemplateService) DeleteSignInTemplate(Name, UserName, DateTime string) (string, string, error) {
+func (m *MockEmailTemplateService) DeleteSignInTemplate(Name, UserEmail, DateTime string) (string, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSignInTemplate", Name, UserName, DateTime)
+	ret := m.ctrl.Call(m, "DeleteSignInTemplate", Name, UserEmail, DateTime)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -44,9 +44,9 @@ func (m *MockEmailTemplateService) DeleteSignInTemplate(Name, UserName, DateTime
 }
 
 // DeleteSignInTemplate indicates an expected call of DeleteSignInTemplate.
-func (mr *MockEmailTemplateServiceMockRecorder) DeleteSignInTemplate(Name, UserName, DateTime interface{}) *gomock.Call {
+func (mr *MockEmailTemplateServiceMockRecorder) DeleteSignInTemplate(Name, UserEmail, DateTime interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSignInTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).DeleteSignInTemplate), Name, UserName, DateTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSignInTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).DeleteSignInTemplate), Name, UserEmail, DateTime)
 }
 
 // NewPasswordUpdateTemplate mocks base method.
@@ -82,9 +82,9 @@ func (mr *MockEmailTemplateServiceMockRecorder) PostSignInEditTemplate(Update, U
 }
 
 // PostSignInTemplate mocks base method.
-func (m *MockEmailTemplateService) PostSignInTemplate(UserName, DateTime string) (string, string, error) {
+func (m *MockEmailTemplateService) PostSignInTemplate(UserEmail, DateTime string) (string, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostSignInTemplate", UserName, DateTime)
+	ret := m.ctrl.Call(m, "PostSignInTemplate", UserEmail, DateTime)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -92,15 +92,15 @@ func (m *MockEmailTemplateService) PostSignInTemplate(UserName, DateTime string)
 }
 
 // PostSignInTemplate indicates an expected call of PostSignInTemplate.
-func (mr *MockEmailTemplateServiceMockRecorder) PostSignInTemplate(UserName, DateTime interface{}) *gomock.Call {
+func (mr *MockEmailTemplateServiceMockRecorder) PostSignInTemplate(UserEmail, DateTime interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSignInTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).PostSignInTemplate), UserName, DateTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSignInTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).PostSignInTemplate), UserEmail, DateTime)
 }
 
 // PostSignUpTemplate mocks base method.
-func (m *MockEmailTemplateService) PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error) {
+func (m *MockEmailTemplateService) PostSignUpTemplate(Name, UserEmail, DateTime string) (string, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostSignUpTemplate", Name, UserName, DateTime)
+	ret := m.ctrl.Call(m, "PostSignUpTemplate", Name, UserEmail, DateTime)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -108,9 +108,9 @@ func (m *MockEmailTemplateService) PostSignUpTemplate(Name, UserName, DateTime s
 }
 
 // PostSignUpTemplate indicates an expected call of PostSignUpTemplate.
-func (mr *MockEmailTemplateServiceMockRecorder) PostSignUpTemplate(Name, UserName, DateTime interface{}) *gomock.Call {
+func (mr *MockEmailTemplateServiceMockRecorder) PostSignUpTemplate(Name, UserEmail, DateTime interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSignUpTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).PostSignUpTemplate), Name, UserName, DateTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostSignUpTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).PostSignUpTemplate), Name, UserEmail, DateTime)
 }
 
 // RegisterEmailCheckNoticeTemplate mocks base method.
@@ -130,9 +130,9 @@ func (mr *MockEmailTemplateServiceMockRecorder) RegisterEmailCheckNoticeTemplate
 }
 
 // SignOutTemplate mocks base method.
-func (m *MockEmailTemplateService) SignOutTemplate(UserName, DateTime string) (string, string, error) {
+func (m *MockEmailTemplateService) SignOutTemplate(UserEmail, DateTime string) (string, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignOutTemplate", UserName, DateTime)
+	ret := m.ctrl.Call(m, "SignOutTemplate", UserEmail, DateTime)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -140,9 +140,9 @@ func (m *MockEmailTemplateService) SignOutTemplate(UserName, DateTime string) (s
 }
 
 // SignOutTemplate indicates an expected call of SignOutTemplate.
-func (mr *MockEmailTemplateServiceMockRecorder) SignOutTemplate(UserName, DateTime interface{}) *gomock.Call {
+func (mr *MockEmailTemplateServiceMockRecorder) SignOutTemplate(UserEmail, DateTime interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignOutTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).SignOutTemplate), UserName, DateTime)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignOutTemplate", reflect.TypeOf((*MockEmailTemplateService)(nil).SignOutTemplate), UserEmail, DateTime)
 }
 
 // TemporayPostSignUpTemplate mocks base method.

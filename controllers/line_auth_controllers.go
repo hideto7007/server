@@ -93,7 +93,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.UserName)
+	result, err := dbFetcherSingIn.GetExternalAuth(userInfo.UserEmail)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -125,7 +125,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := gm.EmailTemplateService.PostSignInTemplate(
-		result[0].UserName,
+		result[0].UserEmail,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -137,7 +137,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(result[0].UserName, subject, body, true); err != nil {
+	if err := gm.UtilsFetcher.SendMail(result[0].UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
 		}
@@ -146,7 +146,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	}
 
 	// リダイレクト
-	url := gm.ControllersCommonService.RedirectSignIn(result[0].UserId, result[0].UserName, true)
+	url := gm.ControllersCommonService.RedirectSignIn(result[0].UserId, result[0].UserEmail, true)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
@@ -175,9 +175,9 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 	registerData := requesLineSignUpData{
 		Data: []models.RequestSignUpData{
 			{
-				UserName:     userInfo.UserName,
+				UserEmail:    userInfo.UserEmail,
 				UserPassword: "line",
-				NickName:     userInfo.DisplayName,
+				UserName:     userInfo.DisplayName,
 			},
 		},
 	}
@@ -191,7 +191,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 
 	subject, body, err := gm.EmailTemplateService.PostSignUpTemplate(
 		userInfo.DisplayName,
-		userInfo.UserName,
+		userInfo.UserEmail,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -203,7 +203,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(userInfo.UserName, subject, body, true); err != nil {
+	if err := gm.UtilsFetcher.SendMail(userInfo.UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
@@ -251,7 +251,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := getDbFetcher.GetExternalAuth(userInfo.UserName)
+	result, err := getDbFetcher.GetExternalAuth(userInfo.UserEmail)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -265,8 +265,8 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	data := models.RequestSignInDeleteData{
-		UserId:   result[0].UserId,
-		UserName: userInfo.UserName,
+		UserId:    result[0].UserId,
+		UserEmail: userInfo.UserEmail,
 	}
 	err = deleteDbFetcher.DeleteSignIn(data)
 	if err != nil {
@@ -285,7 +285,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 
 	subject, body, err := gm.EmailTemplateService.DeleteSignInTemplate(
 		userInfo.DisplayName,
-		userInfo.UserName,
+		userInfo.UserEmail,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -297,7 +297,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(userInfo.UserName, subject, body, true); err != nil {
+	if err := gm.UtilsFetcher.SendMail(userInfo.UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
 		}

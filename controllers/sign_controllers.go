@@ -67,20 +67,20 @@ type (
 
 	SignInResult struct {
 		UserId       int    `json:"user_id"`
-		UserName     string `json:"user_name"`
+		UserEmail    string `json:"user_email"`
 		UserPassword string `json:"user_password"`
 	}
 
 	TemporayPostSignUpResult struct {
-		RedisKey string `json:"redis_key"`
-		UserName string `json:"user_name"`
-		NickName string `json:"nick_name"`
+		RedisKey  string `json:"redis_key"`
+		UserEmail string `json:"user_email"`
+		UserName  string `json:"user_name"`
 	}
 
 	RetryAuthEmailResult struct {
-		RedisKey string `json:"redis_key"`
-		UserName string `json:"user_name"`
-		NickName string `json:"nick_name"`
+		RedisKey  string `json:"redis_key"`
+		UserEmail string `json:"user_email"`
+		UserName  string `json:"user_name"`
 	}
 
 	RequestRefreshToken struct {
@@ -138,7 +138,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 	}
 
 	validator := validation.RequestSignInData{
-		UserName:     requestData.Data[0].UserName,
+		UserEmail:    requestData.Data[0].UserEmail,
 		UserPassword: requestData.Data[0].UserPassword,
 	}
 
@@ -187,7 +187,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.PostSignInTemplate(
-		result[0].UserName,
+		result[0].UserEmail,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -199,7 +199,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(result[0].UserName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(result[0].UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
 		}
@@ -213,7 +213,7 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		Result: []SignInResult{
 			{
 				UserId:       result[0].UserId,
-				UserName:     result[0].UserName,
+				UserEmail:    result[0].UserEmail,
 				UserPassword: result[0].UserPassword,
 			},
 		},
@@ -332,9 +332,9 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 	}
 
 	validator := validation.TemporayRequestSignUpData{
-		UserName:     requestData.Data[0].UserName,
+		UserEmail:    requestData.Data[0].UserEmail,
 		UserPassword: requestData.Data[0].UserPassword,
-		NickName:     requestData.Data[0].NickName,
+		UserName:     requestData.Data[0].UserName,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -354,9 +354,9 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 	key := fmt.Sprintf("%s:%s", confirmCodeStr, uid)
 	// redisに登録する際のvalue
 	userInfo := [...]string{
-		requestData.Data[0].UserName,
+		requestData.Data[0].UserEmail,
 		hashPassword,
-		requestData.Data[0].NickName,
+		requestData.Data[0].UserName,
 	}
 	value := strings.Join(userInfo[:], ",") // 配列をカンマ区切りの文字列に変換
 
@@ -369,7 +369,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(requestData.Data[0].NickName, confirmCodeStr)
+	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(requestData.Data[0].UserName, confirmCodeStr)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(仮登録): " + err.Error(),
@@ -379,7 +379,7 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, false); err != nil {
+	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserEmail, subject, body, false); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール仮登録送信エラー(仮登録): " + err.Error(),
 		}
@@ -390,9 +390,9 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 	// サインアップ仮登録成功のレスポンス
 	response := utils.ResponseWithSingle[TemporayPostSignUpResult]{
 		Result: TemporayPostSignUpResult{
-			RedisKey: key,
-			UserName: requestData.Data[0].UserName,
-			NickName: requestData.Data[0].NickName,
+			RedisKey:  key,
+			UserEmail: requestData.Data[0].UserEmail,
+			UserName:  requestData.Data[0].UserName,
 		},
 	}
 	c.JSON(http.StatusOK, response)
@@ -405,16 +405,16 @@ func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
+	UserEmail := c.Query("user_email")
 	UserName := c.Query("user_name")
-	NickName := c.Query("nick_name")
 	RedisKey := c.Query("redis_key")
 
 	var err error
 
 	validator := validation.RequestRetryAuthEmail{
-		UserName: UserName,
-		NickName: NickName,
-		RedisKey: RedisKey,
+		UserEmail: UserEmail,
+		UserName:  UserName,
+		RedisKey:  RedisKey,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -460,7 +460,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(NickName, confirmCodeStr)
+	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(UserName, confirmCodeStr)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メールテンプレート生成エラー(メール再通知): " + err.Error(),
@@ -470,7 +470,7 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(UserName, subject, body, false); err != nil {
+	if err := af.UtilsFetcher.SendMail(UserEmail, subject, body, false); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(メール再通知): " + err.Error(),
 		}
@@ -481,9 +481,9 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	// メール再通知成功のレスポンス
 	response := utils.ResponseWithSingle[RetryAuthEmailResult]{
 		Result: RetryAuthEmailResult{
-			RedisKey: newKey,
-			UserName: UserName,
-			NickName: NickName,
+			RedisKey:  newKey,
+			UserEmail: UserEmail,
+			UserName:  UserName,
 		},
 	}
 	c.JSON(http.StatusOK, response)
@@ -526,17 +526,17 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		return
 	}
 
-	// username,password,nicknameの順で文字列が連結されている
+	// username,password,usernameの順で文字列が連結されている
 	info := strings.Split(redisGet, ",")
 
-	userName := info[0]
+	userEmail := info[0]
 	userPassword := info[1]
-	nickName := info[2]
+	userName := info[2]
 
 	validator := validation.RequestSignUpData{
-		UserName:     userName,
+		UserEmail:    userEmail,
 		UserPassword: userPassword,
-		NickName:     nickName,
+		UserName:     userName,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -555,9 +555,9 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	data := requesTemporaySignUpData{
 		Data: []models.RequestSignUpData{
 			{
-				UserName:     userName,
+				UserEmail:    userEmail,
 				UserPassword: userPassword,
-				NickName:     nickName,
+				UserName:     userName,
 			},
 		},
 	}
@@ -579,8 +579,8 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	}
 
 	subject, body, err := af.EmailTemplateService.PostSignUpTemplate(
-		data.Data[0].NickName,
 		data.Data[0].UserName,
+		data.Data[0].UserEmail,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -592,7 +592,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(data.Data[0].UserName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(data.Data[0].UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
 		}
@@ -630,7 +630,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 
 	validator := validation.RequestSignInEditData{
 		UserId:       userIdCheck,
-		UserName:     requestData.Data[0].UserName,
+		UserEmail:    requestData.Data[0].UserEmail,
 		UserPassword: requestData.Data[0].UserPassword,
 	}
 
@@ -663,7 +663,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 	}
 
 	if result == "ユーザー名更新" {
-		updateValue = requestData.Data[0].UserName
+		updateValue = requestData.Data[0].UserEmail
 	} else {
 		updateValue = requestData.Data[0].UserPassword
 	}
@@ -682,7 +682,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(更新): " + err.Error(),
 		}
@@ -719,7 +719,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	validator := validation.RequestSignInDeleteData{
 		DeleteName: requestData.Data[0].DeleteName,
 		UserId:     userIdCheck,
-		UserName:   requestData.Data[0].UserName,
+		UserEmail:  requestData.Data[0].UserEmail,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -750,7 +750,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 
 	subject, body, err := af.EmailTemplateService.DeleteSignInTemplate(
 		requestData.Data[0].DeleteName,
-		requestData.Data[0].UserName,
+		requestData.Data[0].UserEmail,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -762,7 +762,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
 		}
@@ -786,9 +786,9 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 
 	// パラメータからユーザー情報取得
-	userName := c.Query("user_name")
+	userEmail := c.Query("user_email")
 	validator := validation.RequestSignOutData{
-		UserName: userName,
+		UserEmail: userEmail,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -805,7 +805,7 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.SignOutTemplate(
-		userName,
+		userEmail,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -817,7 +817,7 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(userName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(userEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(サインアウト): " + err.Error(),
 		}
@@ -839,10 +839,10 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
-	UserName := c.Query("user_name")
+	UserEmail := c.Query("user_email")
 
 	validator := validation.EmailCheckRequestData{
-		UserName: UserName,
+		UserEmail: UserEmail,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
@@ -858,7 +858,7 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	// user_id取得
-	userId, err := dbFetcher.GetUserId(UserName)
+	userId, err := dbFetcher.GetUserId(UserEmail)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -884,7 +884,7 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(UserName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(パスワード再発行メール再通知): " + err.Error(),
 		}
@@ -935,7 +935,7 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	userName, err := dbFetcher.NewPasswordUpdate(requestData.Data[0])
+	userEmail, err := dbFetcher.NewPasswordUpdate(requestData.Data[0])
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
@@ -957,7 +957,7 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(userName, subject, body, true); err != nil {
+	if err := af.UtilsFetcher.SendMail(userEmail, subject, body, true); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "メール送信エラー(パスワード再発行メール): " + err.Error(),
 		}

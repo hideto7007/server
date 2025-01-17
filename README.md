@@ -45,9 +45,9 @@ go build -o server main.go
   {
   "data": [
     {
-      "user_name": "ma_kux@icloud.com",
+      "user_email": "ma_kux@icloud.com",
       "user_password": "Test12345!",
-      "nick_name": "ひでと"
+      "user_name": "ひでと"
     }
   ]
 }
@@ -55,7 +55,7 @@ go build -o server main.go
 {
   "data": [
     {
-      "user_name": "ma_kux@icloud.com",
+      "user_email": "ma_kux@icloud.com",
       "user_password": "Test12345!"
     }
   ]

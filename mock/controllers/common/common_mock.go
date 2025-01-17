@@ -86,15 +86,15 @@ func (mr *MockControllersCommonServiceMockRecorder) LineAuthCommon(c, params int
 }
 
 // RedirectSignIn mocks base method.
-func (m *MockControllersCommonService) RedirectSignIn(UserId int, UserName string, flag bool) string {
+func (m *MockControllersCommonService) RedirectSignIn(UserId int, UserEmail string, flag bool) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RedirectSignIn", UserId, UserName, flag)
+	ret := m.ctrl.Call(m, "RedirectSignIn", UserId, UserEmail, flag)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
 // RedirectSignIn indicates an expected call of RedirectSignIn.
-func (mr *MockControllersCommonServiceMockRecorder) RedirectSignIn(UserId, UserName, flag interface{}) *gomock.Call {
+func (mr *MockControllersCommonServiceMockRecorder) RedirectSignIn(UserId, UserEmail, flag interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RedirectSignIn", reflect.TypeOf((*MockControllersCommonService)(nil).RedirectSignIn), UserId, UserName, flag)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RedirectSignIn", reflect.TypeOf((*MockControllersCommonService)(nil).RedirectSignIn), UserId, UserEmail, flag)
 }

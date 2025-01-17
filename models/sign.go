@@ -17,35 +17,35 @@ import (
 type (
 	SignInFetcher interface {
 		GetSignIn(data RequestSignInData) ([]SignInData, error)
-		GetExternalAuth(UserName string) ([]ExternalAuthData, error)
+		GetExternalAuth(UserEmail string) ([]ExternalAuthData, error)
 		PostSignUp(data RequestSignUpData) error
 		PutSignInEdit(data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
 		DeleteSignIn(data RequestSignInDeleteData) error
-		GetUserId(UserName string) (int, error)
+		GetUserId(UserEmail string) (int, error)
 		NewPasswordUpdate(data RequestNewPasswordUpdateData) (string, error)
 	}
 
 	RequestSignInData struct {
-		UserName     string `json:"user_name"`
+		UserEmail    string `json:"user_email"`
 		UserPassword string `json:"user_password"`
 	}
 
 	RequestSignUpData struct {
-		UserName     string `json:"user_name"`
+		UserEmail    string `json:"user_email"`
 		UserPassword string `json:"user_password"`
-		NickName     string `json:"nick_name"`
+		UserName     string `json:"user_name"`
 	}
 
 	RequestSignInEditData struct {
 		UserId       interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserName     string      `json:"user_name"`
+		UserEmail    string      `json:"user_email"`
 		UserPassword string      `json:"user_password"`
 	}
 
 	RequestSignInDeleteData struct {
 		UserId     interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserName   string      `json:"user_name"`
+		UserEmail  string      `json:"user_email"`
 		DeleteName string      `json:"delete_name"`
 	}
 
@@ -58,28 +58,28 @@ type (
 
 	SignInData struct {
 		UserId       int
-		UserName     string
+		UserEmail    string
 		UserPassword string
 	}
 
 	ExternalAuthData struct {
-		UserId   int
-		UserName string
+		UserId    int
+		UserEmail string
 	}
 
 	SignUpData struct {
-		UserName     string
+		UserEmail    string
 		UserPassword string
 	}
 
 	SignInEditData struct {
 		UserId       int
-		UserName     string
+		UserEmail    string
 		UserPassword string
 	}
 
 	NewPasswordUpdateData struct {
-		UserName     string
+		UserEmail    string
 		UserPassword string
 	}
 
@@ -110,7 +110,7 @@ func NewSignDataFetcher(dataSourceName string, UtilsFetcher utils.UtilsFetcher) 
 // SignIn サインイン情報を返す
 //
 // 引数:
-//   - data: { user_id: int, user_name: string, user_password: string }
+//   - data: { user_id: int, user_email: string, user_password: string }
 //
 // 戻り値:
 //
@@ -124,7 +124,7 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 	var err error
 
 	// データベースクエリを実行
-	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserName)
+	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserEmail)
 
 	if err != nil {
 		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
@@ -142,7 +142,7 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 		var record SignInData
 		err := rows.Scan(
 			&record.UserId,
-			&record.UserName,
+			&record.UserEmail,
 			&record.UserPassword,
 		)
 		if err != nil {
@@ -172,7 +172,7 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 // GetExternalAuth 外部認証のサインイン情報を返す
 //
 // 引数:
-//   - data: { user_id: int, user_name: string}
+//   - data: { user_id: int, user_email: string}
 //
 // 戻り値:
 //
@@ -180,13 +180,13 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) GetExternalAuth(UserName string) ([]ExternalAuthData, error) {
+func (pf *SignDataFetcher) GetExternalAuth(UserEmail string) ([]ExternalAuthData, error) {
 
 	var result []ExternalAuthData
 	var err error
 
 	// データベースクエリを実行
-	rows, err := pf.db.Query(DB.GetExternalAuthSyntax, UserName)
+	rows, err := pf.db.Query(DB.GetExternalAuthSyntax, UserEmail)
 
 	if err != nil {
 		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
@@ -197,7 +197,7 @@ func (pf *SignDataFetcher) GetExternalAuth(UserName string) ([]ExternalAuthData,
 		var record ExternalAuthData
 		err := rows.Scan(
 			&record.UserId,
-			&record.UserName,
+			&record.UserEmail,
 		)
 		if err != nil {
 			return result, err
@@ -217,7 +217,7 @@ func (pf *SignDataFetcher) GetExternalAuth(UserName string) ([]ExternalAuthData,
 // SignUp サインアップ情報を新規登録API
 //
 // 引数:
-//   - data: { user_name: string, user_password: string, nick_name: string }
+//   - data: { user_email: string, user_password: string, user_name: string }
 //
 // 戻り値:
 //
@@ -250,11 +250,11 @@ func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 	signUp := DB.PostSignUpSyntax
 
 	if _, err = tx.Exec(signUp,
-		data.UserName,
+		data.UserEmail,
 		data.UserPassword,
-		data.NickName,
+		data.UserName,
 		createdAt,
-		data.NickName,
+		data.UserName,
 		createdAt,
 		1); err != nil {
 		return err
@@ -266,7 +266,7 @@ func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 // PutSignInEdit サイン情報を編集API
 //
 // 引数:
-//   - data: { user_id: int, user_name: string, user_password: string }
+//   - data: { user_id: int, user_email: string, user_password: string }
 //
 // 戻り値:
 //
@@ -278,7 +278,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 	var err error
 	updateAt := time.Now()
 	// 初期値nullにするためポインター型で定義
-	var userName *string
+	var userEmail *string
 	var userPassword *string
 
 	// データベースのクローズをdeferで最初に宣言
@@ -300,8 +300,8 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 	}()
 
 	// ユーザー名及びユーザーパスワードが存在する場合、ポインターに変数代入
-	if data.UserName != "" {
-		userName = &data.UserName
+	if data.UserEmail != "" {
+		userEmail = &data.UserEmail
 	}
 
 	if data.UserPassword != "" {
@@ -313,7 +313,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 	signInEdit := DB.PutSignInEditSyntax
 
 	if _, err = tx.Exec(signInEdit,
-		userName,
+		userEmail,
 		userPassword,
 		updateAt,
 		data.UserId); err != nil {
@@ -326,7 +326,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 // PutCheck サイン情報修正した際に、ユーザー名かパスワードどちらを更新したかチェックする
 //
 // 引数:
-//   - data: { user_id: int, user_name: string, user_password: string }
+//   - data: { user_id: int, user_email: string, user_password: string }
 //
 // 戻り値:
 //
@@ -339,7 +339,7 @@ func (pf *SignDataFetcher) PutCheck(data RequestSignInEditData) (string, error) 
 	var result string
 
 	// データベースクエリを実行
-	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserName)
+	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserEmail)
 	if err != nil {
 		return "", fmt.Errorf("クエリー実行エラー： %v", err)
 	}
@@ -351,7 +351,7 @@ func (pf *SignDataFetcher) PutCheck(data RequestSignInEditData) (string, error) 
 		var record SignInData
 		err := rows.Scan(
 			&record.UserId,
-			&record.UserName,
+			&record.UserEmail,
 			&record.UserPassword,
 		)
 		if err != nil {
@@ -414,7 +414,7 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 	if _, err = tx.Exec(
 		signInDelete,
 		data.UserId,
-		data.UserName,
+		data.UserEmail,
 	); err != nil {
 		return err
 	}
@@ -425,7 +425,7 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 // GetUserId user_idを返す
 //
 // 引数:
-//   - data: { user_name: string }
+//   - data: { user_email: string }
 //
 // 戻り値:
 //
@@ -433,12 +433,12 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) GetUserId(UserName string) (int, error) {
+func (pf *SignDataFetcher) GetUserId(UserEmail string) (int, error) {
 
 	// データベースクエリを実行
-	row := pf.db.QueryRow(DB.GetSignInSyntax, UserName)
+	row := pf.db.QueryRow(DB.GetSignInSyntax, UserEmail)
 	var record SignInData
-	if err := row.Scan(&record.UserId, &record.UserName, &record.UserPassword); err != nil {
+	if err := row.Scan(&record.UserId, &record.UserEmail, &record.UserPassword); err != nil {
 		if err == sql.ErrNoRows {
 			return -1, fmt.Errorf("登録ユーザーが存在しません")
 		}
@@ -471,7 +471,7 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 	// データベースクエリを実行
 	row := pf.db.QueryRow(DB.PasswordCheckSyntax, userId)
 	var record NewPasswordUpdateData
-	if err := row.Scan(&record.UserName, &record.UserPassword); err != nil {
+	if err := row.Scan(&record.UserEmail, &record.UserPassword); err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("登録ユーザーが存在しません")
 		}
@@ -514,5 +514,5 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 		return "", fmt.Errorf("パスワード更新クエリの実行に失敗しました: %v", err)
 	}
 
-	return record.UserName, nil
+	return record.UserEmail, nil
 }

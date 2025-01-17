@@ -67,7 +67,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "",
+					UserEmail:    "",
 					UserPassword: "",
 				},
 			},
@@ -76,7 +76,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -110,7 +110,7 @@ func TestPostSignInApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 				{
@@ -131,7 +131,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "test",
+					UserEmail:    "test",
 					UserPassword: "Test12345!",
 				},
 			},
@@ -140,7 +140,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -174,7 +174,7 @@ func TestPostSignInApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -188,7 +188,7 @@ func TestPostSignInApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInData{
 					{
-						UserName:     "test@example.com",
+						UserEmail:    "test@example.com",
 						UserPassword: "Test12!",
 					},
 				},
@@ -196,7 +196,7 @@ func TestPostSignInApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInData{
 					{
-						UserName:     "test@example.com",
+						UserEmail:    "test@example.com",
 						UserPassword: "Test123456",
 					},
 				},
@@ -206,7 +206,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -259,7 +259,7 @@ func TestPostSignInApi(t *testing.T) {
 	// 	data := testData{
 	// 		Data: []models.RequestSignInData{
 	// 			{
-	// 				UserName:     "test@example.com",
+	// 				UserEmail:     "test@example.com",
 	// 				UserPassword: "Test123456!!",
 	// 			},
 	// 		},
@@ -307,7 +307,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -316,7 +316,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -380,13 +380,13 @@ func TestPostSignInApi(t *testing.T) {
 			Result: []SignInResult{
 				{
 					UserId:       3,
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test12345!",
 				},
 			},
 		}
 		assert.Equal(t, responseBody.Result[0].UserId, expectedOk.Result[0].UserId)
-		assert.Equal(t, responseBody.Result[0].UserName, expectedOk.Result[0].UserName)
+		assert.Equal(t, responseBody.Result[0].UserEmail, expectedOk.Result[0].UserEmail)
 		assert.Equal(t, responseBody.Result[0].UserPassword, expectedOk.Result[0].UserPassword)
 	})
 
@@ -395,7 +395,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -404,7 +404,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -477,7 +477,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -486,7 +486,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -557,7 +557,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -604,7 +604,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -613,7 +613,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -673,7 +673,7 @@ func TestPostSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInData{
 				{
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -682,7 +682,7 @@ func TestPostSignInApi(t *testing.T) {
 		resMock := []models.SignInData{
 			{
 				UserId:       3,
-				UserName:     "test@example.com",
+				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -1320,9 +1320,9 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	var UserName string = "test@example.com"
+	var UserEmail string = "test@example.com"
 	var UserPassword string = "Test12345!"
-	var NickName string = "test!"
+	var UserName string = "test!"
 
 	t.Run("TemporayPostSignUpApi JSON不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -1356,9 +1356,9 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignUpData{
 				{
-					UserName:     "",
+					UserEmail:    "",
 					UserPassword: "",
-					NickName:     "",
+					UserName:     "",
 				},
 			},
 		}
@@ -1384,7 +1384,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 				{
@@ -1392,7 +1392,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 					Message: "パスワードは必須です。",
 				},
 				{
-					Field:   "nick_name",
+					Field:   "user_name",
 					Message: "ニックネームは必須です。",
 				},
 			},
@@ -1409,9 +1409,9 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignUpData{
 				{
-					UserName:     "test@example",
+					UserEmail:    "test@example",
 					UserPassword: UserPassword,
-					NickName:     NickName,
+					UserName:     UserName,
 				},
 			},
 		}
@@ -1437,7 +1437,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -1451,18 +1451,18 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			{
 				Data: []models.RequestSignUpData{
 					{
-						UserName:     UserName,
+						UserEmail:    UserEmail,
 						UserPassword: "Test12!",
-						NickName:     NickName,
+						UserName:     UserName,
 					},
 				},
 			},
 			{
 				Data: []models.RequestSignUpData{
 					{
-						UserName:     UserName,
+						UserEmail:    UserEmail,
 						UserPassword: "Test123456",
-						NickName:     NickName,
+						UserName:     UserName,
 					},
 				},
 			},
@@ -1507,9 +1507,9 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignUpData{
 				{
-					UserName:     UserName,
+					UserEmail:    UserEmail,
 					UserPassword: "Test12345!",
-					NickName:     NickName,
+					UserName:     UserName,
 				},
 			},
 		}
@@ -1585,9 +1585,9 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignUpData{
 				{
-					UserName:     UserName,
+					UserEmail:    UserEmail,
 					UserPassword: UserPassword,
-					NickName:     NickName,
+					UserName:     UserName,
 				},
 			},
 		}
@@ -1650,9 +1650,9 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignUpData{
 				{
-					UserName:     UserName,
+					UserEmail:    UserEmail,
 					UserPassword: UserPassword,
-					NickName:     NickName,
+					UserName:     UserName,
 				},
 			},
 		}
@@ -1715,9 +1715,9 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignUpData{
 				{
-					UserName:     UserName,
+					UserEmail:    UserEmail,
 					UserPassword: UserPassword,
-					NickName:     NickName,
+					UserName:     UserName,
 				},
 			},
 		}
@@ -1745,15 +1745,15 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 
 		expectedOk := utils.ResponseWithSingle[TemporayPostSignUpResult]{
 			Result: TemporayPostSignUpResult{
-				RedisKey: "9355:71eb75e7-79b8-40d1-b581-d819d8470239",
-				UserName: UserName,
-				NickName: NickName,
+				RedisKey:  "9355:71eb75e7-79b8-40d1-b581-d819d8470239",
+				UserEmail: UserEmail,
+				UserName:  UserName,
 			},
 		}
 		// RedisKeyは認証コード:uuidが毎回変わるので文字数でチェック
 		assert.Equal(t, len(responseBody.Result.RedisKey), 41)
+		assert.Equal(t, responseBody.Result.UserEmail, expectedOk.Result.UserEmail)
 		assert.Equal(t, responseBody.Result.UserName, expectedOk.Result.UserName)
-		assert.Equal(t, responseBody.Result.NickName, expectedOk.Result.NickName)
 	})
 }
 
@@ -1762,15 +1762,15 @@ func TestRetryAuthEmail(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	var redisKey string = "5492:672e1fed-0d7e-4735-a91c-f25dc6992eae"
-	var UserName string = "test@example.com"
-	var NickName string = "test"
+	var UserEmail string = "test@example.com"
+	var UserName string = "test"
 
 	t.Run("RetryAuthEmail バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			"",
 			"",
 			"",
@@ -1796,11 +1796,11 @@ func TestRetryAuthEmail(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 				{
-					Field:   "nick_name",
+					Field:   "user_name",
 					Message: "ニックネームは必須です。",
 				},
 				{
@@ -1819,10 +1819,10 @@ func TestRetryAuthEmail(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			redisKey,
 			"test@example",
-			NickName,
+			UserName,
 		)
 
 		c.Request = httptest.NewRequest("GET", url, nil)
@@ -1845,7 +1845,7 @@ func TestRetryAuthEmail(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -1871,10 +1871,10 @@ func TestRetryAuthEmail(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			redisKey,
+			UserEmail,
 			UserName,
-			NickName,
 		)
 
 		c.Request = httptest.NewRequest("GET", url, nil)
@@ -1922,10 +1922,10 @@ func TestRetryAuthEmail(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			redisKey,
+			UserEmail,
 			UserName,
-			NickName,
 		)
 
 		c.Request = httptest.NewRequest("GET", url, nil)
@@ -1977,10 +1977,10 @@ func TestRetryAuthEmail(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			redisKey,
+			UserEmail,
 			UserName,
-			NickName,
 		)
 
 		c.Request = httptest.NewRequest("GET", url, nil)
@@ -2037,10 +2037,10 @@ func TestRetryAuthEmail(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			redisKey,
+			UserEmail,
 			UserName,
-			NickName,
 		)
 
 		c.Request = httptest.NewRequest("GET", url, nil)
@@ -2102,10 +2102,10 @@ func TestRetryAuthEmail(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			redisKey,
+			UserEmail,
 			UserName,
-			NickName,
 		)
 
 		c.Request = httptest.NewRequest("GET", url, nil)
@@ -2167,10 +2167,10 @@ func TestRetryAuthEmail(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		url := fmt.Sprintf(
-			"/api/retry_auth_email?redis_key=%s&user_name=%s&nick_name=%s",
+			"/api/retry_auth_email?redis_key=%s&user_email=%s&user_name=%s",
 			redisKey,
+			UserEmail,
 			UserName,
-			NickName,
 		)
 
 		c.Request = httptest.NewRequest("GET", url, nil)
@@ -2192,15 +2192,15 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		expectedOk := utils.ResponseWithSingle[RetryAuthEmailResult]{
 			Result: RetryAuthEmailResult{
-				RedisKey: redisKey,
-				UserName: UserName,
-				NickName: NickName,
+				RedisKey:  redisKey,
+				UserEmail: UserEmail,
+				UserName:  UserName,
 			},
 		}
 		// redisKeyだけ認証コード:uuidなので文字数で検証
 		assert.Equal(t, len(responseBody.Result.RedisKey), 41)
+		assert.Equal(t, responseBody.Result.UserEmail, expectedOk.Result.UserEmail)
 		assert.Equal(t, responseBody.Result.UserName, expectedOk.Result.UserName)
-		assert.Equal(t, responseBody.Result.NickName, expectedOk.Result.NickName)
 	})
 }
 
@@ -2295,7 +2295,7 @@ func TestPostSignUpApi(t *testing.T) {
 		// モックの挙動を定義
 		mockRedisService.EXPECT().
 			RedisGet(gomock.Any()).
-			Return("test_user,test_password,test_nickname", fmt.Errorf("redisエラー"))
+			Return("test_user,test_password,test_username", fmt.Errorf("redisエラー"))
 
 		data := testData{
 			Data: []RequestRedisKeyData{
@@ -2392,11 +2392,11 @@ func TestPostSignUpApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "nick_name",
+					Field:   "user_name",
 					Message: "ニックネームは必須です。",
 				},
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 				{
@@ -2424,7 +2424,7 @@ func TestPostSignUpApi(t *testing.T) {
 		// モックの挙動を定義
 		mockRedisService.EXPECT().
 			RedisGet(gomock.Any()).
-			Return("test_user,test_password,test_nickname", nil)
+			Return("test_user,test_password,test_username", nil)
 
 		data := testData{
 			Data: []RequestRedisKeyData{
@@ -2464,7 +2464,7 @@ func TestPostSignUpApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -2854,7 +2854,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "",
-					UserName:     "",
+					UserEmail:    "",
 					UserPassword: "",
 				},
 			},
@@ -2893,7 +2893,7 @@ func TestPutSignInEditApi(t *testing.T) {
 					Message: "ユーザーIDは必須です。",
 				},
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 			},
@@ -2910,7 +2910,7 @@ func TestPutSignInEditApi(t *testing.T) {
 				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "test",
-						UserName:     "test@example.com",
+						UserEmail:    "test@example.com",
 						UserPassword: "",
 					},
 				},
@@ -2919,7 +2919,7 @@ func TestPutSignInEditApi(t *testing.T) {
 				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "1.25",
-						UserName:     "test@example.com",
+						UserEmail:    "test@example.com",
 						UserPassword: "",
 					},
 				},
@@ -2977,7 +2977,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test@example",
+					UserEmail:    "test@example",
 					UserPassword: "Test12345!",
 				},
 			},
@@ -3012,7 +3012,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -3027,7 +3027,7 @@ func TestPutSignInEditApi(t *testing.T) {
 				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "1",
-						UserName:     "test@example.com",
+						UserEmail:    "test@example.com",
 						UserPassword: "Test12!",
 					},
 				},
@@ -3036,7 +3036,7 @@ func TestPutSignInEditApi(t *testing.T) {
 				Data: []models.RequestSignInEditData{
 					{
 						UserId:       "2",
-						UserName:     "test@example.com",
+						UserEmail:    "test@example.com",
 						UserPassword: "Test123456",
 					},
 				},
@@ -3091,7 +3091,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -3138,7 +3138,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -3193,7 +3193,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -3265,7 +3265,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -3341,7 +3341,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -3417,7 +3417,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			Data: []models.RequestSignInEditData{
 				{
 					UserId:       "1",
-					UserName:     "test@example.com",
+					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
@@ -3525,7 +3525,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Data: []models.RequestSignInDeleteData{
 				{
 					UserId:     "",
-					UserName:   "",
+					UserEmail:  "",
 					DeleteName: "",
 				},
 			},
@@ -3564,7 +3564,7 @@ func TestDeleteSignInApi(t *testing.T) {
 					Message: "ユーザーIDは必須です。",
 				},
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 				{
@@ -3586,7 +3586,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Data: []models.RequestSignInDeleteData{
 				{
 					UserId:     "1",
-					UserName:   "test@example",
+					UserEmail:  "test@example",
 					DeleteName: "test",
 				},
 			},
@@ -3621,7 +3621,7 @@ func TestDeleteSignInApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -3638,7 +3638,7 @@ func TestDeleteSignInApi(t *testing.T) {
 				Data: []models.RequestSignInDeleteData{
 					{
 						UserId:     "test",
-						UserName:   "test@example.com",
+						UserEmail:  "test@example.com",
 						DeleteName: "test",
 					},
 				},
@@ -3647,7 +3647,7 @@ func TestDeleteSignInApi(t *testing.T) {
 				Data: []models.RequestSignInDeleteData{
 					{
 						UserId:     "1.25",
-						UserName:   "test@example.com",
+						UserEmail:  "test@example.com",
 						DeleteName: "test",
 					},
 				},
@@ -3703,7 +3703,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Data: []models.RequestSignInDeleteData{
 				{
 					UserId:     "1",
-					UserName:   "test@example.com",
+					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
@@ -3750,7 +3750,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Data: []models.RequestSignInDeleteData{
 				{
 					UserId:     "1",
-					UserName:   "test@example.com",
+					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
@@ -3814,7 +3814,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Data: []models.RequestSignInDeleteData{
 				{
 					UserId:     "1",
-					UserName:   "test@example.com",
+					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
@@ -3883,7 +3883,7 @@ func TestDeleteSignInApi(t *testing.T) {
 			Data: []models.RequestSignInDeleteData{
 				{
 					UserId:     "1",
-					UserName:   "test@example.com",
+					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
@@ -3954,7 +3954,7 @@ func TestSignOutApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/signout?user_name=", nil)
+		c.Request = httptest.NewRequest("GET", "/api/signout?user_email=", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -3974,7 +3974,7 @@ func TestSignOutApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 			},
@@ -3988,7 +3988,7 @@ func TestSignOutApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/signout?user_name=test@example", nil)
+		c.Request = httptest.NewRequest("GET", "/api/signout?user_email=test@example", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -4008,7 +4008,7 @@ func TestSignOutApi(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -4038,7 +4038,7 @@ func TestSignOutApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/signout?user_name=test@example.com", nil)
+		c.Request = httptest.NewRequest("GET", "/api/signout?user_email=test@example.com", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -4087,7 +4087,7 @@ func TestSignOutApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/signout?user_name=test@example.com", nil)
+		c.Request = httptest.NewRequest("GET", "/api/signout?user_email=test@example.com", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -4136,7 +4136,7 @@ func TestSignOutApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/signout?user_name=test@example.com", nil)
+		c.Request = httptest.NewRequest("GET", "/api/signout?user_email=test@example.com", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -4168,7 +4168,7 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=", nil)
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_email=", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -4188,7 +4188,7 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "ユーザー名は必須です。",
 				},
 			},
@@ -4202,7 +4202,7 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=@exmaple", nil)
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_email=@exmaple", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -4222,7 +4222,7 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
 			Result: []utils.ErrorMessages{
 				{
-					Field:   "user_name",
+					Field:   "user_email",
 					Message: "正しいメールアドレス形式である必要があります。",
 				},
 			},
@@ -4237,13 +4237,13 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_email=text@exmaple.com", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetUserId",
-			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (int, error) {
 				return -1, fmt.Errorf("登録ユーザーが存在しません")
 			})
 		defer patches.Reset()
@@ -4290,13 +4290,13 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_email=text@exmaple.com", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetUserId",
-			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (int, error) {
 				return 1, nil
 			})
 		defer patches.Reset()
@@ -4347,13 +4347,13 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_email=text@exmaple.com", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetUserId",
-			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (int, error) {
 				return 1, nil
 			})
 		defer patches.Reset()
@@ -4404,13 +4404,13 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
-		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_name=text@exmaple.com", nil)
+		c.Request = httptest.NewRequest("GET", "/api/register_email_check_notice?user_email=text@exmaple.com", nil)
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetUserId",
-			func(_ *models.SignDataFetcher, UserName string) (int, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (int, error) {
 				return 1, nil
 			})
 		defer patches.Reset()

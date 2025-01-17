@@ -25,7 +25,7 @@ type (
 			utils.ErrorResponse,
 		)
 		GetRevoke(client *http.Client, url string, AccessToken string) (*http.Response, error)
-		RedirectSignIn(UserId int, UserName string, flag bool) string
+		RedirectSignIn(UserId int, UserEmail string, flag bool) string
 	}
 
 	ControllersCommonManager struct {
@@ -37,7 +37,7 @@ type (
 		ID            string        `json:"id,omitempty"`
 		UserId        int           `json:"user_id"`
 		Email         string        `json:"email,omitempty"`
-		UserName      string        `json:"user_name"`
+		UserEmail     string        `json:"user_email"`
 		VerifiedEmail bool          `json:"verified_email,omitempty"`
 		Name          string        `json:"name,omitempty"`
 		GivenName     string        `json:"given_name,omitempty"`
@@ -190,7 +190,7 @@ func (gm *ControllersCommonManager) LineAuthCommon(c *gin.Context, params LinePr
 
 	// lineトークン情報セット
 	userInfo.LineToken = tokenResp
-	userInfo.UserName = email
+	userInfo.UserEmail = email
 
 	return http.StatusOK, userInfo, utils.ErrorResponse{}
 }
@@ -201,7 +201,7 @@ func (gm *ControllersCommonManager) GetRevoke(client *http.Client, url string, A
 	return resp, err
 }
 
-func (gm *ControllersCommonManager) RedirectSignIn(UserId int, UserName string, flag bool) string {
+func (gm *ControllersCommonManager) RedirectSignIn(UserId int, UserEmail string, flag bool) string {
 	// リダイレクト
 	var url string
 	var path string = "/money_management/signin?sign_type=external"
@@ -213,10 +213,10 @@ func (gm *ControllersCommonManager) RedirectSignIn(UserId int, UserName string, 
 	)
 	if flag {
 		url = fmt.Sprintf(
-			"%s&user_id=%d&user_name=%s",
+			"%s&user_id=%d&user_email=%s",
 			baseUrl,
 			UserId,
-			UserName,
+			UserEmail,
 		)
 	} else {
 		url = baseUrl

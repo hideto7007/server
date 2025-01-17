@@ -31,13 +31,13 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnError(fmt.Errorf("クエリの実行に失敗しました"))
 
 		// テストを実行
@@ -60,13 +60,13 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		}).AddRow(
 			"test",
 			"test@exmple.com",
@@ -75,7 +75,7 @@ func TestGetSignIn(t *testing.T) {
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -97,13 +97,13 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// 正常な行データを用意
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		}).AddRow(
 			1,
 			"test@exmple.com",
@@ -115,7 +115,7 @@ func TestGetSignIn(t *testing.T) {
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -138,7 +138,7 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
@@ -151,7 +151,7 @@ func TestGetSignIn(t *testing.T) {
 		mockData := []SignInData{
 			{
 				UserId:       1,
-				UserName:     "test@exmple.com",
+				UserEmail:    "test@exmple.com",
 				UserPassword: string(hashedPassword),
 			},
 		}
@@ -160,19 +160,19 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		})
 
 		for _, data := range mockData {
 			rows.AddRow(
 				data.UserId,
-				data.UserName,
+				data.UserEmail,
 				data.UserPassword,
 			)
 		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -203,7 +203,7 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
@@ -211,11 +211,11 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		})
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -243,14 +243,14 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		mockData := []SignInData{
 			{
 				UserId:       1,
-				UserName:     "test@exmple.com",
+				UserEmail:    "test@exmple.com",
 				UserPassword: "Test12345!",
 			},
 		}
@@ -259,19 +259,19 @@ func TestGetSignIn(t *testing.T) {
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		})
 
 		for _, data := range mockData {
 			rows.AddRow(
 				data.UserId,
-				data.UserName,
+				data.UserEmail,
 				data.UserPassword,
 			)
 		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -300,15 +300,15 @@ func TestGetExternalAuth(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserName := "test@exmple.com"
+		UserEmail := "test@exmple.com"
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
-			WithArgs(UserName).
+			WithArgs(UserEmail).
 			WillReturnError(fmt.Errorf("クエリの実行に失敗しました"))
 
 		// テストを実行
-		_, err = dbFetcher.GetExternalAuth(UserName)
+		_, err = dbFetcher.GetExternalAuth(UserEmail)
 
 		// クエリエラーが発生したことを確認
 		assert.Error(t, err)
@@ -326,19 +326,19 @@ func TestGetExternalAuth(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserName := "test@exmple.com"
+		UserEmail := "test@exmple.com"
 
-		rows := sqlmock.NewRows([]string{"user_id", "user_name"}).
-			AddRow("test", UserName)
+		rows := sqlmock.NewRows([]string{"user_id", "user_email"}).
+			AddRow("test", UserEmail)
 
 		// モッククエリの期待値を設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
-			WithArgs(UserName). // ここで引数が一致しないとマッチしない
+			WithArgs(UserEmail). // ここで引数が一致しないとマッチしない
 			WillReturnRows(rows)
 
 		// テスト対象関数を実行
 		var result []ExternalAuthData
-		result, err = dbFetcher.GetExternalAuth(UserName)
+		result, err = dbFetcher.GetExternalAuth(UserEmail)
 
 		// エラーが発生したことを確認
 		assert.Error(t, err)
@@ -356,20 +356,20 @@ func TestGetExternalAuth(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserName := "test@exmple.com"
+		UserEmail := "test@exmple.com"
 
-		rows := sqlmock.NewRows([]string{"user_id", "user_name"}).
-			AddRow(1, UserName)
+		rows := sqlmock.NewRows([]string{"user_id", "user_email"}).
+			AddRow(1, UserEmail)
 		rows.RowError(0, fmt.Errorf("forced row error"))
 
 		// モッククエリの期待値を設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
-			WithArgs(UserName). // ここで引数が一致しないとマッチしない
+			WithArgs(UserEmail). // ここで引数が一致しないとマッチしない
 			WillReturnRows(rows)
 
 		// テスト対象関数を実行
 		var result []ExternalAuthData
-		result, err = dbFetcher.GetExternalAuth(UserName)
+		result, err = dbFetcher.GetExternalAuth(UserEmail)
 
 		// エラーが発生したことを確認
 		assert.Error(t, err)
@@ -388,12 +388,12 @@ func TestGetExternalAuth(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserName := "test@exmple.com"
+		UserEmail := "test@exmple.com"
 
 		mockData := []ExternalAuthData{
 			{
-				UserId:   1,
-				UserName: "test@exmple.com",
+				UserId:    1,
+				UserEmail: "test@exmple.com",
 			},
 		}
 
@@ -401,22 +401,22 @@ func TestGetExternalAuth(t *testing.T) {
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name",
+			"user_id", "user_email",
 		})
 
 		for _, data := range mockData {
 			rows.AddRow(
 				data.UserId,
-				data.UserName,
+				data.UserEmail,
 			)
 		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
-			WithArgs(UserName).
+			WithArgs(UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
-		result, err := dbFetcher.GetExternalAuth(UserName)
+		result, err := dbFetcher.GetExternalAuth(UserEmail)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -442,21 +442,21 @@ func TestGetExternalAuth(t *testing.T) {
 		}
 
 		// テスト対象のデータ
-		UserName := "test@exmple.com"
+		UserEmail := "test@exmple.com"
 
 		expectedData := "存在しないユーザー名です。"
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name",
+			"user_id", "user_email",
 		})
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
-			WithArgs(UserName).
+			WithArgs(UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
-		result, err := dbFetcher.GetExternalAuth(UserName)
+		result, err := dbFetcher.GetExternalAuth(UserEmail)
 
 		// 取得したデータが期待値と一致することを検証
 		assert.Empty(t, result)
@@ -481,9 +481,9 @@ func TestPostSignUp(t *testing.T) {
 		}
 
 		testData := RequestSignUpData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
-			NickName:     "test",
+			UserName:     "test",
 		}
 
 		// モックの準備
@@ -519,9 +519,9 @@ func TestPostSignUp(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignUpData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
-			NickName:     "test",
+			UserName:     "test",
 		}
 
 		// モックの準備
@@ -563,9 +563,9 @@ func TestPostSignUp(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignUpData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
-			NickName:     "test",
+			UserName:     "test",
 		}
 
 		// InsertIncomeメソッドを呼び出し
@@ -591,7 +591,7 @@ func TestPutSignInEdit(t *testing.T) {
 		}
 
 		testData := RequestSignInEditData{
-			UserName:     "",
+			UserEmail:    "",
 			UserPassword: "Test12345!",
 			UserId:       1,
 		}
@@ -625,7 +625,7 @@ func TestPutSignInEdit(t *testing.T) {
 		}
 
 		testData := RequestSignInEditData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "",
 			UserId:       1,
 		}
@@ -660,7 +660,7 @@ func TestPutSignInEdit(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInEditData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 			UserId:       1,
 		}
@@ -701,7 +701,7 @@ func TestPutSignInEdit(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInEditData{
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 			UserId:       1,
 		}
@@ -731,13 +731,13 @@ func TestPutCheck(t *testing.T) {
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
 			UserId:       "1",
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnError(fmt.Errorf("クエリの実行に失敗しました"))
 
 		// テストを実行
@@ -761,13 +761,13 @@ func TestPutCheck(t *testing.T) {
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
 			UserId:       "test",
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		}).AddRow(
 			"test",
 			"test@exmple.com",
@@ -776,7 +776,7 @@ func TestPutCheck(t *testing.T) {
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -799,13 +799,13 @@ func TestPutCheck(t *testing.T) {
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
 			UserId:       "1",
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
 		// 正常な行データを用意
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		}).AddRow(
 			1,
 			"test@exmple.com",
@@ -817,7 +817,7 @@ func TestPutCheck(t *testing.T) {
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -852,7 +852,7 @@ func TestPutCheck(t *testing.T) {
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
 			UserId:       "1",
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
@@ -865,7 +865,7 @@ func TestPutCheck(t *testing.T) {
 		mockData := []SignInData{
 			{
 				UserId:       1,
-				UserName:     "test@exmple.com",
+				UserEmail:    "test@exmple.com",
 				UserPassword: string(hashedPassword),
 			},
 		}
@@ -874,19 +874,19 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		})
 
 		for _, data := range mockData {
 			rows.AddRow(
 				data.UserId,
-				data.UserName,
+				data.UserEmail,
 				data.UserPassword,
 			)
 		}
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -918,7 +918,7 @@ func TestPutCheck(t *testing.T) {
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
 			UserId:       "1",
-			UserName:     "test@exmple.com",
+			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
 
@@ -926,11 +926,11 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		})
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(requestData.UserName).
+			WithArgs(requestData.UserEmail).
 			WillReturnRows(rows)
 
 		// テストを実行
@@ -962,8 +962,8 @@ func TestDeleteSignIn(t *testing.T) {
 		}
 
 		testData := RequestSignInDeleteData{
-			UserId:   1,
-			UserName: "text@example.com",
+			UserId:    1,
+			UserEmail: "text@example.com",
 		}
 
 		// モックの準備
@@ -994,8 +994,8 @@ func TestDeleteSignIn(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInDeleteData{
-			UserId:   1,
-			UserName: "text@example.com",
+			UserId:    1,
+			UserEmail: "text@example.com",
 		}
 
 		// モックの準備
@@ -1047,7 +1047,7 @@ func TestDeleteSignIn(t *testing.T) {
 }
 
 func TestGetUserId(t *testing.T) {
-	UserName := "text@example.com"
+	UserEmail := "text@example.com"
 	t.Run("GetUserId 登録ユーザーが存在しない", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
@@ -1060,11 +1060,11 @@ func TestGetUserId(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(UserName).
+			WithArgs(UserEmail).
 			WillReturnError(sql.ErrNoRows)
 
 		// テスト実行
-		userId, err := dbFetcher.GetUserId(UserName)
+		userId, err := dbFetcher.GetUserId(UserEmail)
 
 		// 検証
 		assert.Error(t, err)
@@ -1083,11 +1083,11 @@ func TestGetUserId(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(UserName).
+			WithArgs(UserEmail).
 			WillReturnError(fmt.Errorf("dbエラー"))
 
 		// テスト実行
-		userId, err := dbFetcher.GetUserId(UserName)
+		userId, err := dbFetcher.GetUserId(UserEmail)
 
 		// 検証
 		assert.Error(t, err)
@@ -1106,7 +1106,7 @@ func TestGetUserId(t *testing.T) {
 
 		// テスト用の行データを設定
 		row := sqlmock.NewRows([]string{
-			"user_id", "user_name", "user_password",
+			"user_id", "user_email", "user_password",
 		}).AddRow(
 			"1",
 			"test@exmple.com",
@@ -1115,11 +1115,11 @@ func TestGetUserId(t *testing.T) {
 
 		// クエリ実行時にエラーを返すようにモックを設定
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
-			WithArgs(UserName).
+			WithArgs(UserEmail).
 			WillReturnRows(row)
 
 		// テスト実行
-		userId, err := dbFetcher.GetUserId(UserName)
+		userId, err := dbFetcher.GetUserId(UserEmail)
 
 		// 検証
 		assert.Equal(t, 1, userId)
@@ -1151,11 +1151,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 			WillReturnError(sql.ErrNoRows)
 
 		// テスト実行
-		userName, err := dbFetcher.NewPasswordUpdate(Data)
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
 
 		// 検証
 		assert.Error(t, err)
-		assert.Equal(t, "", userName)
+		assert.Equal(t, "", userEmail)
 		assert.Equal(t, err.Error(), "登録ユーザーが存在しません")
 	})
 	t.Run("NewPasswordUpdate dbエラー", func(t *testing.T) {
@@ -1174,11 +1174,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 			WillReturnError(fmt.Errorf("dbエラー"))
 
 		// テスト実行
-		userName, err := dbFetcher.NewPasswordUpdate(Data)
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
 
 		// 検証
 		assert.Error(t, err)
-		assert.Equal(t, "", userName)
+		assert.Equal(t, "", userEmail)
 		assert.Equal(t, err.Error(), "dbエラー")
 	})
 	t.Run("NewPasswordUpdate パスワードの不整合", func(t *testing.T) {
@@ -1202,7 +1202,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Return(fmt.Errorf("エラー"))
 
 		row := sqlmock.NewRows([]string{
-			"user_name", "user_password",
+			"user_email", "user_password",
 		}).AddRow(
 			"test@exmaple.com",
 			"Test12345!",
@@ -1213,11 +1213,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 			WillReturnRows(row)
 
 		// テスト実行
-		userName, err := dbFetcher.NewPasswordUpdate(Data)
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
 
 		// 検証
 		assert.Error(t, err)
-		assert.Equal(t, "", userName)
+		assert.Equal(t, "", userEmail)
 		assert.Equal(t, "現在のパスワードと一致しませんでした。", err.Error())
 	})
 	t.Run("NewPasswordUpdate トランザクション失敗", func(t *testing.T) {
@@ -1237,7 +1237,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_name", "user_password",
+			"user_email", "user_password",
 		}).AddRow(
 			"test@exmaple.com",
 			"Test12345!",
@@ -1255,11 +1255,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
 
 		// テスト実行
-		userName, err := dbFetcher.NewPasswordUpdate(Data)
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
 
 		// 検証
 		assert.Error(t, err)
-		assert.Equal(t, "", userName)
+		assert.Equal(t, "", userEmail)
 		assert.Equal(t, "トランザクションの開始に失敗しました: transaction begin error", err.Error())
 	})
 	t.Run("NewPasswordUpdate 新しいパスワードと確認用のパスワードが一致しませんでした。", func(t *testing.T) {
@@ -1279,7 +1279,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_name", "user_password",
+			"user_email", "user_password",
 		}).AddRow(
 			"test@exmaple.com",
 			"Test12345!",
@@ -1310,11 +1310,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 		Data.ConfirmPassword = "Test1234567!"
 
 		// テスト実行
-		userName, err := dbFetcher.NewPasswordUpdate(Data)
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
 
 		// 検証
 		assert.Error(t, err)
-		assert.Equal(t, "", userName)
+		assert.Equal(t, "", userEmail)
 		assert.Equal(t, "新しいパスワードと確認用のパスワードが一致しませんでした。", err.Error())
 		Data.ConfirmPassword = tmpPs
 	})
@@ -1335,7 +1335,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_name", "user_password",
+			"user_email", "user_password",
 		}).AddRow(
 			"test@exmaple.com",
 			"Test12345!",
@@ -1365,11 +1365,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 		mock.ExpectRollback() // エラー発生時にはロールバックを期待
 
 		// テスト実行
-		userName, err := dbFetcher.NewPasswordUpdate(Data)
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
 
 		// 検証
 		assert.Error(t, err)
-		assert.Equal(t, "", userName)
+		assert.Equal(t, "", userEmail)
 		assert.Equal(t, "パスワード更新クエリの実行に失敗しました: update failed", err.Error())
 	})
 	t.Run("NewPasswordUpdate 更新成功", func(t *testing.T) {
@@ -1389,7 +1389,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_name", "user_password",
+			"user_email", "user_password",
 		}).AddRow(
 			"test@exmaple.com",
 			"Test12345!",
@@ -1419,11 +1419,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 		mock.ExpectRollback()
 
 		// テスト実行
-		userName, err := dbFetcher.NewPasswordUpdate(Data)
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
 
 		// 検証
 		assert.NoError(t, err)
-		assert.Equal(t, "test@exmaple.com", userName)
+		assert.Equal(t, "test@exmaple.com", userEmail)
 		assert.Nil(t, err)
 	})
 }

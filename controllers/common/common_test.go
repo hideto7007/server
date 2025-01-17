@@ -234,7 +234,7 @@ func TestGoogleAuthCommon(t *testing.T) {
 		userInfo := GoogleUserInfo{
 			ID:            "",
 			UserId:        0,
-			UserName:      "",
+			UserEmail:     "",
 			VerifiedEmail: false,
 			Name:          "",
 			GivenName:     "",
@@ -270,7 +270,7 @@ func TestGoogleAuthCommon(t *testing.T) {
 		userInfo := GoogleUserInfo{
 			ID:            "1234",
 			UserId:        1,
-			UserName:      "test@example.com",
+			UserEmail:     "test@example.com",
 			VerifiedEmail: true,
 			Name:          "test",
 			GivenName:     "test",
@@ -524,7 +524,7 @@ func TestLineAuthCommon(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234test",
 			UserId:      1,
-			UserName:    "",
+			UserEmail:   "",
 			DisplayName: "test",
 		}
 
@@ -584,7 +584,7 @@ func TestLineAuthCommon(t *testing.T) {
 		userInfo := &config.LineUserInfo{
 			Id:          "1234test",
 			UserId:      1,
-			UserName:    "",
+			UserEmail:   "",
 			DisplayName: "test",
 		}
 
@@ -618,7 +618,7 @@ func TestLineAuthCommon(t *testing.T) {
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusOK, status)
 		expectedUserInfo := userInfo
-		expectedUserInfo.UserName = email
+		expectedUserInfo.UserEmail = email
 		expectedUserInfo.LineToken = mockResp
 		assert.Equal(t, lineUserInfo, expectedUserInfo)
 
@@ -682,10 +682,10 @@ func TestRedirectSignIn(t *testing.T) {
 			GoogleConfig: config.NewGoogleManager(),
 		}
 		result := googleManager.RedirectSignIn(1, "test", true)
-		userId, userName, err := test_utils.RedirectSuccess(result)
+		userId, userEmail, err := test_utils.RedirectSuccess(result)
 		assert.Nil(t, err)
 		assert.Equal(t, userId, 1)
-		assert.Equal(t, userName, "test")
+		assert.Equal(t, userEmail, "test")
 	})
 
 	t.Run("RedirectSignIn false", func(t *testing.T) {
@@ -693,9 +693,9 @@ func TestRedirectSignIn(t *testing.T) {
 			GoogleConfig: config.NewGoogleManager(),
 		}
 		result := googleManager.RedirectSignIn(1, "test", false)
-		userId, userName, err := test_utils.RedirectSuccess(result)
+		userId, userEmail, err := test_utils.RedirectSuccess(result)
 		assert.Nil(t, err)
 		assert.Equal(t, userId, 0)
-		assert.Equal(t, userName, "")
+		assert.Equal(t, userEmail, "")
 	})
 }

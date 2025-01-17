@@ -10,11 +10,11 @@ import (
 type (
 	EmailTemplateService interface {
 		TemporayPostSignUpTemplate(Name, ConfirmCode string) (string, string, error)
-		PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error)
+		PostSignUpTemplate(Name, UserEmail, DateTime string) (string, string, error)
 		PostSignInEditTemplate(Update, UpdateValue, DateTime string) (string, string, error)
-		PostSignInTemplate(UserName, DateTime string) (string, string, error)
-		DeleteSignInTemplate(Name, UserName, DateTime string) (string, string, error)
-		SignOutTemplate(UserName, DateTime string) (string, string, error)
+		PostSignInTemplate(UserEmail, DateTime string) (string, string, error)
+		DeleteSignInTemplate(Name, UserEmail, DateTime string) (string, string, error)
+		SignOutTemplate(UserEmail, DateTime string) (string, string, error)
 		RegisterEmailCheckNoticeTemplate(Link, DateTime string) (string, string, error)
 		NewPasswordUpdateTemplate(NewPassword, DateTime string) (string, string, error)
 	}
@@ -27,7 +27,7 @@ type (
 	GenericEmailData struct {
 		Style       string
 		Name        string
-		UserName    string
+		UserEmail   string
 		DateTime    string
 		Footer      string
 		Year        string
@@ -154,7 +154,7 @@ var postSignUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 
 					<div class="info-section">
 						<h4>登録ユーザ名</h4>
-						<p>{{.UserName}}</p>
+						<p>{{.UserEmail}}</p>
 						<h4>登録日時</h4>
 						<p>{{.DateTime}}</p>
 					</div>
@@ -216,7 +216,7 @@ var postSignInTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 
 					<div class="info-section">
 						<h4>登録ユーザ名</h4>
-						<p>{{.UserName}}</p>
+						<p>{{.UserEmail}}</p>
 						<h4>実行日時</h4>
 						<p>{{.DateTime}}</p>
 					</div>
@@ -248,7 +248,7 @@ var deleteSignInTemplate = template.Must(template.Must(commonTemplate.Clone()).P
 
 					<div class="info-section">
 						<h4>削除ユーザ名</h4>
-						<p>{{.UserName}}</p>
+						<p>{{.UserEmail}}</p>
 						<h4>削除日時</h4>
 						<p>{{.DateTime}}</p>
 					</div>
@@ -339,7 +339,7 @@ var deleteSignOutTemplate = template.Must(template.Must(commonTemplate.Clone()).
 
 					<div class="info-section">
 						<h4>登録ユーザ名</h4>
-						<p>{{.UserName}}</p>
+						<p>{{.UserEmail}}</p>
 						<h4>実行日時</h4>
 						<p>{{.DateTime}}</p>
 					</div>
@@ -371,7 +371,7 @@ func (et *EmailTemplateManager) TemporayPostSignUpTemplate(Name, ConfirmCode str
 	return subject, body.String(), nil
 }
 
-func (et *EmailTemplateManager) PostSignUpTemplate(Name, UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) PostSignUpTemplate(Name, UserEmail, DateTime string) (string, string, error) {
 	subject := "【たくわえる】登録を完了致しました"
 	// メールテンプレート定義
 
@@ -379,10 +379,10 @@ func (et *EmailTemplateManager) PostSignUpTemplate(Name, UserName, DateTime stri
 
 	// テンプレートに渡すデータを作成
 	data := GenericEmailData{
-		Name:     Name,
-		UserName: UserName,
-		DateTime: DateTime,
-		Year:     year,
+		Name:      Name,
+		UserEmail: UserEmail,
+		DateTime:  DateTime,
+		Year:      year,
 	}
 
 	// テンプレートの実行と結果の取得
@@ -417,16 +417,16 @@ func (et *EmailTemplateManager) PostSignInEditTemplate(Update, UpdateValue, Date
 	return subject, body.String(), nil
 }
 
-func (et *EmailTemplateManager) PostSignInTemplate(UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) PostSignInTemplate(UserEmail, DateTime string) (string, string, error) {
 	subject := "【たくわえる】サインイン致しました"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
 	data := GenericEmailData{
-		UserName: UserName,
-		DateTime: DateTime,
-		Year:     year,
+		UserEmail: UserEmail,
+		DateTime:  DateTime,
+		Year:      year,
 	}
 
 	// テンプレートの実行と結果の取得
@@ -438,17 +438,17 @@ func (et *EmailTemplateManager) PostSignInTemplate(UserName, DateTime string) (s
 	return subject, body.String(), nil
 }
 
-func (et *EmailTemplateManager) DeleteSignInTemplate(Name, UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) DeleteSignInTemplate(Name, UserEmail, DateTime string) (string, string, error) {
 	subject := "【たくわえる】アカウント削除完了のお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
 	data := GenericEmailData{
-		Name:     Name,
-		UserName: UserName,
-		DateTime: DateTime,
-		Year:     year,
+		Name:      Name,
+		UserEmail: UserEmail,
+		DateTime:  DateTime,
+		Year:      year,
 	}
 
 	// テンプレートの実行と結果の取得
@@ -460,16 +460,16 @@ func (et *EmailTemplateManager) DeleteSignInTemplate(Name, UserName, DateTime st
 	return subject, body.String(), nil
 }
 
-func (et *EmailTemplateManager) SignOutTemplate(UserName, DateTime string) (string, string, error) {
+func (et *EmailTemplateManager) SignOutTemplate(UserEmail, DateTime string) (string, string, error) {
 	subject := "【たくわえる】サインアウトのお知らせ"
 	var year = utils.NewUtilsFetcher(utils.JwtSecret).DateTimeStr(time.Now(), "2006年")
 	// メールテンプレート定義
 
 	// テンプレートに渡すデータを作成
 	data := GenericEmailData{
-		UserName: UserName,
-		DateTime: DateTime,
-		Year:     year,
+		UserEmail: UserEmail,
+		DateTime:  DateTime,
+		Year:      year,
 	}
 
 	// テンプレートの実行と結果の取得
