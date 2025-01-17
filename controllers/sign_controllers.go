@@ -526,7 +526,7 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		return
 	}
 
-	// username,password,nicknameの順で文字列が連結されている
+	// username,password,usernameの順で文字列が連結されている
 	info := strings.Split(redisGet, ",")
 
 	userEmail := info[0]

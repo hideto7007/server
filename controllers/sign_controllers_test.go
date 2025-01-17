@@ -2295,7 +2295,7 @@ func TestPostSignUpApi(t *testing.T) {
 		// モックの挙動を定義
 		mockRedisService.EXPECT().
 			RedisGet(gomock.Any()).
-			Return("test_user,test_password,test_nickname", fmt.Errorf("redisエラー"))
+			Return("test_user,test_password,test_username", fmt.Errorf("redisエラー"))
 
 		data := testData{
 			Data: []RequestRedisKeyData{
@@ -2424,7 +2424,7 @@ func TestPostSignUpApi(t *testing.T) {
 		// モックの挙動を定義
 		mockRedisService.EXPECT().
 			RedisGet(gomock.Any()).
-			Return("test_user,test_password,test_nickname", nil)
+			Return("test_user,test_password,test_username", nil)
 
 		data := testData{
 			Data: []RequestRedisKeyData{
