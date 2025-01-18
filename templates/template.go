@@ -153,7 +153,7 @@ var postSignUpTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 					</br>
 
 					<div class="info-section">
-						<h4>登録ユーザ名</h4>
+						<h4>登録メールアドレス</h4>
 						<p>{{.UserEmail}}</p>
 						<h4>登録日時</h4>
 						<p>{{.DateTime}}</p>
@@ -215,7 +215,7 @@ var postSignInTemplate = template.Must(template.Must(commonTemplate.Clone()).Par
 					<p>お客様がご利用中の登録ユーザーで、新たなサインインがありました。</p>
 
 					<div class="info-section">
-						<h4>登録ユーザ名</h4>
+						<h4>登録メールアドレス</h4>
 						<p>{{.UserEmail}}</p>
 						<h4>実行日時</h4>
 						<p>{{.DateTime}}</p>
@@ -338,7 +338,7 @@ var deleteSignOutTemplate = template.Must(template.Must(commonTemplate.Clone()).
 					<p>お客様がご利用中の登録ユーザーで、サインアウトがありました。</p>
 
 					<div class="info-section">
-						<h4>登録ユーザ名</h4>
+						<h4>登録メールアドレス</h4>
 						<p>{{.UserEmail}}</p>
 						<h4>実行日時</h4>
 						<p>{{.DateTime}}</p>
