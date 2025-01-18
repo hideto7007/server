@@ -37,9 +37,9 @@ type SMTPMailDialer struct {
 	dialer *gomail.Dialer
 }
 
-func NewSMTPMailDialer(host string, port int, username, password string) MailDialer {
+func NewSMTPMailDialer(host string, port int, userEmail, password string) MailDialer {
 	return &SMTPMailDialer{
-		dialer: gomail.NewDialer(host, port, username, password),
+		dialer: gomail.NewDialer(host, port, userEmail, password),
 	}
 }
 
@@ -282,12 +282,13 @@ func (ud *UtilsDataFetcher) MapClaims(token *jwt.Token) (interface{}, bool) {
 // SendMail はメールを送信する関数
 func (ud *UtilsDataFetcher) SendMail(toEmail, subject, body string, isHTML bool) error {
 	fromEmail := config.GlobalEnv.FromEmail // 送信元メールアドレス
+	fromName := "たくわえる"
 
 	// メール設定
 	m := gomail.NewMessage()
-	m.SetHeader("From", fromEmail)  // 送信元
-	m.SetHeader("To", toEmail)      // 送信先
-	m.SetHeader("Subject", subject) // 件名
+	m.SetHeader("From", m.FormatAddress(fromEmail, fromName)) // 送信元
+	m.SetHeader("To", toEmail)                                // 送信先
+	m.SetHeader("Subject", subject)                           // 件名
 
 	// メール本文を設定 (HTMLまたはプレーンテキスト)
 	if isHTML {
