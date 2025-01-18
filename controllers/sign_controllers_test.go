@@ -111,7 +111,7 @@ func TestPostSignInApi(t *testing.T) {
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 				{
 					Field:   "user_password",
@@ -1385,7 +1385,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 				{
 					Field:   "user_password",
@@ -1393,7 +1393,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 				},
 				{
 					Field:   "user_name",
-					Message: "ニックネームは必須です。",
+					Message: "ユーザー名は必須です。",
 				},
 			},
 		}
@@ -1797,11 +1797,11 @@ func TestRetryAuthEmail(t *testing.T) {
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 				{
 					Field:   "user_name",
-					Message: "ニックネームは必須です。",
+					Message: "ユーザー名は必須です。",
 				},
 				{
 					Field:   "redis_key",
@@ -2393,11 +2393,11 @@ func TestPostSignUpApi(t *testing.T) {
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_name",
-					Message: "ニックネームは必須です。",
+					Message: "ユーザー名は必須です。",
 				},
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 				{
 					Field:   "user_password",
@@ -2894,7 +2894,7 @@ func TestPutSignInEditApi(t *testing.T) {
 				},
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 			},
 		}
@@ -3155,7 +3155,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutCheck",
 			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
-				return "ユーザー名更新", nil
+				return "メールアドレス更新", nil
 			})
 		defer patches.Reset()
 
@@ -3227,7 +3227,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutCheck",
 			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
-				return "ユーザー名更新", nil
+				return "メールアドレス更新", nil
 			})
 		defer patches.Reset()
 
@@ -3379,7 +3379,7 @@ func TestPutSignInEditApi(t *testing.T) {
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutCheck",
 			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) (string, error) {
-				return "ユーザー名更新", nil
+				return "メールアドレス更新", nil
 			})
 		defer patches.Reset()
 
@@ -3565,11 +3565,11 @@ func TestDeleteSignInApi(t *testing.T) {
 				},
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 				{
 					Field:   "delete_name",
-					Message: "削除ユーザー名は必須です。",
+					Message: "削除メールアドレスは必須です。",
 				},
 			},
 		}
@@ -3975,7 +3975,7 @@ func TestSignOutApi(t *testing.T) {
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 			},
 		}
@@ -4189,7 +4189,7 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
-					Message: "ユーザー名は必須です。",
+					Message: "メールアドレスは必須です。",
 				},
 			},
 		}

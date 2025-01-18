@@ -132,8 +132,8 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 	defer rows.Close()
 
 	// if flg := rows.Next(); !flg {
-	// 	fmt.Println(result, "存在しないユーザー名です。")
-	// 	// return result, errors.New("存在しないユーザー名です。")
+	// 	fmt.Println(result, "存在しないメールアドレスです。")
+	// 	// return result, errors.New("存在しないメールアドレスです。")
 	// }
 
 	// fmt.Println(rows.Next())
@@ -163,7 +163,7 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 	}
 
 	if len(result) == 0 {
-		return result, errors.New("存在しないユーザー名です。")
+		return result, errors.New("存在しないメールアドレスです。")
 	}
 
 	return result, nil
@@ -208,7 +208,7 @@ func (pf *SignDataFetcher) GetExternalAuth(UserEmail string) ([]ExternalAuthData
 		return nil, err
 	}
 	if len(result) == 0 {
-		return result, errors.New("存在しないユーザー名です。")
+		return result, errors.New("存在しないメールアドレスです。")
 	}
 
 	return result, nil
@@ -299,7 +299,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 		}
 	}()
 
-	// ユーザー名及びユーザーパスワードが存在する場合、ポインターに変数代入
+	// メールアドレス及びユーザーパスワードが存在する場合、ポインターに変数代入
 	if data.UserEmail != "" {
 		userEmail = &data.UserEmail
 	}
@@ -323,7 +323,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 	return nil
 }
 
-// PutCheck サイン情報修正した際に、ユーザー名かパスワードどちらを更新したかチェックする
+// PutCheck サイン情報修正した際に、メールアドレスかパスワードどちらを更新したかチェックする
 //
 // 引数:
 //   - data: { user_id: int, user_email: string, user_password: string }
@@ -366,7 +366,7 @@ func (pf *SignDataFetcher) PutCheck(data RequestSignInEditData) (string, error) 
 		}
 	} else {
 		// ユーザーネームが存在しない場合
-		result = "ユーザー名更新"
+		result = "メールアドレス更新"
 	}
 
 	// `rows.Err()`でカーソル操作中のエラーを確認

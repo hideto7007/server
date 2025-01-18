@@ -662,7 +662,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		return
 	}
 
-	if result == "ユーザー名更新" {
+	if result == "メールアドレス更新" {
 		updateValue = requestData.Data[0].UserEmail
 	} else {
 		updateValue = requestData.Data[0].UserPassword

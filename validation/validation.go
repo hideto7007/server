@@ -34,38 +34,38 @@ const ConfirmPassword = "confirm_password"
 // }
 
 type RequestSignInData struct {
-	UserEmail    string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserEmail    string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
 }
 
 type TemporayRequestSignUpData struct {
-	UserEmail    string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserEmail    string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
-	UserName     string `json:"user_name" valid:"required~ニックネームは必須です。"`
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。"`
 }
 
 type RequestSignUpData struct {
-	UserEmail    string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserEmail    string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password" valid:"required~パスワードは必須です。"`
-	UserName     string `json:"user_name" valid:"required~ニックネームは必須です。"`
+	UserName     string `json:"user_name" valid:"required~ユーザー名は必須です。"`
 }
 
 type RequestRetryAuthEmail struct {
-	UserEmail string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserEmail string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
 	RedisKey  string `json:"redis_key" valid:"required~Redisキーは必須です。"`
-	UserName  string `json:"user_name" valid:"required~ニックネームは必須です。"`
+	UserName  string `json:"user_name" valid:"required~ユーザー名は必須です。"`
 }
 
 type RequestSignInEditData struct {
 	UserId       string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
-	UserEmail    string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserEmail    string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
 	UserPassword string `json:"user_password"`
 }
 
 type RequestSignInDeleteData struct {
 	UserId     string `json:"user_id" valid:"required~ユーザーIDは必須です。"`
-	UserEmail  string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
-	DeleteName string `json:"delete_name" valid:"required~削除ユーザー名は必須です。"`
+	UserEmail  string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
+	DeleteName string `json:"delete_name" valid:"required~削除メールアドレスは必須です。"`
 }
 
 type RequestRefreshTokenData struct {
@@ -73,11 +73,11 @@ type RequestRefreshTokenData struct {
 }
 
 type RequestSignOutData struct {
-	UserEmail string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserEmail string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
 }
 
 type EmailCheckRequestData struct {
-	UserEmail string `json:"user_email" valid:"required~ユーザー名は必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserEmail string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
 }
 
 type RequestNewPasswordUpdateData struct {

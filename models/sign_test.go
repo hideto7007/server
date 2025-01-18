@@ -191,7 +191,7 @@ func TestGetSignIn(t *testing.T) {
 		}
 	})
 
-	t.Run("GetSignIn 存在しないユーザー名です", func(t *testing.T) {
+	t.Run("GetSignIn 存在しないメールアドレスです", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
@@ -207,7 +207,7 @@ func TestGetSignIn(t *testing.T) {
 			UserPassword: "Test12345!",
 		}
 
-		expectedData := "存在しないユーザー名です。"
+		expectedData := "存在しないメールアドレスです。"
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
@@ -431,7 +431,7 @@ func TestGetExternalAuth(t *testing.T) {
 		}
 	})
 
-	t.Run("GetExternalAuth 存在しないユーザー名です", func(t *testing.T) {
+	t.Run("GetExternalAuth 存在しないメールアドレスです", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
@@ -444,7 +444,7 @@ func TestGetExternalAuth(t *testing.T) {
 		// テスト対象のデータ
 		UserEmail := "test@exmple.com"
 
-		expectedData := "存在しないユーザー名です。"
+		expectedData := "存在しないメールアドレスです。"
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
@@ -905,7 +905,7 @@ func TestPutCheck(t *testing.T) {
 		}
 	})
 
-	t.Run("PutCheck 成功 ユーザー名更新", func(t *testing.T) {
+	t.Run("PutCheck 成功 メールアドレス更新", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
@@ -922,7 +922,7 @@ func TestPutCheck(t *testing.T) {
 			UserPassword: "Test12345!",
 		}
 
-		expectedData := "ユーザー名更新"
+		expectedData := "メールアドレス更新"
 
 		// テスト用の行データを設定
 		rows := sqlmock.NewRows([]string{
