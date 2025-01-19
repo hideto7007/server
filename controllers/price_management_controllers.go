@@ -122,7 +122,7 @@ func (pm *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		utils.HandleError(c, http.StatusInternalServerError, response)
 	}
 
 }

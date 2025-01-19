@@ -102,7 +102,7 @@ func TestGetPriceInfo(t *testing.T) {
 		pm.GetPriceInfoApi(c)
 
 		// レスポンスのステータスコードを確認
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
 		var responseBody utils.ResponseWithSlice[PriceInfo]
