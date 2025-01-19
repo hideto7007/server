@@ -522,9 +522,9 @@ func TestGetDateRangeApi(t *testing.T) {
 		// モックデータを設定
 		mockData := []models.PaymentDate{
 			{
-				UserID:            1,
-				StratPaymaentDate: "2022-01-01",
-				EndPaymaentDate:   "2022-12-31",
+				UserID:           1,
+				StratPaymentDate: "2022-01-01",
+				EndPaymentDate:   "2022-12-31",
 			},
 		}
 
@@ -595,9 +595,9 @@ func TestGetDateRangeApi(t *testing.T) {
 
 		mockData := []models.PaymentDate{
 			{
-				UserID:            1,
-				StratPaymaentDate: "2022-01-01",
-				EndPaymaentDate:   "2022-12-31",
+				UserID:           1,
+				StratPaymentDate: "2022-01-01",
+				EndPaymentDate:   "2022-12-31",
 			},
 		}
 
@@ -646,9 +646,9 @@ func TestGetDateRangeApi(t *testing.T) {
 
 			mockData := []models.PaymentDate{
 				{
-					UserID:            1,
-					StratPaymaentDate: "2022-01-01",
-					EndPaymaentDate:   "2022-12-31",
+					UserID:           1,
+					StratPaymentDate: "2022-01-01",
+					EndPaymentDate:   "2022-12-31",
 				},
 			}
 

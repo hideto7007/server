@@ -393,8 +393,8 @@ func TestGetDateRange(t *testing.T) {
 		// テスト用のDBモックを作成
 		var startTS int64 = 1525157431
 		var endTS int64 = 1696488631
-		var StratPaymaentDate time.Time
-		var EndPaymaentDate time.Time
+		var StratPaymentDate time.Time
+		var EndPaymentDate time.Time
 		var UserId int = 0
 		var common common.CommonFetcher = common.NewCommonFetcher()
 		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
@@ -406,9 +406,9 @@ func TestGetDateRange(t *testing.T) {
 		UserID := 1
 		expectedData := []PaymentDate{
 			{
-				UserID:            1,
-				StratPaymaentDate: "2018-04-27",
-				EndPaymaentDate:   "2023-10-10",
+				UserID:           1,
+				StratPaymentDate: "2018-04-27",
+				EndPaymentDate:   "2023-10-10",
 			},
 		}
 
@@ -467,19 +467,19 @@ func TestGetDateRange(t *testing.T) {
 
 				if unix <= startTS {
 					startTS = unix
-					StratPaymaentDate, _ = common.StrToTime(data.PaymentDate)
+					StratPaymentDate, _ = common.StrToTime(data.PaymentDate)
 				}
 
 				if unix >= endTS {
 					endTS = unix
-					EndPaymaentDate, _ = common.StrToTime(data.PaymentDate)
+					EndPaymentDate, _ = common.StrToTime(data.PaymentDate)
 				}
 			}
 		}
 		rows.AddRow(
 			UserId,
-			StratPaymaentDate,
-			EndPaymaentDate,
+			StratPaymentDate,
+			EndPaymentDate,
 		)
 
 		// モックに行データを設定
@@ -496,8 +496,8 @@ func TestGetDateRange(t *testing.T) {
 		t.Log("check = ", result)
 
 		assert.Equal(t, expectedData[0].UserID, result[0].UserID)
-		assert.Equal(t, expectedData[0].StratPaymaentDate, result[0].StratPaymaentDate)
-		assert.Equal(t, expectedData[0].EndPaymaentDate, result[0].EndPaymaentDate)
+		assert.Equal(t, expectedData[0].StratPaymentDate, result[0].StratPaymentDate)
+		assert.Equal(t, expectedData[0].EndPaymentDate, result[0].EndPaymentDate)
 
 		// モックが期待通りのクエリを受け取ったか確認
 		if err := mock.ExpectationsWereMet(); err != nil {
@@ -552,8 +552,8 @@ func TestGetDateRange(t *testing.T) {
 		// テスト用のDBモックを作成
 		var startTS int64 = 1525157431
 		var endTS int64 = 1696488631
-		var StratPaymaentDate time.Time
-		var EndPaymaentDate time.Time
+		var StratPaymentDate time.Time
+		var EndPaymentDate time.Time
 		var UserId string = "hoge"
 		var common common.CommonFetcher = common.NewCommonFetcher()
 		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
@@ -590,19 +590,19 @@ func TestGetDateRange(t *testing.T) {
 
 				if unix <= startTS {
 					startTS = unix
-					StratPaymaentDate, _ = common.StrToTime(data.PaymentDate)
+					StratPaymentDate, _ = common.StrToTime(data.PaymentDate)
 				}
 
 				if unix >= endTS {
 					endTS = unix
-					EndPaymaentDate, _ = common.StrToTime(data.PaymentDate)
+					EndPaymentDate, _ = common.StrToTime(data.PaymentDate)
 				}
 			}
 		}
 		rows.AddRow(
 			UserId, // 無効な値
-			StratPaymaentDate,
-			EndPaymaentDate,
+			StratPaymentDate,
+			EndPaymentDate,
 		)
 
 		// モックに行データを設定
@@ -620,8 +620,8 @@ func TestGetDateRange(t *testing.T) {
 		// テスト用のDBモックを作成
 		var startTS int64 = 1525157431
 		var endTS int64 = 1696488631
-		var StratPaymaentDate time.Time
-		var EndPaymaentDate time.Time
+		var StratPaymentDate time.Time
+		var EndPaymentDate time.Time
 		var UserId int = 0
 		var common common.CommonFetcher = common.NewCommonFetcher()
 		dbFetcher, mock, err := NewPostgreSQLDataFetcher("test")
@@ -659,19 +659,19 @@ func TestGetDateRange(t *testing.T) {
 
 				if unix <= startTS {
 					startTS = unix
-					StratPaymaentDate, _ = common.StrToTime(data.PaymentDate)
+					StratPaymentDate, _ = common.StrToTime(data.PaymentDate)
 				}
 
 				if unix >= endTS {
 					endTS = unix
-					EndPaymaentDate, _ = common.StrToTime(data.PaymentDate)
+					EndPaymentDate, _ = common.StrToTime(data.PaymentDate)
 				}
 			}
 		}
 		rows.AddRow(
 			UserId,
-			StratPaymaentDate,
-			EndPaymaentDate,
+			StratPaymentDate,
+			EndPaymentDate,
 		)
 
 		// 行エラーを設定

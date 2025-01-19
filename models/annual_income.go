@@ -37,9 +37,9 @@ type (
 	}
 
 	PaymentDate struct {
-		UserID            int    `json:"user_id"`
-		StratPaymaentDate string `json:"start_payment_date"`
-		EndPaymaentDate   string `json:"end_payment_date"`
+		UserID           int    `json:"user_id"`
+		StratPaymentDate string `json:"start_payment_date"`
+		EndPaymentDate   string `json:"end_payment_date"`
 	}
 
 	YearsIncomeData struct {
@@ -96,8 +96,8 @@ func NewPostgreSQLDataFetcher(dataSourceName string) (*PostgreSQLDataFetcher, sq
 // GetIncomeDataInRange はDBに登録された給料及び賞与の金額を指定期間で返す。
 //
 // 引数:
-//   - StratPaymaentDate: 始まりの期間
-//   - EndPaymaentDate: 終わりの期間
+//   - StratPaymentDate: 始まりの期間
+//   - EndPaymentDate: 終わりの期間
 //
 // 戻り値:
 //
@@ -182,30 +182,30 @@ func (pf *PostgreSQLDataFetcher) GetDateRange(UserId int) ([]PaymentDate, error)
 	// rows.Scanがデータを変数に直接書き込むため
 	for rows.Next() {
 		var (
-			userId            int
-			stratPaymaentDate time.Time
-			endPaymaentDate   time.Time
+			userId           int
+			stratPaymentDate time.Time
+			endPaymentDate   time.Time
 		)
 		err := rows.Scan(
 			&userId,
-			&stratPaymaentDate,
-			&endPaymaentDate,
+			&stratPaymentDate,
+			&endPaymentDate,
 		)
 
 		if err != nil {
 			return nil, err
 		}
 
-		// stratPaymaentDate および endPaymaentDate を文字列に変換
+		// stratPaymentDate および endPaymentDate を文字列に変換
 		var common common.CommonFetcher = common.NewCommonFetcher()
-		startDateStr := common.TimeToStr(stratPaymaentDate)
-		endDateStr := common.TimeToStr(endPaymaentDate)
+		startDateStr := common.TimeToStr(stratPaymentDate)
+		endDateStr := common.TimeToStr(endPaymentDate)
 
 		// 変換したデータをPaymentDate構造体にセットする
 		replaceData := PaymentDate{
-			UserID:            userId,
-			StratPaymaentDate: startDateStr,
-			EndPaymaentDate:   endDateStr,
+			UserID:           userId,
+			StratPaymentDate: startDateStr,
+			EndPaymentDate:   endDateStr,
 		}
 
 		paymentDate = append(paymentDate, replaceData)
