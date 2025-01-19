@@ -161,7 +161,10 @@ func RequestLoggerMiddleware() gin.HandlerFunc {
 			"latency":    time.Since(startTime).Milliseconds(),
 		}).Info("Request completed")
 
-		// エラーが発生している場合
+		// Gin フレームワークでエラーを記録する際にここでログに書き込む
+		// c.Error(err)等で
+		// 現状、このような仕様でエラーレスポンスを管理してなくログに書き込まれることはない
+		// 今後、Gin　フレームワークでログ記録することがあればこちらを使用する
 		if len(c.Errors) > 0 {
 			for _, e := range c.Errors {
 				// エラーログの出力

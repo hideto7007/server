@@ -25,28 +25,28 @@ type (
 	}
 
 	IncomeData struct {
-		IncomeForecastID uuid.UUID
-		PaymentDate      time.Time
-		Age              string
-		Industry         string
-		TotalAmount      int
-		DeductionAmount  int
-		TakeHomeAmount   int
-		Classification   string
-		UserID           int
+		IncomeForecastID uuid.UUID `json:"income_forecast_id"`
+		PaymentDate      time.Time `json:"payment_date"`
+		Age              string    `json:"age"`
+		Industry         string    `json:"industry"`
+		TotalAmount      int       `json:"total_amount"`
+		DeductionAmount  int       `json:"deduction_amount"`
+		TakeHomeAmount   int       `json:"take_home_amount"`
+		Classification   string    `json:"update_user"`
+		UserID           int       `json:"user_id"`
 	}
 
 	PaymentDate struct {
-		UserID            int
-		StratPaymaentDate string
-		EndPaymaentDate   string
+		UserID            int    `json:"user_id"`
+		StratPaymaentDate string `json:"start_payment_date"`
+		EndPaymaentDate   string `json:"end_payment_date"`
 	}
 
 	YearsIncomeData struct {
-		Years           string
-		TotalAmount     int
-		DeductionAmount int
-		TakeHomeAmount  int
+		Years           string `json:"years"`
+		TotalAmount     int    `json:"total_amount"`
+		DeductionAmount int    `json:"deduction_amount"`
+		TakeHomeAmount  int    `json:"take_home_amount"`
 	}
 
 	InsertIncomeData struct {
