@@ -32,7 +32,7 @@ type (
 		TotalAmount      int       `json:"total_amount"`
 		DeductionAmount  int       `json:"deduction_amount"`
 		TakeHomeAmount   int       `json:"take_home_amount"`
-		Classification   string    `json:"update_user"`
+		Classification   string    `json:"classification"`
 		UserID           int       `json:"user_id"`
 	}
 
