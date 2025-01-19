@@ -350,7 +350,7 @@ func (aid *apiIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.GetDataBaseSource())
 	if err := dbFetcher.DeleteIncome(requestData.Data); err != nil {
 		response := utils.ErrorResponse{
-			ErrorMsg: "削除中にエラーが発生しました",
+			ErrorMsg: "削除中にエラーが発生しました。",
 		}
 		utils.HandleError(c, http.StatusInternalServerError, response)
 		return

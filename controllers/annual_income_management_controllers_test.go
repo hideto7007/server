@@ -1891,7 +1891,7 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		var response map[string]interface{}
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Equal(t, "削除中にエラーが発生しました", response["error_msg"])
+		assert.Equal(t, "削除中にエラーが発生しました。", response["error_msg"])
 	})
 
 	t.Run("invalid JSON DeleteIncomeDataApi", func(t *testing.T) {
