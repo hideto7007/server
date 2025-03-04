@@ -3569,7 +3569,7 @@ func TestDeleteSignInApi(t *testing.T) {
 				},
 				{
 					Field:   "delete_name",
-					Message: "削除メールアドレスは必須です。",
+					Message: "削除ユーザー名は必須です。",
 				},
 			},
 		}
