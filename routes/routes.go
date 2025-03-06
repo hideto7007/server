@@ -68,10 +68,10 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		Routes.POST("/signin", signAPI.PostSignInApi)
 		Routes.GET("/refresh_token", signAPI.GetRefreshTokenApi)
-		Routes.POST("/temporay_signup", signAPI.TemporayPostSignUpApi)
+		Routes.POST("/temporary_signup", signAPI.TemporaryPostSignUpApi)
 		Routes.GET("/retry_auth_email", signAPI.RetryAuthEmail)
 		Routes.POST("/signup", signAPI.PostSignUpApi)
-		Routes.PUT("/signin_edit", signAPI.PutSignInEditApi)
+		Routes.PUT("/signin_edit/:user_id", signAPI.PutSignInEditApi)
 		Routes.DELETE("/signin_delete", signAPI.DeleteSignInApi)
 		Routes.GET("/signout", signAPI.SignOutApi)
 		Routes.GET("/register_email_check_notice", signAPI.RegisterEmailCheckNotice)

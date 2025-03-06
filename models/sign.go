@@ -19,7 +19,7 @@ type (
 		GetSignIn(data RequestSignInData) ([]SignInData, error)
 		GetExternalAuth(UserEmail string) ([]ExternalAuthData, error)
 		PostSignUp(data RequestSignUpData) error
-		PutSignInEdit(data RequestSignInEditData) error
+		PutSignInEdit(UserId int, data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
 		DeleteSignIn(data RequestSignInDeleteData) error
 		GetUserId(UserEmail string) (int, error)
@@ -38,9 +38,8 @@ type (
 	}
 
 	RequestSignInEditData struct {
-		UserId       interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserEmail    string      `json:"user_email"`
-		UserPassword string      `json:"user_password"`
+		UserEmail    string `json:"user_email"`
+		UserPassword string `json:"user_password"`
 	}
 
 	RequestSignInDeleteData struct {
@@ -266,14 +265,14 @@ func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 // PutSignInEdit サイン情報を編集API
 //
 // 引数:
-//   - data: { user_id: int, user_email: string, user_password: string }
+//   - data: { user_email: string, user_password: string }
 //
 // 戻り値:
 //
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
+func (pf *SignDataFetcher) PutSignInEdit(UserId int, data RequestSignInEditData) error {
 
 	var err error
 	updateAt := time.Now()
@@ -316,7 +315,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 		userEmail,
 		userPassword,
 		updateAt,
-		data.UserId); err != nil {
+		UserId); err != nil {
 		return err
 	}
 

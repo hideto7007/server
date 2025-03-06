@@ -593,7 +593,6 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "",
 			UserPassword: "Test12345!",
-			UserId:       1,
 		}
 
 		// モックの準備
@@ -609,7 +608,7 @@ func TestPutSignInEdit(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -627,7 +626,6 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "test@exmple.com",
 			UserPassword: "",
-			UserId:       1,
 		}
 
 		// モックの準備
@@ -643,7 +641,7 @@ func TestPutSignInEdit(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -662,7 +660,6 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
-			UserId:       1,
 		}
 
 		// モックの準備
@@ -678,7 +675,7 @@ func TestPutSignInEdit(t *testing.T) {
 		mock.ExpectRollback() // エラー発生時にはロールバックを期待
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
@@ -703,11 +700,10 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
-			UserId:       1,
 		}
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
@@ -730,7 +726,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -760,7 +755,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "test",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -798,7 +792,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -851,7 +844,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -917,7 +909,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
