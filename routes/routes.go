@@ -75,6 +75,7 @@ func SetupRoutes(r *gin.Engine) {
 		Routes.DELETE("/signin_delete", signAPI.DeleteSignInApi)
 		Routes.GET("/signout", signAPI.SignOutApi)
 		Routes.GET("/register_email_check_notice", signAPI.RegisterEmailCheckNotice)
+		// tokenIdからUserIdを取得していて、トークン漏洩防止のためパラメータにUserIdは含めない
 		Routes.PUT("/new_password_update", signAPI.NewPasswordUpdate)
 
 		// 認証が必要なルートにミドルウェアを追加

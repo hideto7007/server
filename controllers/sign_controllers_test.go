@@ -4423,14 +4423,14 @@ func TestNewPasswordUpdate(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("TestNewPasswordUpdate JSON不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			invalidJSON,
+			map[string]string{},
+		)
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -4448,23 +4448,22 @@ func TestNewPasswordUpdate(t *testing.T) {
 	})
 
 	t.Run("TestNewPasswordUpdate バリデーション 必須", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "",
-					CurrentPassword: "",
 					NewUserPassword: "",
 					ConfirmPassword: "",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -4485,10 +4484,6 @@ func TestNewPasswordUpdate(t *testing.T) {
 				{
 					Field:   "token_id",
 					Message: "トークンidは必須です。",
-				},
-				{
-					Field:   "current_password",
-					Message: "現在のパスワードは必須です。",
 				},
 				{
 					Field:   "new_user_password",
@@ -4512,9 +4507,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 				Data: []models.RequestNewPasswordUpdateData{
 					{
 						TokenId:         "token12",
-						CurrentPassword: "Test12345",
+						NewUserPassword: "Test12345",
+						ConfirmPassword: "Test12345!",
+					},
+				},
+			},
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
 						NewUserPassword: "Test12345!",
-						ConfirmPassword: "Test12345!",
+						ConfirmPassword: "test12345",
 					},
 				},
 			},
@@ -4522,63 +4525,14 @@ func TestNewPasswordUpdate(t *testing.T) {
 				Data: []models.RequestNewPasswordUpdateData{
 					{
 						TokenId:         "token12",
-						CurrentPassword: "Test12345!",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345!",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345!",
-						NewUserPassword: "Test12345!",
-						ConfirmPassword: "Test12345",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345!",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345!",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345!",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345",
+						NewUserPassword: "test12345",
+						ConfirmPassword: "Test12!",
 					},
 				},
 			},
 		}
 
 		expectedErrorMessageList := []utils.ErrorResponse{
-			{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "current_password",
-						Message: "現在のパスワードの形式が間違っています。",
-					},
-				},
-			},
 			{
 				Result: []utils.ErrorMessages{
 					{
@@ -4597,30 +4551,6 @@ func TestNewPasswordUpdate(t *testing.T) {
 			},
 			{
 				Result: []utils.ErrorMessages{
-					{
-						Field:   "new_user_password",
-						Message: "新しいパスワードの形式が間違っています。",
-					},
-				},
-			},
-			{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "current_password",
-						Message: "現在のパスワードの形式が間違っています。",
-					},
-					{
-						Field:   "new_user_password",
-						Message: "新しいパスワードの形式が間違っています。",
-					},
-				},
-			},
-			{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "current_password",
-						Message: "現在のパスワードの形式が間違っています。",
-					},
 					{
 						Field:   "new_user_password",
 						Message: "新しいパスワードの形式が間違っています。",
@@ -4634,12 +4564,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		for i, data := range dataList {
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-
-			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+			w, c := test_utils.CreateTestRequest(
+				"PUT", "/api/new_password_update",
+				data,
+				map[string]string{},
+			)
 
 			fetcher := apiSignDataFetcher{
 				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -4666,19 +4595,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -4714,19 +4641,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -4779,19 +4704,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -4842,19 +4765,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),

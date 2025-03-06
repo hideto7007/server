@@ -920,7 +920,6 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 
 	validator := validation.RequestNewPasswordUpdateData{
 		TokenId:         requestData.Data[0].TokenId,
-		CurrentPassword: requestData.Data[0].CurrentPassword,
 		NewUserPassword: requestData.Data[0].NewUserPassword,
 		ConfirmPassword: requestData.Data[0].ConfirmPassword,
 	}

@@ -55,7 +55,7 @@ const GetSignInSyntax = `
 			`
 
 const PasswordCheckSyntax = `
-			SELECT user_email, user_password
+			SELECT user_email
 			FROM users
 			WHERE user_id = $1;
 			`
