@@ -21,7 +21,7 @@ type (
 		PostSignUp(data RequestSignUpData) error
 		PutSignInEdit(UserId int, data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
-		DeleteSignIn(data RequestSignInDeleteData) error
+		DeleteSignIn(userId int, data RequestSignInDeleteData) error
 		GetUserId(UserEmail string) (int, error)
 		NewPasswordUpdate(data RequestNewPasswordUpdateData) (string, error)
 	}
@@ -43,9 +43,8 @@ type (
 	}
 
 	RequestSignInDeleteData struct {
-		UserId     interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserEmail  string      `json:"user_email"`
-		DeleteName string      `json:"delete_name"`
+		UserEmail  string `json:"user_email"`
+		DeleteName string `json:"delete_name"`
 	}
 
 	RequestNewPasswordUpdateData struct {
@@ -384,7 +383,7 @@ func (pf *SignDataFetcher) PutCheck(data RequestSignInEditData) (string, error) 
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
+func (pf *SignDataFetcher) DeleteSignIn(userId int, data RequestSignInDeleteData) error {
 
 	var err error
 
@@ -410,7 +409,7 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 
 	if _, err = tx.Exec(
 		signInDelete,
-		data.UserId,
+		userId,
 		data.UserEmail,
 	); err != nil {
 		return err

@@ -716,7 +716,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		return
 	}
 
-	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
+	userIdCheck := common.AnyToStr(c.Param("user_id"))
 
 	validator := validation.RequestSignInDeleteData{
 		DeleteName: requestData.Data[0].DeleteName,
@@ -736,7 +736,9 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	err := dbFetcher.DeleteSignIn(requestData.Data[0])
+
+	UserId, _ := af.CommonFetcher.StrToInt(userIdCheck)
+	err := dbFetcher.DeleteSignIn(UserId, requestData.Data[0])
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "サインインの削除に失敗しました。",

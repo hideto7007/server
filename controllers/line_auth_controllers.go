@@ -265,10 +265,9 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	data := models.RequestSignInDeleteData{
-		UserId:    result[0].UserId,
 		UserEmail: userInfo.UserEmail,
 	}
-	err = deleteDbFetcher.DeleteSignIn(data)
+	err = deleteDbFetcher.DeleteSignIn(result[0].UserId, data)
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: err.Error(),

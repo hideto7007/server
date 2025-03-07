@@ -3475,14 +3475,15 @@ func TestDeleteSignInApi(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("DeleteSignInApi JSON不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			invalidJSON,
+			map[string]string{"user_id": "1"},
+		)
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -3500,27 +3501,25 @@ func TestDeleteSignInApi(t *testing.T) {
 	})
 
 	t.Run("DeleteSignInApi バリデーション 必須", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "",
 					UserEmail:  "",
 					DeleteName: "",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3561,27 +3560,25 @@ func TestDeleteSignInApi(t *testing.T) {
 	})
 
 	t.Run("DeleteSignInApi バリデーション メールアドレス不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example",
 					DeleteName: "test",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3615,68 +3612,54 @@ func TestDeleteSignInApi(t *testing.T) {
 
 	t.Run("DeleteSignInApi バリデーション 数値文字列以外", func(t *testing.T) {
 
-		dataList := []testData{
-			{
-				Data: []models.RequestSignInDeleteData{
-					{
-						UserId:     "test",
-						UserEmail:  "test@example.com",
-						DeleteName: "test",
-					},
-				},
-			},
-			{
-				Data: []models.RequestSignInDeleteData{
-					{
-						UserId:     "1.25",
-						UserEmail:  "test@example.com",
-						DeleteName: "test",
-					},
+		data := testData{
+			Data: []models.RequestSignInDeleteData{
+				{
+					UserEmail:  "test@example.com",
+					DeleteName: "test",
 				},
 			},
 		}
 
-		for _, data := range dataList {
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/test",
+			data,
+			map[string]string{"user_id": "test"},
+		)
 
-			patches := ApplyMethod(
-				reflect.TypeOf(&models.SignDataFetcher{}),
-				"DeleteSignIn",
-				func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
-					return nil
-				})
-			defer patches.Reset()
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches.Reset()
 
-			fetcher := apiSignDataFetcher{
-				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher:        common.NewCommonFetcher(),
-				EmailTemplateService: templates.NewEmailTemplateManager(),
-				RedisService:         config.NewRedisManager(),
-			}
-			fetcher.DeleteSignInApi(c)
-
-			assert.Equal(t, http.StatusBadRequest, w.Code)
-
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-			assert.NoError(t, err)
-
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "user_id",
-						Message: "ユーザーIDは整数値のみです。",
-					},
-				},
-			}
-			test_utils.SortErrorMessages(responseBody.Result)
-			test_utils.SortErrorMessages(expectedErrorMessage.Result)
-			assert.Equal(t, responseBody, expectedErrorMessage)
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
 		}
+		fetcher.DeleteSignInApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは整数値のみです。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("DeleteSignInApi sql取得で失敗しサインインの削除失敗になる", func(t *testing.T) {
@@ -3684,24 +3667,22 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return fmt.Errorf("sql削除失敗")
 			})
 		defer patches.Reset()
@@ -3731,7 +3712,6 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
@@ -3755,17 +3735,16 @@ func TestDeleteSignInApi(t *testing.T) {
 			DeleteSignInTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3795,7 +3774,6 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
@@ -3824,17 +3802,16 @@ func TestDeleteSignInApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(fmt.Errorf("メール送信エラー"))
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3864,15 +3841,11 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
 		}
-
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -3895,14 +3868,16 @@ func TestDeleteSignInApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()

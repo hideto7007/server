@@ -953,7 +953,6 @@ func TestDeleteSignIn(t *testing.T) {
 		}
 
 		testData := RequestSignInDeleteData{
-			UserId:    1,
 			UserEmail: "text@example.com",
 		}
 
@@ -968,7 +967,7 @@ func TestDeleteSignIn(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSignIn(testData)
+		err = dbFetcher.DeleteSignIn(1, testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -985,7 +984,6 @@ func TestDeleteSignIn(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInDeleteData{
-			UserId:    1,
 			UserEmail: "text@example.com",
 		}
 
@@ -1000,7 +998,7 @@ func TestDeleteSignIn(t *testing.T) {
 		mock.ExpectRollback() // エラー発生時にはロールバックを期待
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSignIn(testData)
+		err = dbFetcher.DeleteSignIn(1, testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
@@ -1023,11 +1021,10 @@ func TestDeleteSignIn(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInDeleteData{
-			UserId: 1,
+			UserEmail: "",
 		}
-
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSignIn(testData)
+		err = dbFetcher.DeleteSignIn(1, testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)

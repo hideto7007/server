@@ -1076,7 +1076,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return fmt.Errorf("DB削除エラー")
 			})
 		defer patches1.Reset()
@@ -1155,7 +1155,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches1.Reset()
@@ -1243,7 +1243,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches1.Reset()
@@ -1340,7 +1340,7 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches1.Reset()
