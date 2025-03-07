@@ -19,9 +19,9 @@ type (
 		GetSignIn(data RequestSignInData) ([]SignInData, error)
 		GetExternalAuth(UserEmail string) ([]ExternalAuthData, error)
 		PostSignUp(data RequestSignUpData) error
-		PutSignInEdit(data RequestSignInEditData) error
+		PutSignInEdit(UserId int, data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
-		DeleteSignIn(data RequestSignInDeleteData) error
+		DeleteSignIn(userId int, data RequestSignInDeleteData) error
 		GetUserId(UserEmail string) (int, error)
 		NewPasswordUpdate(data RequestNewPasswordUpdateData) (string, error)
 	}
@@ -38,20 +38,17 @@ type (
 	}
 
 	RequestSignInEditData struct {
-		UserId       interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserEmail    string      `json:"user_email"`
-		UserPassword string      `json:"user_password"`
+		UserEmail    string `json:"user_email"`
+		UserPassword string `json:"user_password"`
 	}
 
 	RequestSignInDeleteData struct {
-		UserId     interface{} `json:"user_id"` // stringにする理由、intだと内部で０に変換され本体の値の判定ができないためこのように指定する
-		UserEmail  string      `json:"user_email"`
-		DeleteName string      `json:"delete_name"`
+		UserEmail  string `json:"user_email"`
+		DeleteName string `json:"delete_name"`
 	}
 
 	RequestNewPasswordUpdateData struct {
 		TokenId         string `json:"token_id"`
-		CurrentPassword string `json:"current_password"`
 		NewUserPassword string `json:"new_user_password"`
 		ConfirmPassword string `json:"confirm_password"`
 	}
@@ -79,8 +76,7 @@ type (
 	}
 
 	NewPasswordUpdateData struct {
-		UserEmail    string
-		UserPassword string
+		UserEmail string
 	}
 
 	SignInDeleteData struct {
@@ -266,14 +262,14 @@ func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 // PutSignInEdit サイン情報を編集API
 //
 // 引数:
-//   - data: { user_id: int, user_email: string, user_password: string }
+//   - data: { user_email: string, user_password: string }
 //
 // 戻り値:
 //
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
+func (pf *SignDataFetcher) PutSignInEdit(UserId int, data RequestSignInEditData) error {
 
 	var err error
 	updateAt := time.Now()
@@ -316,7 +312,7 @@ func (pf *SignDataFetcher) PutSignInEdit(data RequestSignInEditData) error {
 		userEmail,
 		userPassword,
 		updateAt,
-		data.UserId); err != nil {
+		UserId); err != nil {
 		return err
 	}
 
@@ -387,7 +383,7 @@ func (pf *SignDataFetcher) PutCheck(data RequestSignInEditData) (string, error) 
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
+func (pf *SignDataFetcher) DeleteSignIn(userId int, data RequestSignInDeleteData) error {
 
 	var err error
 
@@ -413,7 +409,7 @@ func (pf *SignDataFetcher) DeleteSignIn(data RequestSignInDeleteData) error {
 
 	if _, err = tx.Exec(
 		signInDelete,
-		data.UserId,
+		userId,
 		data.UserEmail,
 	); err != nil {
 		return err
@@ -471,20 +467,14 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 	// データベースクエリを実行
 	row := pf.db.QueryRow(DB.PasswordCheckSyntax, userId)
 	var record NewPasswordUpdateData
-	if err := row.Scan(&record.UserEmail, &record.UserPassword); err != nil {
+	if err := row.Scan(&record.UserEmail); err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("登録ユーザーが存在しません")
 		}
 		return "", err
 	}
-	// パスワードの整合性を確認
-	err := pf.UtilsFetcher.CompareHashPassword(record.UserPassword, data.CurrentPassword)
-	if err != nil {
-		return "", fmt.Errorf("現在のパスワードと一致しませんでした。")
-	}
 
 	// 2. 新しいパスワードへ更新
-
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {

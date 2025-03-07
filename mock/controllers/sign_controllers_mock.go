@@ -118,14 +118,14 @@ func (mr *MockSignDataFetcherMockRecorder) SignOutApi(c interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignOutApi", reflect.TypeOf((*MockSignDataFetcher)(nil).SignOutApi), c)
 }
 
-// TemporayPostSignUpApi mocks base method.
-func (m *MockSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
+// TemporaryPostSignUpApi mocks base method.
+func (m *MockSignDataFetcher) TemporaryPostSignUpApi(c *gin.Context) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "TemporayPostSignUpApi", c)
+	m.ctrl.Call(m, "TemporaryPostSignUpApi", c)
 }
 
-// TemporayPostSignUpApi indicates an expected call of TemporayPostSignUpApi.
-func (mr *MockSignDataFetcherMockRecorder) TemporayPostSignUpApi(c interface{}) *gomock.Call {
+// TemporaryPostSignUpApi indicates an expected call of TemporaryPostSignUpApi.
+func (mr *MockSignDataFetcherMockRecorder) TemporaryPostSignUpApi(c interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TemporayPostSignUpApi", reflect.TypeOf((*MockSignDataFetcher)(nil).TemporayPostSignUpApi), c)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TemporaryPostSignUpApi", reflect.TypeOf((*MockSignDataFetcher)(nil).TemporaryPostSignUpApi), c)
 }

@@ -82,7 +82,6 @@ type EmailCheckRequestData struct {
 
 type RequestNewPasswordUpdateData struct {
 	TokenId         string `json:"token_id" valid:"required~トークンidは必須です。"`
-	CurrentPassword string `json:"current_password" valid:"required~現在のパスワードは必須です。"`
 	NewUserPassword string `json:"new_user_password" valid:"required~新しいパスワードは必須です。"`
 	ConfirmPassword string `json:"confirm_password" valid:"required~確認パスワードは必須です。"`
 }
@@ -443,7 +442,7 @@ func (data EmailCheckRequestData) Validate() (bool, []utils.ErrorMessages) {
 
 func (data RequestNewPasswordUpdateData) Validate() (bool, []utils.ErrorMessages) {
 	var errorMessagesList []utils.ErrorMessages
-	validArray := [3]bool{true, true, true}
+	validArray := [2]bool{true, true}
 
 	valid, err := govalidator.ValidateStruct(data)
 
@@ -457,20 +456,12 @@ func (data RequestNewPasswordUpdateData) Validate() (bool, []utils.ErrorMessages
 		}
 	}
 
-	if currentPassword := validPassword(data.CurrentPassword); !currentPassword && data.CurrentPassword != "" {
-		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
-			Field:   CurrentPassword,
-			Message: "現在のパスワードの形式が間違っています。",
-		})
-		validArray[0] = false
-	}
-
 	if newUserPassword := validPassword(data.NewUserPassword); !newUserPassword && data.NewUserPassword != "" {
 		errorMessagesList = append(errorMessagesList, utils.ErrorMessages{
 			Field:   NewUserPassword,
 			Message: "新しいパスワードの形式が間違っています。",
 		})
-		validArray[1] = false
+		validArray[0] = false
 	}
 
 	if confirmPassword := validPassword(data.ConfirmPassword); !confirmPassword && data.ConfirmPassword != "" {
@@ -478,7 +469,7 @@ func (data RequestNewPasswordUpdateData) Validate() (bool, []utils.ErrorMessages
 			Field:   ConfirmPassword,
 			Message: "確認パスワードの形式が間違っています。",
 		})
-		validArray[2] = false
+		validArray[1] = false
 	}
 
 	for _, validCheck := range validArray {

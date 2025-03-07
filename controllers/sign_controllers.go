@@ -25,7 +25,7 @@ type (
 	SignDataFetcher interface {
 		PostSignInApi(c *gin.Context)
 		GetRefreshTokenApi(c *gin.Context)
-		TemporayPostSignUpApi(c *gin.Context)
+		TemporaryPostSignUpApi(c *gin.Context)
 		RetryAuthEmail(c *gin.Context)
 		PostSignUpApi(c *gin.Context)
 		PutSignInEditApi(c *gin.Context)
@@ -313,13 +313,13 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// TemporayPostSignUpApi はサインイン情報を仮登録API
+// TemporaryPostSignUpApi はサインイン情報を仮登録API
 //
 // 引数:
 //   - c: Ginコンテキスト
 //
 
-func (af *apiSignDataFetcher) TemporayPostSignUpApi(c *gin.Context) {
+func (af *apiSignDataFetcher) TemporaryPostSignUpApi(c *gin.Context) {
 	var requestData requesTemporaySignUpData
 	var err error
 	if err := c.ShouldBindJSON(&requestData); err != nil {
@@ -626,7 +626,7 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		return
 	}
 
-	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
+	userIdCheck := common.AnyToStr(c.Param("user_id"))
 
 	validator := validation.RequestSignInEditData{
 		UserId:       userIdCheck,
@@ -654,7 +654,9 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		utils.HandleError(c, http.StatusUnauthorized, response)
 		return
 	}
-	if err := dbFetcher.PutSignInEdit(requestData.Data[0]); err != nil {
+
+	UserId, _ := af.CommonFetcher.StrToInt(userIdCheck)
+	if err := dbFetcher.PutSignInEdit(UserId, requestData.Data[0]); err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "サインイン情報編集に失敗しました。",
 		}
@@ -714,7 +716,7 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		return
 	}
 
-	userIdCheck := common.AnyToStr(requestData.Data[0].UserId)
+	userIdCheck := common.AnyToStr(c.Param("user_id"))
 
 	validator := validation.RequestSignInDeleteData{
 		DeleteName: requestData.Data[0].DeleteName,
@@ -734,7 +736,9 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	err := dbFetcher.DeleteSignIn(requestData.Data[0])
+
+	UserId, _ := af.CommonFetcher.StrToInt(userIdCheck)
+	err := dbFetcher.DeleteSignIn(UserId, requestData.Data[0])
 	if err != nil {
 		response := utils.ErrorResponse{
 			ErrorMsg: "サインインの削除に失敗しました。",
@@ -918,7 +922,6 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 
 	validator := validation.RequestNewPasswordUpdateData{
 		TokenId:         requestData.Data[0].TokenId,
-		CurrentPassword: requestData.Data[0].CurrentPassword,
 		NewUserPassword: requestData.Data[0].NewUserPassword,
 		ConfirmPassword: requestData.Data[0].ConfirmPassword,
 	}

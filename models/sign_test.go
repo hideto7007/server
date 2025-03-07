@@ -593,7 +593,6 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "",
 			UserPassword: "Test12345!",
-			UserId:       1,
 		}
 
 		// モックの準備
@@ -609,7 +608,7 @@ func TestPutSignInEdit(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -627,7 +626,6 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "test@exmple.com",
 			UserPassword: "",
-			UserId:       1,
 		}
 
 		// モックの準備
@@ -643,7 +641,7 @@ func TestPutSignInEdit(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -662,7 +660,6 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
-			UserId:       1,
 		}
 
 		// モックの準備
@@ -678,7 +675,7 @@ func TestPutSignInEdit(t *testing.T) {
 		mock.ExpectRollback() // エラー発生時にはロールバックを期待
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
@@ -703,11 +700,10 @@ func TestPutSignInEdit(t *testing.T) {
 		testData := RequestSignInEditData{
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
-			UserId:       1,
 		}
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PutSignInEdit(testData)
+		err = dbFetcher.PutSignInEdit(1, testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
@@ -730,7 +726,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -760,7 +755,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "test",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -798,7 +792,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -851,7 +844,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -917,7 +909,6 @@ func TestPutCheck(t *testing.T) {
 
 		// テスト対象のデータ
 		requestData := RequestSignInEditData{
-			UserId:       "1",
 			UserEmail:    "test@exmple.com",
 			UserPassword: "Test12345!",
 		}
@@ -962,7 +953,6 @@ func TestDeleteSignIn(t *testing.T) {
 		}
 
 		testData := RequestSignInDeleteData{
-			UserId:    1,
 			UserEmail: "text@example.com",
 		}
 
@@ -977,7 +967,7 @@ func TestDeleteSignIn(t *testing.T) {
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSignIn(testData)
+		err = dbFetcher.DeleteSignIn(1, testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
@@ -994,7 +984,6 @@ func TestDeleteSignIn(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInDeleteData{
-			UserId:    1,
 			UserEmail: "text@example.com",
 		}
 
@@ -1009,7 +998,7 @@ func TestDeleteSignIn(t *testing.T) {
 		mock.ExpectRollback() // エラー発生時にはロールバックを期待
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSignIn(testData)
+		err = dbFetcher.DeleteSignIn(1, testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
@@ -1032,11 +1021,10 @@ func TestDeleteSignIn(t *testing.T) {
 
 		// テストデータを作成
 		testData := RequestSignInDeleteData{
-			UserId: 1,
+			UserEmail: "",
 		}
-
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.DeleteSignIn(testData)
+		err = dbFetcher.DeleteSignIn(1, testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
@@ -1130,11 +1118,11 @@ func TestGetUserId(t *testing.T) {
 func TestNewPasswordUpdate(t *testing.T) {
 	Data := RequestNewPasswordUpdateData{
 		TokenId:         "b2781af7-794a-1871-9865-bdc3c19291ff1",
-		CurrentPassword: "Test12345!",
 		NewUserPassword: "Test12345!",
 		ConfirmPassword: "Test12345!",
 	}
 	UserId := Data.TokenId[utils.Uuid:]
+
 	t.Run("NewPasswordUpdate 登録ユーザーが存在しない", func(t *testing.T) {
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
@@ -1181,75 +1169,30 @@ func TestNewPasswordUpdate(t *testing.T) {
 		assert.Equal(t, "", userEmail)
 		assert.Equal(t, err.Error(), "dbエラー")
 	})
-	t.Run("NewPasswordUpdate パスワードの不整合", func(t *testing.T) {
-		// gomock のコントローラを作成
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
 
-		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
-
-		// テスト用のDBモックを作成
-		dbFetcher, mock, err := NewSignDataFetcher(
-			"test",
-			mockUtilsFetcher,
-		)
-		if err != nil {
-			t.Fatalf("Error creating DB mock: %v", err)
-		}
-
-		mockUtilsFetcher.EXPECT().
-			CompareHashPassword(gomock.Any(), gomock.Any()).
-			Return(fmt.Errorf("エラー"))
-
-		row := sqlmock.NewRows([]string{
-			"user_email", "user_password",
-		}).AddRow(
-			"test@exmaple.com",
-			"Test12345!",
-		)
-		// モックの準備
-		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
-			WithArgs(UserId).
-			WillReturnRows(row)
-
-		// テスト実行
-		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
-
-		// 検証
-		assert.Error(t, err)
-		assert.Equal(t, "", userEmail)
-		assert.Equal(t, "現在のパスワードと一致しませんでした。", err.Error())
-	})
 	t.Run("NewPasswordUpdate トランザクション失敗", func(t *testing.T) {
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
-
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
-			mockUtilsFetcher,
+			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_email", "user_password",
+			"user_email",
 		}).AddRow(
 			"test@exmaple.com",
-			"Test12345!",
 		)
 		// モックの準備
 		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
 			WithArgs(UserId).
 			WillReturnRows(row)
-
-		mockUtilsFetcher.EXPECT().
-			CompareHashPassword(gomock.Any(), gomock.Any()).
-			Return(nil)
 
 		// トランザクションの開始に失敗させる
 		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
@@ -1267,31 +1210,24 @@ func TestNewPasswordUpdate(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
-
 		// テスト用のDBモックを作成
 		dbFetcher, mock, err := NewSignDataFetcher(
 			"test",
-			mockUtilsFetcher,
+			utils.NewUtilsFetcher(utils.JwtSecret),
 		)
 		if err != nil {
 			t.Fatalf("Error creating DB mock: %v", err)
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_email", "user_password",
+			"user_email",
 		}).AddRow(
 			"test@exmaple.com",
-			"Test12345!",
 		)
 		// モックの準備
 		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
 			WithArgs(UserId).
 			WillReturnRows(row)
-
-		mockUtilsFetcher.EXPECT().
-			CompareHashPassword(gomock.Any(), gomock.Any()).
-			Return(nil)
 
 		// トランザクション
 		mock.ExpectBegin()
@@ -1335,19 +1271,14 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_email", "user_password",
+			"user_email",
 		}).AddRow(
 			"test@exmaple.com",
-			"Test12345!",
 		)
 		// モックの準備
 		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
 			WithArgs(UserId).
 			WillReturnRows(row)
-
-		mockUtilsFetcher.EXPECT().
-			CompareHashPassword(gomock.Any(), gomock.Any()).
-			Return(nil)
 
 		mockUtilsFetcher.EXPECT().
 			EncryptPassword(gomock.Any()).
@@ -1389,19 +1320,14 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		row := sqlmock.NewRows([]string{
-			"user_email", "user_password",
+			"user_email",
 		}).AddRow(
 			"test@exmaple.com",
-			"Test12345!",
 		)
 		// モックの準備
 		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
 			WithArgs(UserId).
 			WillReturnRows(row)
-
-		mockUtilsFetcher.EXPECT().
-			CompareHashPassword(gomock.Any(), gomock.Any()).
-			Return(nil)
 
 		mockUtilsFetcher.EXPECT().
 			EncryptPassword(gomock.Any()).

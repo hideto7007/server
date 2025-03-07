@@ -1316,7 +1316,7 @@ func TestGetRefreshTokenApi(t *testing.T) {
 	})
 }
 
-func TestTemporayPostSignUpApi(t *testing.T) {
+func TestTemporaryPostSignUpApi(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
@@ -1324,14 +1324,14 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 	var UserPassword string = "Test12345!"
 	var UserName string = "test!"
 
-	t.Run("TemporayPostSignUpApi JSON不正", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi JSON不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBufferString(invalidJSON))
+		c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBufferString(invalidJSON))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -1340,7 +1340,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			EmailTemplateService: templates.NewEmailTemplateManager(),
 			RedisService:         config.NewRedisManager(),
 		}
-		fetcher.TemporayPostSignUpApi(c)
+		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 		var response map[string]interface{}
@@ -1349,7 +1349,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		assert.Contains(t, response["error_msg"], "unexpected EOF")
 	})
 
-	t.Run("TemporayPostSignUpApi バリデーション 必須", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -1364,7 +1364,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -1373,7 +1373,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			EmailTemplateService: templates.NewEmailTemplateManager(),
 			RedisService:         config.NewRedisManager(),
 		}
-		fetcher.TemporayPostSignUpApi(c)
+		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1402,7 +1402,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TemporayPostSignUpApi バリデーション メールアドレス不正", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi バリデーション メールアドレス不正", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
@@ -1417,7 +1417,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -1426,7 +1426,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			EmailTemplateService: templates.NewEmailTemplateManager(),
 			RedisService:         config.NewRedisManager(),
 		}
-		fetcher.TemporayPostSignUpApi(c)
+		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1445,7 +1445,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
-	t.Run("TemporayPostSignUpApi バリデーション パスワード不正", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi バリデーション パスワード不正", func(t *testing.T) {
 
 		dataList := []testData{
 			{
@@ -1473,7 +1473,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+			c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBuffer(body))
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			fetcher := apiSignDataFetcher{
@@ -1482,7 +1482,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 				EmailTemplateService: templates.NewEmailTemplateManager(),
 				RedisService:         config.NewRedisManager(),
 			}
-			fetcher.TemporayPostSignUpApi(c)
+			fetcher.TemporaryPostSignUpApi(c)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
@@ -1502,7 +1502,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		}
 	})
 
-	t.Run("TemporayPostSignUpApi redisエラー", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi redisエラー", func(t *testing.T) {
 
 		data := testData{
 			Data: []models.RequestSignUpData{
@@ -1535,7 +1535,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			Return(fmt.Errorf("redisエラー"))
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -1544,7 +1544,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			EmailTemplateService: templates.NewEmailTemplateManager(),
 			RedisService:         mockRedisService,
 		}
-		fetcher.TemporayPostSignUpApi(c)
+		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
@@ -1558,7 +1558,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
 	})
 
-	t.Run("TemporayPostSignUpApi ールテンプレート生成エラー(仮登録))", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi ールテンプレート生成エラー(仮登録))", func(t *testing.T) {
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -1596,7 +1596,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -1605,7 +1605,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			EmailTemplateService: mockEmailTemplateService,
 			RedisService:         mockRedisService,
 		}
-		fetcher.TemporayPostSignUpApi(c)
+		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
@@ -1619,7 +1619,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
 	})
 
-	t.Run("TemporayPostSignUpApi メール送信エラー(仮登録)", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi メール送信エラー(仮登録)", func(t *testing.T) {
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -1661,7 +1661,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -1670,7 +1670,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			EmailTemplateService: mockEmailTemplateService,
 			RedisService:         mockRedisService,
 		}
-		fetcher.TemporayPostSignUpApi(c)
+		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
@@ -1684,7 +1684,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
 	})
 
-	t.Run("TemporayPostSignUpApi result 成功", func(t *testing.T) {
+	t.Run("TemporaryPostSignUpApi result 成功", func(t *testing.T) {
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -1726,7 +1726,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("POST", "/api/temporay_signup", bytes.NewBuffer(body))
+		c.Request = httptest.NewRequest("POST", "/api/temporary_signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		fetcher := apiSignDataFetcher{
@@ -1735,7 +1735,7 @@ func TestTemporayPostSignUpApi(t *testing.T) {
 			EmailTemplateService: mockEmailTemplateService,
 			RedisService:         mockRedisService,
 		}
-		fetcher.TemporayPostSignUpApi(c)
+		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -2822,14 +2822,15 @@ func TestPutSignInEditApi(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("PutSignInEditApi JSON不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			invalidJSON,
+			map[string]string{"user_id": "1"},
+		)
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -2847,27 +2848,27 @@ func TestPutSignInEditApi(t *testing.T) {
 	})
 
 	t.Run("PutSignInEditApi バリデーション 必須", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "",
 					UserEmail:    "",
 					UserPassword: "",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			data, map[string]string{},
+		)
+
+		// パラメータは手動で設定しない
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
-			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+			func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -2909,7 +2910,6 @@ func TestPutSignInEditApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInEditData{
 					{
-						UserId:       "test",
 						UserEmail:    "test@example.com",
 						UserPassword: "",
 					},
@@ -2918,7 +2918,6 @@ func TestPutSignInEditApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInEditData{
 					{
-						UserId:       "1.25",
 						UserEmail:    "test@example.com",
 						UserPassword: "",
 					},
@@ -2927,16 +2926,16 @@ func TestPutSignInEditApi(t *testing.T) {
 		}
 
 		for _, data := range dataList {
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+			w, c := test_utils.CreateTestRequest(
+				"PUT", "/api/signin_edit/1",
+				data,
+				map[string]string{"user_id": "1.4"},
+			)
 
 			patches := ApplyMethod(
 				reflect.TypeOf(&models.SignDataFetcher{}),
 				"PutSignInEdit",
-				func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+				func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 					return nil
 				})
 			defer patches.Reset()
@@ -2970,27 +2969,25 @@ func TestPutSignInEditApi(t *testing.T) {
 	})
 
 	t.Run("PutSignInEditApi バリデーション メールアドレス不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "1",
 					UserEmail:    "test@example",
 					UserPassword: "Test12345!",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
-			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+			func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3026,7 +3023,6 @@ func TestPutSignInEditApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInEditData{
 					{
-						UserId:       "1",
 						UserEmail:    "test@example.com",
 						UserPassword: "Test12!",
 					},
@@ -3035,7 +3031,6 @@ func TestPutSignInEditApi(t *testing.T) {
 			{
 				Data: []models.RequestSignInEditData{
 					{
-						UserId:       "2",
 						UserEmail:    "test@example.com",
 						UserPassword: "Test123456",
 					},
@@ -3044,17 +3039,16 @@ func TestPutSignInEditApi(t *testing.T) {
 		}
 
 		for _, data := range dataList {
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-
-			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+			w, c := test_utils.CreateTestRequest(
+				"PUT", "/api/signin_edit/1",
+				data,
+				map[string]string{"user_id": "1"},
+			)
 
 			patches := ApplyMethod(
 				reflect.TypeOf(&models.SignDataFetcher{}),
 				"PutSignInEdit",
-				func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+				func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 					return nil
 				})
 			defer patches.Reset()
@@ -3090,19 +3084,17 @@ func TestPutSignInEditApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "1",
 					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -3137,19 +3129,17 @@ func TestPutSignInEditApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "1",
 					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -3162,7 +3152,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
-			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+			func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 				return fmt.Errorf("sql更新失敗")
 			})
 		defer patches1.Reset()
@@ -3192,15 +3182,11 @@ func TestPutSignInEditApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "1",
 					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
 		}
-
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -3219,9 +3205,11 @@ func TestPutSignInEditApi(t *testing.T) {
 			PostSignInEditTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -3234,7 +3222,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
-			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+			func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches1.Reset()
@@ -3264,15 +3252,11 @@ func TestPutSignInEditApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "1",
 					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
 		}
-
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -3295,9 +3279,11 @@ func TestPutSignInEditApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(fmt.Errorf("メール送信エラー"))
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -3310,7 +3296,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
-			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+			func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches1.Reset()
@@ -3340,15 +3326,11 @@ func TestPutSignInEditApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "1",
 					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
 		}
-
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -3371,9 +3353,11 @@ func TestPutSignInEditApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -3386,7 +3370,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
-			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+			func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches1.Reset()
@@ -3416,15 +3400,11 @@ func TestPutSignInEditApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInEditData{
 				{
-					UserId:       "1",
 					UserEmail:    "test@example.com",
 					UserPassword: "Test123456!!",
 				},
 			},
 		}
-
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -3447,9 +3427,11 @@ func TestPutSignInEditApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/signin_edit", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/signin_edit/2",
+			data,
+			map[string]string{"user_id": "2"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -3462,7 +3444,7 @@ func TestPutSignInEditApi(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PutSignInEdit",
-			func(_ *models.SignDataFetcher, data models.RequestSignInEditData) error {
+			func(_ *models.SignDataFetcher, UserId int, data models.RequestSignInEditData) error {
 				return nil
 			})
 		defer patches1.Reset()
@@ -3493,14 +3475,15 @@ func TestDeleteSignInApi(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("DeleteSignInApi JSON不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			invalidJSON,
+			map[string]string{"user_id": "1"},
+		)
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -3518,27 +3501,25 @@ func TestDeleteSignInApi(t *testing.T) {
 	})
 
 	t.Run("DeleteSignInApi バリデーション 必須", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "",
 					UserEmail:  "",
 					DeleteName: "",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3579,27 +3560,25 @@ func TestDeleteSignInApi(t *testing.T) {
 	})
 
 	t.Run("DeleteSignInApi バリデーション メールアドレス不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example",
 					DeleteName: "test",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3633,68 +3612,54 @@ func TestDeleteSignInApi(t *testing.T) {
 
 	t.Run("DeleteSignInApi バリデーション 数値文字列以外", func(t *testing.T) {
 
-		dataList := []testData{
-			{
-				Data: []models.RequestSignInDeleteData{
-					{
-						UserId:     "test",
-						UserEmail:  "test@example.com",
-						DeleteName: "test",
-					},
-				},
-			},
-			{
-				Data: []models.RequestSignInDeleteData{
-					{
-						UserId:     "1.25",
-						UserEmail:  "test@example.com",
-						DeleteName: "test",
-					},
+		data := testData{
+			Data: []models.RequestSignInDeleteData{
+				{
+					UserEmail:  "test@example.com",
+					DeleteName: "test",
 				},
 			},
 		}
 
-		for _, data := range dataList {
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/test",
+			data,
+			map[string]string{"user_id": "test"},
+		)
 
-			patches := ApplyMethod(
-				reflect.TypeOf(&models.SignDataFetcher{}),
-				"DeleteSignIn",
-				func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
-					return nil
-				})
-			defer patches.Reset()
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"DeleteSignIn",
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
+				return nil
+			})
+		defer patches.Reset()
 
-			fetcher := apiSignDataFetcher{
-				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
-				CommonFetcher:        common.NewCommonFetcher(),
-				EmailTemplateService: templates.NewEmailTemplateManager(),
-				RedisService:         config.NewRedisManager(),
-			}
-			fetcher.DeleteSignInApi(c)
-
-			assert.Equal(t, http.StatusBadRequest, w.Code)
-
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
-			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-			assert.NoError(t, err)
-
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "user_id",
-						Message: "ユーザーIDは整数値のみです。",
-					},
-				},
-			}
-			test_utils.SortErrorMessages(responseBody.Result)
-			test_utils.SortErrorMessages(expectedErrorMessage.Result)
-			assert.Equal(t, responseBody, expectedErrorMessage)
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         config.NewRedisManager(),
 		}
+		fetcher.DeleteSignInApi(c)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+
+		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			Result: []utils.ErrorMessages{
+				{
+					Field:   "user_id",
+					Message: "ユーザーIDは整数値のみです。",
+				},
+			},
+		}
+		test_utils.SortErrorMessages(responseBody.Result)
+		test_utils.SortErrorMessages(expectedErrorMessage.Result)
+		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("DeleteSignInApi sql取得で失敗しサインインの削除失敗になる", func(t *testing.T) {
@@ -3702,24 +3667,22 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return fmt.Errorf("sql削除失敗")
 			})
 		defer patches.Reset()
@@ -3749,7 +3712,6 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
@@ -3773,17 +3735,16 @@ func TestDeleteSignInApi(t *testing.T) {
 			DeleteSignInTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3813,7 +3774,6 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
@@ -3842,17 +3802,16 @@ func TestDeleteSignInApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(fmt.Errorf("メール送信エラー"))
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -3882,15 +3841,11 @@ func TestDeleteSignInApi(t *testing.T) {
 		data := testData{
 			Data: []models.RequestSignInDeleteData{
 				{
-					UserId:     "1",
 					UserEmail:  "test@example.com",
 					DeleteName: "test",
 				},
 			},
 		}
-
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
@@ -3913,14 +3868,16 @@ func TestDeleteSignInApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("DELETE", "/api/signin_delete", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"DELETE", "/api/signin_delete/1",
+			data,
+			map[string]string{"user_id": "1"},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"DeleteSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInDeleteData) error {
+			func(_ *models.SignDataFetcher, userId int, data models.RequestSignInDeleteData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -4441,14 +4398,14 @@ func TestNewPasswordUpdate(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("TestNewPasswordUpdate JSON不正", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
 		// Invalid JSON
 		invalidJSON := `{"data": [`
 
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBufferString(invalidJSON))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			invalidJSON,
+			map[string]string{},
+		)
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -4466,23 +4423,22 @@ func TestNewPasswordUpdate(t *testing.T) {
 	})
 
 	t.Run("TestNewPasswordUpdate バリデーション 必須", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
 
 		data := testData{
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "",
-					CurrentPassword: "",
 					NewUserPassword: "",
 					ConfirmPassword: "",
 				},
 			},
 		}
 
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -4503,10 +4459,6 @@ func TestNewPasswordUpdate(t *testing.T) {
 				{
 					Field:   "token_id",
 					Message: "トークンidは必須です。",
-				},
-				{
-					Field:   "current_password",
-					Message: "現在のパスワードは必須です。",
 				},
 				{
 					Field:   "new_user_password",
@@ -4530,9 +4482,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 				Data: []models.RequestNewPasswordUpdateData{
 					{
 						TokenId:         "token12",
-						CurrentPassword: "Test12345",
+						NewUserPassword: "Test12345",
+						ConfirmPassword: "Test12345!",
+					},
+				},
+			},
+			{
+				Data: []models.RequestNewPasswordUpdateData{
+					{
+						TokenId:         "token12",
 						NewUserPassword: "Test12345!",
-						ConfirmPassword: "Test12345!",
+						ConfirmPassword: "test12345",
 					},
 				},
 			},
@@ -4540,63 +4500,14 @@ func TestNewPasswordUpdate(t *testing.T) {
 				Data: []models.RequestNewPasswordUpdateData{
 					{
 						TokenId:         "token12",
-						CurrentPassword: "Test12345!",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345!",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345!",
-						NewUserPassword: "Test12345!",
-						ConfirmPassword: "Test12345",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345!",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345!",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345!",
-					},
-				},
-			},
-			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						CurrentPassword: "Test12345",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345",
+						NewUserPassword: "test12345",
+						ConfirmPassword: "Test12!",
 					},
 				},
 			},
 		}
 
 		expectedErrorMessageList := []utils.ErrorResponse{
-			{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "current_password",
-						Message: "現在のパスワードの形式が間違っています。",
-					},
-				},
-			},
 			{
 				Result: []utils.ErrorMessages{
 					{
@@ -4615,30 +4526,6 @@ func TestNewPasswordUpdate(t *testing.T) {
 			},
 			{
 				Result: []utils.ErrorMessages{
-					{
-						Field:   "new_user_password",
-						Message: "新しいパスワードの形式が間違っています。",
-					},
-				},
-			},
-			{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "current_password",
-						Message: "現在のパスワードの形式が間違っています。",
-					},
-					{
-						Field:   "new_user_password",
-						Message: "新しいパスワードの形式が間違っています。",
-					},
-				},
-			},
-			{
-				Result: []utils.ErrorMessages{
-					{
-						Field:   "current_password",
-						Message: "現在のパスワードの形式が間違っています。",
-					},
 					{
 						Field:   "new_user_password",
 						Message: "新しいパスワードの形式が間違っています。",
@@ -4652,12 +4539,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 		}
 
 		for i, data := range dataList {
-			w := httptest.NewRecorder()
-			c, _ := gin.CreateTestContext(w)
-
-			body, _ := json.Marshal(data)
-			c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-			c.Request.Header.Set("Content-Type", "application/json")
+			w, c := test_utils.CreateTestRequest(
+				"PUT", "/api/new_password_update",
+				data,
+				map[string]string{},
+			)
 
 			fetcher := apiSignDataFetcher{
 				UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -4684,19 +4570,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -4732,19 +4616,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -4797,19 +4679,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
@@ -4860,19 +4740,17 @@ func TestNewPasswordUpdate(t *testing.T) {
 			Data: []models.RequestNewPasswordUpdateData{
 				{
 					TokenId:         "token12",
-					CurrentPassword: "Test12345!",
 					NewUserPassword: "Test12345!",
 					ConfirmPassword: "Test12345!",
 				},
 			},
 		}
 
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		body, _ := json.Marshal(data)
-		c.Request = httptest.NewRequest("PUT", "/api/new_password_update", bytes.NewBuffer(body))
-		c.Request.Header.Set("Content-Type", "application/json")
+		w, c := test_utils.CreateTestRequest(
+			"PUT", "/api/new_password_update",
+			data,
+			map[string]string{},
+		)
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),

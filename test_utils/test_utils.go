@@ -1,6 +1,9 @@
 package test_utils
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -8,6 +11,8 @@ import (
 	"server/utils"
 	"sort"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // CreateErrorMessage はテスト用のエラーメッセージ構造体を生成する関数
@@ -101,4 +106,48 @@ func RedirectSuccess(location string) (int, string, error) {
 	id, _ := common.StrToInt(userId)
 
 	return id, userEmail, nil
+}
+
+// 共通のリクエスト作成ヘルパー関数
+func CreateTestRequest(method, path string, data interface{}, params map[string]string, headers ...map[string]string) (*httptest.ResponseRecorder, *gin.Context) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+
+	// リクエストボディをJSON化（データがnilの場合は空）
+	var body io.Reader
+	switch v := data.(type) {
+	case string:
+		body = bytes.NewBufferString(v)
+	case nil:
+		body = nil
+	default:
+		// JSON 変換
+		jsonData, _ := json.Marshal(v)
+		body = bytes.NewBuffer(jsonData)
+	}
+
+	c.Request = httptest.NewRequest(method, path, body)
+
+	defaultHeaders := map[string]string{
+		"Content-Type": "application/json",
+	}
+
+	if len(headers) > 0 {
+		for key, value := range headers[0] {
+			defaultHeaders[key] = value
+		}
+	}
+
+	for key, value := range defaultHeaders {
+		c.Request.Header.Set(key, value)
+	}
+
+	// params を処理（空でないことを確認）
+	if len(params) > 0 {
+		for key, value := range params {
+			c.Params = append(c.Params, gin.Param{Key: key, Value: value})
+		}
+	}
+
+	return w, c
 }
