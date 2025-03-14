@@ -1,21 +1,14 @@
 package utils
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"testing"
 	"time"
 
 	mock_utils "server/mock/utils"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang/mock/gomock"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,174 +22,6 @@ func TestGetBaseURL(t *testing.T) {
 	})
 }
 
-func TestHandleError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	// ログをキャプチャする
-	var logBuffer bytes.Buffer
-	logrus.SetOutput(&logBuffer)
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-
-	t.Run("HandleError ErrorMsgの方", func(t *testing.T) {
-		// Ginのテスト用コンテキストを作成
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		// リクエストのモックデータを設定
-		c.Request = &http.Request{
-			Header: make(http.Header),
-			Method: http.MethodGet,
-			URL:    &url.URL{Path: "/api/test"}, // Path を正しく設定
-		}
-		c.Request.RemoteAddr = "127.0.0.1:12345"
-		c.Set("request_id", "test-request-id")
-
-		// テストデータ
-		response := ErrorResponse{
-			ErrorMsg: "エラーメッセージ",
-		}
-
-		// 関数を呼び出す
-		HandleError(c, http.StatusBadRequest, response)
-
-		// レスポンスを検証
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var responseBody ErrorResponse
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-		assert.Equal(t, "エラーメッセージ", responseBody.ErrorMsg)
-
-		// ログ出力を検証
-		logOutput := logBuffer.String()
-		assert.Contains(t, logOutput, `"error":"エラーメッセージ"`)
-		assert.Contains(t, logOutput, `"status":400`)
-		assert.Contains(t, logOutput, `"client_ip":"127.0.0.1"`)
-		assert.Contains(t, logOutput, `"method":"GET"`)
-		assert.Contains(t, logOutput, `"path":"/api/test"`)
-		assert.Contains(t, logOutput, `"request_id":"test-request-id"`)
-	})
-
-	t.Run("HandleError Resultの方", func(t *testing.T) {
-		// Ginのテスト用コンテキストを作成
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-
-		// リクエストのモックデータを設定
-		c.Request = &http.Request{
-			Header: make(http.Header),
-			Method: http.MethodGet,
-			URL:    &url.URL{Path: "/api/test"}, // Path を正しく設定
-		}
-		c.Request.RemoteAddr = "127.0.0.1:12345"
-		c.Set("request_id", "test-request-id")
-
-		// テストデータ
-		response := ErrorResponse{
-			Result: []ErrorMessages{
-				{
-					Field:   "test",
-					Message: "エラー",
-				},
-			},
-		}
-
-		// 関数を呼び出す
-		HandleError(c, http.StatusBadRequest, response)
-
-		// レスポンスを検証
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var responseBody ErrorResponse
-		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
-		assert.NoError(t, err)
-		assert.Equal(t, response.Result, responseBody.Result)
-
-		// ログ出力を検証
-		logOutput := logBuffer.String()
-		assert.Contains(t, logOutput, `"status":400`)
-		assert.Contains(t, logOutput, `"client_ip":"127.0.0.1"`)
-		assert.Contains(t, logOutput, `"method":"GET"`)
-		assert.Contains(t, logOutput, `"path":"/api/test"`)
-		assert.Contains(t, logOutput, `"request_id":"test-request-id"`)
-	})
-}
-
-func TestRedirectHandleError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	// ログをキャプチャする
-	var logBuffer bytes.Buffer
-	logrus.SetOutput(&logBuffer)
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-
-	// Ginのテスト用コンテキストを作成
-	w := httptest.NewRecorder()
-	C, _ := gin.CreateTestContext(w)
-
-	// リクエストのモックデータを設定
-	C.Request = &http.Request{
-		Header: make(http.Header),
-		Method: http.MethodGet,
-		URL:    &url.URL{Path: "/api/test"}, // Path を正しく設定
-	}
-	C.Request.RemoteAddr = "127.0.0.1:12345"
-	C.Set("request_id", "test-request-id")
-
-	t.Run("RedirectHandleError ErrorMsgの方", func(t *testing.T) {
-		response := ErrorResponse{
-			ErrorMsg: "エラーメッセージ",
-		}
-
-		// 関数を呼び出す
-		RedirectHandleError(C, http.StatusBadRequest, response, "test")
-
-		// レスポンスを検証
-		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		// リダイレクトURLを検証
-		location := w.Header().Get("Location")
-		expectedRedirectURL := ":///money_management/signin?sign_type=external&error=test"
-		assert.Equal(t, expectedRedirectURL, location)
-
-		// ログ出力を検証
-		logOutput := logBuffer.String()
-		assert.Contains(t, logOutput, `"error":"エラーメッセージ"`)
-		assert.Contains(t, logOutput, `"status":400`)
-		assert.Contains(t, logOutput, `"client_ip":"127.0.0.1"`)
-		assert.Contains(t, logOutput, `"method":"GET"`)
-		assert.Contains(t, logOutput, `"path":"/api/test"`)
-		assert.Contains(t, logOutput, `"request_id":"test-request-id"`)
-	})
-
-	t.Run("RedirectHandleError Resultの方", func(t *testing.T) {
-		response := ErrorResponse{
-			Result: []ErrorMessages{
-				{
-					Field:   "test",
-					Message: "エラー",
-				},
-			},
-		}
-
-		// 関数を呼び出す
-		RedirectHandleError(C, http.StatusBadRequest, response, "test")
-
-		// レスポンスを検証
-		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
-
-		// リダイレクトURLを検証
-		location := w.Header().Get("Location")
-		expectedRedirectURL := ":///money_management/signin?sign_type=external&error=test"
-		assert.Equal(t, expectedRedirectURL, location)
-
-		// ログ出力を検証
-		logOutput := logBuffer.String()
-		assert.Contains(t, logOutput, `"status":400`)
-		assert.Contains(t, logOutput, `"client_ip":"127.0.0.1"`)
-		assert.Contains(t, logOutput, `"method":"GET"`)
-		assert.Contains(t, logOutput, `"path":"/api/test"`)
-		assert.Contains(t, logOutput, `"request_id":"test-request-id"`)
-	})
-}
 func TestGenerateJWT(t *testing.T) {
 	t.Run("GenerateJWT token発行できる", func(t *testing.T) {
 		utilsFetcher := NewUtilsFetcher(JwtSecret)
