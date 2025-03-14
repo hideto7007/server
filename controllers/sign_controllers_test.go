@@ -137,12 +137,10 @@ func TestPostSignInApi(t *testing.T) {
 			},
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		body, _ := json.Marshal(data)
@@ -152,7 +150,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()

@@ -26,10 +26,6 @@ type (
 		UserName  string
 	}
 
-	requesGoogleSignUpData struct {
-		Data []models.RequestSignUpData `json:"data"`
-	}
-
 	GoogleManager struct {
 		GoogleConfig         config.GoogleConfig
 		EmailTemplateService templates.EmailTemplateService
@@ -82,7 +78,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		return
 	}
 	// UtilsFetcher を使用してトークンを生成
-	newToken, err := gm.UtilsFetcher.NewToken(result[0].UserId, utils.AuthTokenHour)
+	newToken, err := gm.UtilsFetcher.NewToken(result.UserId, utils.AuthTokenHour)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "新規トークンの生成に失敗しました。",
@@ -91,7 +87,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := gm.UtilsFetcher.RefreshToken(result[0].UserId, utils.RefreshAuthTokenHour)
+	refreshToken, err := gm.UtilsFetcher.RefreshToken(result.UserId, utils.RefreshAuthTokenHour)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "リフレッシュトークンの生成に失敗しました。",
@@ -100,12 +96,12 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result[0].UserId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result.UserId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := gm.EmailTemplateService.PostSignInTemplate(
-		result[0].UserEmail,
+		result.UserEmail,
 		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
@@ -117,7 +113,7 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(result[0].UserEmail, subject, body, true); err != nil {
+	if err := gm.UtilsFetcher.SendMail(result.UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "メール送信エラー(サインイン): " + err.Error(),
 		}
@@ -128,8 +124,8 @@ func (gm *GoogleManager) GoogleSignInCallback(c *gin.Context) {
 	response := utils.ResponseData[SignInResult]{
 		// Token: token,
 		Result: SignInResult{
-			UserId:       result[0].UserId,
-			UserEmail:    result[0].UserEmail,
+			UserId:       result.UserId,
+			UserEmail:    result.UserEmail,
 			UserPassword: "",
 		},
 	}
@@ -160,16 +156,12 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	registerData := requesGoogleSignUpData{
-		Data: []models.RequestSignUpData{
-			{
-				UserEmail:    params.UserEmail,
-				UserPassword: "google",
-				UserName:     params.UserName,
-			},
-		},
+	registerData := models.RequestSignUpData{
+		UserEmail:    params.UserEmail,
+		UserPassword: "google",
+		UserName:     params.UserName,
 	}
-	if err := dbFetcher.PostSignUp(registerData.Data[0]); err != nil {
+	if err := dbFetcher.PostSignUp(registerData); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "既に登録されたメールアドレスです。",
 		}
@@ -264,7 +256,7 @@ func (gm *GoogleManager) GoogleDeleteCallback(c *gin.Context) {
 	data := models.RequestSignInDeleteData{
 		UserEmail: params.UserEmail,
 	}
-	err = deleteDbFetcher.DeleteSignIn(result[0].UserId, data)
+	err = deleteDbFetcher.DeleteSignIn(result.UserId, data)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: err.Error(),

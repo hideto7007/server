@@ -28,11 +28,9 @@ func TestGoogleSignInCallback(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 
-	ResMock := []models.ExternalAuthData{
-		{
-			UserId:    1,
-			UserEmail: "test@example.com",
-		},
+	ResMock := models.ExternalAuthData{
+		UserId:    1,
+		UserEmail: "test@example.com",
 	}
 
 	t.Run("GoogleSignInCallback バリデーション必須チェック", func(t *testing.T) {
@@ -124,12 +122,12 @@ func TestGoogleSignInCallback(t *testing.T) {
 			},
 		)
 
-		resMock := []models.ExternalAuthData{}
+		resMock := models.ExternalAuthData{}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
@@ -167,7 +165,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -223,7 +221,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -276,7 +274,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -340,7 +338,7 @@ func TestGoogleSignInCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return ResMock, nil
 			})
 		defer patches.Reset()
@@ -400,17 +398,15 @@ func TestGoogleSignInCallback(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		resMock := []models.ExternalAuthData{
-			{
-				UserId:    3,
-				UserEmail: "test@example.com",
-			},
+		resMock := models.ExternalAuthData{
+			UserId:    3,
+			UserEmail: "test@example.com",
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -848,12 +844,12 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			},
 		)
 
-		resMock := []models.ExternalAuthData{}
+		resMock := models.ExternalAuthData{}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
@@ -889,17 +885,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 			},
 		)
 
-		resMock := []models.ExternalAuthData{
-			{
-				UserId:    1,
-				UserEmail: "test@example.com",
-			},
+		resMock := models.ExternalAuthData{
+			UserId:    1,
+			UserEmail: "test@example.com",
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -952,17 +946,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		// EmailTemplateService のモックを作成
 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
 
-		resMock := []models.ExternalAuthData{
-			{
-				UserId:    1,
-				UserEmail: "test@example.com",
-			},
+		resMock := models.ExternalAuthData{
+			UserId:    1,
+			UserEmail: "test@example.com",
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1024,17 +1016,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		// EmailTemplateService のモックを作成
 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
 
-		resMock := []models.ExternalAuthData{
-			{
-				UserId:    1,
-				UserEmail: "test@example.com",
-			},
+		resMock := models.ExternalAuthData{
+			UserId:    1,
+			UserEmail: "test@example.com",
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -1098,17 +1088,15 @@ func TestGoogleDeleteCallback(t *testing.T) {
 		// UtilsFetcher のモックを作成
 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
-		resMock := []models.ExternalAuthData{
-			{
-				UserId:    1,
-				UserEmail: "test@example.com",
-			},
+		resMock := models.ExternalAuthData{
+			UserId:    1,
+			UserEmail: "test@example.com",
 		}
 
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetExternalAuth",
-			func(_ *models.SignDataFetcher, UserEmail string) ([]models.ExternalAuthData, error) {
+			func(_ *models.SignDataFetcher, UserEmail string) (models.ExternalAuthData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()

@@ -16,8 +16,8 @@ import (
 
 type (
 	SignInFetcher interface {
-		GetSignIn(data RequestSignInData) ([]SignInData, error)
-		GetExternalAuth(UserEmail string) ([]ExternalAuthData, error)
+		GetSignIn(data RequestSignInData) (SignInData, error)
+		GetExternalAuth(UserEmail string) (ExternalAuthData, error)
 		PostSignUp(data RequestSignUpData) error
 		PutSignInEdit(UserId int, data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
@@ -114,16 +114,17 @@ func NewSignDataFetcher(dataSourceName string, UtilsFetcher utils.UtilsFetcher) 
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, error) {
+func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) (SignInData, error) {
 
-	var result []SignInData
+	var result SignInData
 	var err error
+	var found bool = false
 
 	// データベースクエリを実行
 	rows, err := pf.db.Query(DB.GetSignInSyntax, data.UserEmail)
 
 	if err != nil {
-		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
+		return result, fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 
@@ -145,20 +146,22 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 			return result, err
 		}
 
+		found = true
+
 		// パスワードの整合性を確認
 		err = pf.UtilsFetcher.CompareHashPassword(record.UserPassword, data.UserPassword)
 		if err == nil {
 			// パスワードが一致する場合のみ結果に追加
-			result = append(result, record)
+			result = record
 		} else {
 			return result, errors.New("パスワードが一致しませんでした。")
 		}
 	}
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return result, err
 	}
 
-	if len(result) == 0 {
+	if found == false {
 		return result, errors.New("存在しないメールアドレスです。")
 	}
 
@@ -176,16 +179,17 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) ([]SignInData, erro
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) GetExternalAuth(UserEmail string) ([]ExternalAuthData, error) {
+func (pf *SignDataFetcher) GetExternalAuth(UserEmail string) (ExternalAuthData, error) {
 
-	var result []ExternalAuthData
+	var result ExternalAuthData
 	var err error
+	var found bool = false
 
 	// データベースクエリを実行
 	rows, err := pf.db.Query(DB.GetExternalAuthSyntax, UserEmail)
 
 	if err != nil {
-		return nil, fmt.Errorf("クエリー実行エラー： %v", err)
+		return result, fmt.Errorf("クエリー実行エラー： %v", err)
 	}
 	defer rows.Close()
 
@@ -198,12 +202,13 @@ func (pf *SignDataFetcher) GetExternalAuth(UserEmail string) ([]ExternalAuthData
 		if err != nil {
 			return result, err
 		}
-		result = append(result, record)
+		found = true
+		result = record
 	}
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return result, err
 	}
-	if len(result) == 0 {
+	if found == false {
 		return result, errors.New("存在しないメールアドレスです。")
 	}
 
