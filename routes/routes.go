@@ -36,21 +36,6 @@ func SetupRoutes(r *gin.Engine) {
 		common.NewCommonFetcher(),
 	)
 
-	// google認証
-	// r.GET("auth/google/signin", googleApi.GoogleSignIn)
-	// r.GET("auth/google/signup", googleApi.GoogleSignUp)
-	// r.GET("auth/google/delete", googleApi.GoogleDelete)
-	// r.GET("auth/google/signin/callback", googleApi.GoogleSignInCallback)
-	// r.GET("auth/google/signup/callback", googleApi.GoogleSignUpCallback)
-	// r.GET("auth/google/delete/callback", googleApi.GoogleDeleteCallback)
-	// line認証
-	// r.GET("auth/line/signin", lineApi.LineSignIn)
-	// r.GET("auth/line/signup", lineApi.LineSignUp)
-	// r.GET("auth/line/delete", lineApi.LineDelete)
-	// r.GET("auth/line/signin/callback", lineApi.LineSignInCallback)
-	// r.GET("auth/line/signup/callback", lineApi.LineSignUpCallback)
-	// r.GET("auth/line/delete/callback", lineApi.LineDeleteCallback)
-
 	// ルートの設定
 	Routes := r.Group("/api")
 	{
