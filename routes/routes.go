@@ -60,7 +60,7 @@ func SetupRoutes(r *gin.Engine) {
 		Routes.GET("/retry_auth_email", signAPI.RetryAuthEmail)
 		Routes.POST("/signup", signAPI.PostSignUpApi)
 		Routes.PUT("/signin_edit/:user_id", signAPI.PutSignInEditApi)
-		Routes.DELETE("/signin_delete/:user_id", signAPI.DeleteSignInApi) // 修正
+		Routes.DELETE("/signin_delete/:user_id", signAPI.DeleteSignInApi)
 		Routes.GET("/signout", signAPI.SignOutApi)
 		Routes.GET("/register_email_check_notice", signAPI.RegisterEmailCheckNotice)
 		// tokenIdからUserIdを取得していて、トークン漏洩防止のためパラメータにUserIdは含めない
