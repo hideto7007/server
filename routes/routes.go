@@ -4,7 +4,6 @@ import (
 	"server/common"
 	"server/config"
 	"server/controllers"
-	controllers_common "server/controllers/common"
 	"server/middleware"
 	"server/templates"
 	"server/utils"
@@ -13,8 +12,6 @@ import (
 )
 
 func SetupRoutes(r *gin.Engine) {
-
-	httpClient := common.NewHTTPClient()
 
 	// APiインターフェイスのインスタンス定義
 	var signAPI controllers.SignDataFetcher = controllers.NewSignDataFetcher(
@@ -25,19 +22,10 @@ func SetupRoutes(r *gin.Engine) {
 	)
 	var googleApi controllers.GoogleService = controllers.NewGoogleService(
 		config.NewGoogleManager(),
-		controllers_common.NewControllersCommonManager(
-			config.NewGoogleManager(),
-			config.NewLineManager(httpClient),
-		),
 		templates.NewEmailTemplateManager(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	var lineApi controllers.LineService = controllers.NewLineService(
-		config.NewLineManager(httpClient),
-		controllers_common.NewControllersCommonManager(
-			config.NewGoogleManager(),
-			config.NewLineManager(httpClient),
-		),
 		templates.NewEmailTemplateManager(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
@@ -49,19 +37,19 @@ func SetupRoutes(r *gin.Engine) {
 	)
 
 	// google認証
-	r.GET("auth/google/signin", googleApi.GoogleSignIn)
-	r.GET("auth/google/signup", googleApi.GoogleSignUp)
-	r.GET("auth/google/delete", googleApi.GoogleDelete)
-	r.GET("auth/google/signin/callback", googleApi.GoogleSignInCallback)
-	r.GET("auth/google/signup/callback", googleApi.GoogleSignUpCallback)
-	r.GET("auth/google/delete/callback", googleApi.GoogleDeleteCallback)
+	// r.GET("auth/google/signin", googleApi.GoogleSignIn)
+	// r.GET("auth/google/signup", googleApi.GoogleSignUp)
+	// r.GET("auth/google/delete", googleApi.GoogleDelete)
+	// r.GET("auth/google/signin/callback", googleApi.GoogleSignInCallback)
+	// r.GET("auth/google/signup/callback", googleApi.GoogleSignUpCallback)
+	// r.GET("auth/google/delete/callback", googleApi.GoogleDeleteCallback)
 	// line認証
-	r.GET("auth/line/signin", lineApi.LineSignIn)
-	r.GET("auth/line/signup", lineApi.LineSignUp)
-	r.GET("auth/line/delete", lineApi.LineDelete)
-	r.GET("auth/line/signin/callback", lineApi.LineSignInCallback)
-	r.GET("auth/line/signup/callback", lineApi.LineSignUpCallback)
-	r.GET("auth/line/delete/callback", lineApi.LineDeleteCallback)
+	// r.GET("auth/line/signin", lineApi.LineSignIn)
+	// r.GET("auth/line/signup", lineApi.LineSignUp)
+	// r.GET("auth/line/delete", lineApi.LineDelete)
+	// r.GET("auth/line/signin/callback", lineApi.LineSignInCallback)
+	// r.GET("auth/line/signup/callback", lineApi.LineSignUpCallback)
+	// r.GET("auth/line/delete/callback", lineApi.LineDeleteCallback)
 
 	// ルートの設定
 	Routes := r.Group("/api")
@@ -72,11 +60,19 @@ func SetupRoutes(r *gin.Engine) {
 		Routes.GET("/retry_auth_email", signAPI.RetryAuthEmail)
 		Routes.POST("/signup", signAPI.PostSignUpApi)
 		Routes.PUT("/signin_edit/:user_id", signAPI.PutSignInEditApi)
-		Routes.DELETE("/signin_delete/:user_id", signAPI.DeleteSignInApi) // 修正
+		Routes.DELETE("/signin_delete/:user_id", signAPI.DeleteSignInApi)
 		Routes.GET("/signout", signAPI.SignOutApi)
 		Routes.GET("/register_email_check_notice", signAPI.RegisterEmailCheckNotice)
 		// tokenIdからUserIdを取得していて、トークン漏洩防止のためパラメータにUserIdは含めない
 		Routes.PUT("/new_password_update", signAPI.NewPasswordUpdate)
+		// google認証
+		Routes.GET("/google/signin/callback", googleApi.GoogleSignInCallback)
+		Routes.GET("/google/signup/callback", googleApi.GoogleSignUpCallback)
+		Routes.GET("/google/delete/callback", googleApi.GoogleDeleteCallback)
+		// line認証
+		Routes.GET("/line/signin/callback", lineApi.LineSignInCallback)
+		Routes.GET("/line/signup/callback", lineApi.LineSignUpCallback)
+		Routes.GET("/line/delete/callback", lineApi.LineDeleteCallback)
 
 		// 認証が必要なルートにミドルウェアを追加
 		authRoutes := Routes.Group("/")

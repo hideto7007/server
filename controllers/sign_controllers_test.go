@@ -54,31 +54,25 @@ func TestPostSignInApi(t *testing.T) {
 		fetcher.PostSignInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
+		var response utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response["error_msg"], "unexpected EOF")
+		assert.Contains(t, response.Result, "unexpected EOF")
 	})
 
 	t.Run("TestPostSignInApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "",
-					UserPassword: "",
-				},
-			},
+		data := models.RequestSignInData{
+			UserEmail:    "",
+			UserPassword: "",
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		body, _ := json.Marshal(data)
@@ -88,7 +82,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -103,11 +97,11 @@ func TestPostSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -128,21 +122,15 @@ func TestPostSignInApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "test",
-					UserPassword: "Test12345!",
-				},
-			},
+		data := models.RequestSignInData{
+			UserEmail:    "test",
+			UserPassword: "Test12345!",
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		body, _ := json.Marshal(data)
@@ -152,7 +140,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -167,11 +155,11 @@ func TestPostSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -184,31 +172,21 @@ func TestPostSignInApi(t *testing.T) {
 
 	t.Run("TestPostSignInApi バリデーション パスワード不正", func(t *testing.T) {
 
-		dataList := []testData{
+		dataList := []models.RequestSignInData{
 			{
-				Data: []models.RequestSignInData{
-					{
-						UserEmail:    "test@example.com",
-						UserPassword: "Test12!",
-					},
-				},
+				UserEmail:    "test@example.com",
+				UserPassword: "Test12!",
 			},
 			{
-				Data: []models.RequestSignInData{
-					{
-						UserEmail:    "test@example.com",
-						UserPassword: "Test123456",
-					},
-				},
+				UserEmail:    "test@example.com",
+				UserPassword: "Test123456",
 			},
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		for _, data := range dataList {
@@ -222,7 +200,7 @@ func TestPostSignInApi(t *testing.T) {
 			patches := ApplyMethod(
 				reflect.TypeOf(&models.SignDataFetcher{}),
 				"GetSignIn",
-				func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+				func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 					return resMock, nil
 				})
 			defer patches.Reset()
@@ -237,11 +215,11 @@ func TestPostSignInApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			var responseBody utils.ErrorValidationResponse
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ErrorValidationResponse{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_password",
@@ -265,7 +243,7 @@ func TestPostSignInApi(t *testing.T) {
 	// 		},
 	// 	}
 
-	// 	resMock := []models.SignInData{}
+	// 	resMock := models.SignInData{}
 
 	// 	w := httptest.NewRecorder()
 	// 	c, _ := gin.CreateTestContext(w)
@@ -277,7 +255,7 @@ func TestPostSignInApi(t *testing.T) {
 	// 	patches := ApplyMethod(
 	// 		reflect.TypeOf(&models.SignDataFetcher{}),
 	// 		"GetSignIn",
-	// 		func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+	// 		func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 	// 			return resMock, nil
 	// 		})
 	// 	defer patches.Reset()
@@ -292,33 +270,27 @@ func TestPostSignInApi(t *testing.T) {
 
 	// 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-	// 	var responseBody utils.ResponseWithSlice[requestSignInData]
+	// 	var responseBody utils.ResponseData[requestSignInData]
 	// 	err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 	// 	assert.NoError(t, err)
 
-	// 	expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-	// 		ErrorMsg: "サインインに失敗しました。",
+	// 	expectedErrorMessage := utils.ResponseData[requestSignInData]{
+	// 		Result: "サインインに失敗しました。",
 	// 	}
 	// 	assert.Equal(t, responseBody, expectedErrorMessage)
 	// })
 
 	t.Run("TestPostSignInApi result 成功", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		w := httptest.NewRecorder()
@@ -331,7 +303,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -370,43 +342,35 @@ func TestPostSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSlice[SignInResult]
+		var responseBody utils.ResponseData[SignInResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
 		// assert.Equal(t, len(responseBody.Token), 120)
 
-		expectedOk := utils.ResponseWithSlice[SignInResult]{
-			Result: []SignInResult{
-				{
-					UserId:       3,
-					UserEmail:    "test@example.com",
-					UserPassword: "Test12345!",
-				},
-			},
-		}
-		assert.Equal(t, responseBody.Result[0].UserId, expectedOk.Result[0].UserId)
-		assert.Equal(t, responseBody.Result[0].UserEmail, expectedOk.Result[0].UserEmail)
-		assert.Equal(t, responseBody.Result[0].UserPassword, expectedOk.Result[0].UserPassword)
-	})
-
-	t.Run("TestPostSignInApi メールテンプレート生成エラー(サインイン)", func(t *testing.T) {
-
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
-		}
-
-		resMock := []models.SignInData{
-			{
+		expectedOk := utils.ResponseData[SignInResult]{
+			Result: SignInResult{
 				UserId:       3,
 				UserEmail:    "test@example.com",
 				UserPassword: "Test12345!",
 			},
+		}
+		assert.Equal(t, responseBody.Result.UserId, expectedOk.Result.UserId)
+		assert.Equal(t, responseBody.Result.UserEmail, expectedOk.Result.UserEmail)
+		assert.Equal(t, responseBody.Result.UserPassword, expectedOk.Result.UserPassword)
+	})
+
+	t.Run("TestPostSignInApi メールテンプレート生成エラー(サインイン)", func(t *testing.T) {
+
+		data := models.RequestSignInData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
+		}
+
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		w := httptest.NewRecorder()
@@ -419,7 +383,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -460,35 +424,29 @@ func TestPostSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[SignInResult]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
 		// assert.Equal(t, len(responseBody.Token), 120)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-			ErrorMsg: "メールテンプレート生成エラー(サインイン): テンプレート生成エラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(サインイン): テンプレート生成エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("TestPostSignInApi メール送信エラー(サインイン)", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		w := httptest.NewRecorder()
@@ -501,7 +459,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches.Reset()
@@ -540,30 +498,24 @@ func TestPostSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[SignInResult]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		// assert.Equal(t, len(responseBody.Token), 120)
-
-		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-			ErrorMsg: "メール送信エラー(サインイン): メール送信エラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メール送信エラー(サインイン): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("TestPostSignInApi sql取得失敗しエラー発生", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
-		resMock := []models.SignInData{}
+		resMock := models.SignInData{}
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -575,7 +527,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, fmt.Errorf("sql取得失敗")
 			})
 		defer patches.Reset()
@@ -590,32 +542,26 @@ func TestPostSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ResponseWithSlice[SignInResult]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSlice[SignInResult]{
-			ErrorMsg: "sql取得失敗",
+		expectedError := utils.ResponseData[string]{
+			Result: "sql取得失敗",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("TestPostSignInApi トークン生成に失敗 1", func(t *testing.T) {
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		// gomock のコントローラを作成
@@ -641,7 +587,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches1.Reset()
@@ -659,32 +605,26 @@ func TestPostSignInApi(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[requestSignInData]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-			ErrorMsg: "新規トークンの生成に失敗しました。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "新規トークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("TestPostSignInApi トークン生成に失敗 2", func(t *testing.T) {
-		data := testData{
-			Data: []models.RequestSignInData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
-		resMock := []models.SignInData{
-			{
-				UserId:       3,
-				UserEmail:    "test@example.com",
-				UserPassword: "Test12345!",
-			},
+		resMock := models.SignInData{
+			UserId:       3,
+			UserEmail:    "test@example.com",
+			UserPassword: "Test12345!",
 		}
 
 		// gomock のコントローラを作成
@@ -714,7 +654,7 @@ func TestPostSignInApi(t *testing.T) {
 		patches1 := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"GetSignIn",
-			func(_ *models.SignDataFetcher, data models.RequestSignInData) ([]models.SignInData, error) {
+			func(_ *models.SignDataFetcher, data models.RequestSignInData) (models.SignInData, error) {
 				return resMock, nil
 			})
 		defer patches1.Reset()
@@ -732,12 +672,12 @@ func TestPostSignInApi(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[requestSignInData]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "リフレッシュトークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
@@ -768,11 +708,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -802,11 +742,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -838,11 +778,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -880,11 +820,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			var responseBody utils.ErrorValidationResponse
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ErrorValidationResponse{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -928,12 +868,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "サインインユーザーが異なっています。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "サインインユーザーが異なっています。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
@@ -969,12 +909,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 			assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 			// レスポンスボディの確認
-			var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+			var responseBody utils.ResponseData[string]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
-				ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
+			expectedErrorMessage := utils.ResponseData[string]{
+				Result: "新しいアクセストークンの生成に失敗しました。",
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
 		})
@@ -1010,12 +950,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 			assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 			// レスポンスボディの確認
-			var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+			var responseBody utils.ResponseData[string]
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
-				ErrorMsg: "リフレッシュトークンがありません。再ログインしてください。",
+			expectedErrorMessage := utils.ResponseData[string]{
+				Result: "リフレッシュトークンがありません。再ログインしてください。",
 			}
 			assert.Equal(t, responseBody, expectedErrorMessage)
 		})
@@ -1068,12 +1008,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "リフレッシュトークンが無効です。再ログインしてください。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "リフレッシュトークンが無効です。再ログインしてください。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
@@ -1144,12 +1084,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "無効なリフレッシュトークン。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "無効なリフレッシュトークン。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
@@ -1224,12 +1164,12 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSlice[RequestRefreshToken]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[RequestRefreshToken]{
-			ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "新しいアクセストークンの生成に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
@@ -1305,11 +1245,11 @@ func TestGetRefreshTokenApi(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// レスポンスボディの確認
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOK := utils.ResponseWithSingle[string]{
+		expectedOK := utils.ResponseData[string]{
 			Result: "新しいアクセストークンが発行されました。",
 		}
 		assert.Equal(t, responseBody.Result, expectedOK.Result)
@@ -1343,24 +1283,20 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 		fetcher.TemporaryPostSignUpApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
+		var response utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response["error_msg"], "unexpected EOF")
+		assert.Contains(t, response.Result, "unexpected EOF")
 	})
 
 	t.Run("TemporaryPostSignUpApi バリデーション 必須", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		data := testData{
-			Data: []models.RequestSignUpData{
-				{
-					UserEmail:    "",
-					UserPassword: "",
-					UserName:     "",
-				},
-			},
+		data := models.RequestSignUpData{
+			UserEmail:    "",
+			UserPassword: "",
+			UserName:     "",
 		}
 
 		body, _ := json.Marshal(data)
@@ -1377,11 +1313,11 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -1406,14 +1342,10 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		data := testData{
-			Data: []models.RequestSignUpData{
-				{
-					UserEmail:    "test@example",
-					UserPassword: UserPassword,
-					UserName:     UserName,
-				},
-			},
+		data := models.RequestSignUpData{
+			UserEmail:    "test@example",
+			UserPassword: UserPassword,
+			UserName:     UserName,
 		}
 
 		body, _ := json.Marshal(data)
@@ -1430,11 +1362,11 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -1447,24 +1379,17 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 	t.Run("TemporaryPostSignUpApi バリデーション パスワード不正", func(t *testing.T) {
 
-		dataList := []testData{
+		dataList := []models.RequestSignUpData{
+
 			{
-				Data: []models.RequestSignUpData{
-					{
-						UserEmail:    UserEmail,
-						UserPassword: "Test12!",
-						UserName:     UserName,
-					},
-				},
+				UserEmail:    UserEmail,
+				UserPassword: "Test12!",
+				UserName:     UserName,
 			},
 			{
-				Data: []models.RequestSignUpData{
-					{
-						UserEmail:    UserEmail,
-						UserPassword: "Test123456",
-						UserName:     UserName,
-					},
-				},
+				UserEmail:    UserEmail,
+				UserPassword: "Test123456",
+				UserName:     UserName,
 			},
 		}
 
@@ -1486,11 +1411,11 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			var responseBody utils.ErrorValidationResponse
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ErrorValidationResponse{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_password",
@@ -1504,14 +1429,10 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 	t.Run("TemporaryPostSignUpApi redisエラー", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignUpData{
-				{
-					UserEmail:    UserEmail,
-					UserPassword: "Test12345!",
-					UserName:     UserName,
-				},
-			},
+		data := models.RequestSignUpData{
+			UserEmail:    UserEmail,
+			UserPassword: "Test12345!",
+			UserName:     UserName,
 		}
 
 		w := httptest.NewRecorder()
@@ -1548,14 +1469,14 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[TemporayPostSignUpResult]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSingle[TemporayPostSignUpResult]{
-			ErrorMsg: "redisエラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "redisエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("TemporaryPostSignUpApi ールテンプレート生成エラー(仮登録))", func(t *testing.T) {
@@ -1582,14 +1503,10 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 			TemporayPostSignUpTemplate(gomock.Any(), gomock.Any()).
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
-		data := testData{
-			Data: []models.RequestSignUpData{
-				{
-					UserEmail:    UserEmail,
-					UserPassword: UserPassword,
-					UserName:     UserName,
-				},
-			},
+		data := models.RequestSignUpData{
+			UserEmail:    UserEmail,
+			UserPassword: UserPassword,
+			UserName:     UserName,
 		}
 
 		w := httptest.NewRecorder()
@@ -1609,14 +1526,14 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メールテンプレート生成エラー(仮登録): メールテンプレートエラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(仮登録): メールテンプレートエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("TemporaryPostSignUpApi メール送信エラー(仮登録)", func(t *testing.T) {
@@ -1647,14 +1564,10 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(fmt.Errorf("メール送信エラー"))
 
-		data := testData{
-			Data: []models.RequestSignUpData{
-				{
-					UserEmail:    UserEmail,
-					UserPassword: UserPassword,
-					UserName:     UserName,
-				},
-			},
+		data := models.RequestSignUpData{
+			UserEmail:    UserEmail,
+			UserPassword: UserPassword,
+			UserName:     UserName,
 		}
 
 		w := httptest.NewRecorder()
@@ -1674,14 +1587,14 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メール仮登録送信エラー(仮登録): メール送信エラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メール仮登録送信エラー(仮登録): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("TemporaryPostSignUpApi result 成功", func(t *testing.T) {
@@ -1712,14 +1625,10 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
-		data := testData{
-			Data: []models.RequestSignUpData{
-				{
-					UserEmail:    UserEmail,
-					UserPassword: UserPassword,
-					UserName:     UserName,
-				},
-			},
+		data := models.RequestSignUpData{
+			UserEmail:    UserEmail,
+			UserPassword: UserPassword,
+			UserName:     UserName,
 		}
 
 		w := httptest.NewRecorder()
@@ -1739,11 +1648,11 @@ func TestTemporaryPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[TemporayPostSignUpResult]
+		var responseBody utils.ResponseData[TemporayPostSignUpResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[TemporayPostSignUpResult]{
+		expectedOk := utils.ResponseData[TemporayPostSignUpResult]{
 			Result: TemporayPostSignUpResult{
 				RedisKey:  "9355:71eb75e7-79b8-40d1-b581-d819d8470239",
 				UserEmail: UserEmail,
@@ -1789,11 +1698,11 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -1838,11 +1747,11 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -1890,14 +1799,14 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[requestSignInData]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-			ErrorMsg: "redis取得エラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "redis取得エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("RetryAuthEmail redis 登録エラー", func(t *testing.T) {
@@ -1941,14 +1850,14 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "redis登録エラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "redis登録エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("RetryAuthEmail redis 削除エラー", func(t *testing.T) {
@@ -1996,14 +1905,14 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "redis削除エラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "redis削除エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("RetryAuthEmail メールテンプレート生成エラー(メール再通知):", func(t *testing.T) {
@@ -2056,14 +1965,14 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メールテンプレート生成エラー(メール再通知): メールテンプレートエラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(メール再通知): メールテンプレートエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("RetryAuthEmail メール送信エラー(メール再通知)", func(t *testing.T) {
@@ -2121,14 +2030,14 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メール送信エラー(メール再通知): メール送信エラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メール送信エラー(メール再通知): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("RetryAuthEmail result 成功", func(t *testing.T) {
@@ -2186,11 +2095,11 @@ func TestRetryAuthEmail(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[RetryAuthEmailResult]
+		var responseBody utils.ResponseData[RetryAuthEmailResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[RetryAuthEmailResult]{
+		expectedOk := utils.ResponseData[RetryAuthEmailResult]{
 			Result: RetryAuthEmailResult{
 				RedisKey:  redisKey,
 				UserEmail: UserEmail,
@@ -2230,23 +2139,19 @@ func TestPostSignUpApi(t *testing.T) {
 		fetcher.PostSignUpApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
+		var response utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response["error_msg"], "unexpected EOF")
+		assert.Contains(t, response.Result, "unexpected EOF")
 	})
 
 	t.Run("PostSignUpApi メール認証コードが間違っています。", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: "1234",
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: "1234",
 		}
 
 		body, _ := json.Marshal(data)
@@ -2271,14 +2176,14 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メール認証コードが間違っています。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メール認証コードが間違っています。",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("PostSignUpApi redis getエラー", func(t *testing.T) {
@@ -2297,13 +2202,9 @@ func TestPostSignUpApi(t *testing.T) {
 			RedisGet(gomock.Any()).
 			Return("test_user,test_password,test_username", fmt.Errorf("redisエラー"))
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		body, _ := json.Marshal(data)
@@ -2328,14 +2229,14 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSingle[string]{
-			ErrorMsg: "redisエラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "redisエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("PostSignUpApi バリデーション 必須", func(t *testing.T) {
@@ -2354,13 +2255,9 @@ func TestPostSignUpApi(t *testing.T) {
 			RedisGet(gomock.Any()).
 			Return(",,", nil)
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		body, _ := json.Marshal(data)
@@ -2385,11 +2282,11 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_name",
@@ -2426,13 +2323,9 @@ func TestPostSignUpApi(t *testing.T) {
 			RedisGet(gomock.Any()).
 			Return("test_user,test_password,test_username", nil)
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		body, _ := json.Marshal(data)
@@ -2457,11 +2350,11 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -2486,13 +2379,9 @@ func TestPostSignUpApi(t *testing.T) {
 			RedisGet(gomock.Any()).
 			Return("test@example.com,Test12345!,test", nil)
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		w := httptest.NewRecorder()
@@ -2520,14 +2409,14 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusConflict, w.Code)
 
-		var responseBody utils.ResponseWithSlice[requestSignInData]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[requestSignInData]{
-			ErrorMsg: "既に登録されたメールアドレスです。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "既に登録されたメールアドレスです。",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("PostSignUpApi redis 削除エラー", func(t *testing.T) {
@@ -2548,13 +2437,9 @@ func TestPostSignUpApi(t *testing.T) {
 			RedisDel(gomock.Any()).
 			Return(fmt.Errorf("redis削除エラー"))
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		w := httptest.NewRecorder()
@@ -2582,14 +2467,14 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "redis削除エラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "redis削除エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("PostSignUpApi メールテンプレート生成エラー(登録)", func(t *testing.T) {
@@ -2620,13 +2505,9 @@ func TestPostSignUpApi(t *testing.T) {
 			PostSignUpTemplate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return("件名", "本文", fmt.Errorf("メールテンプレートエラー"))
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		w := httptest.NewRecorder()
@@ -2654,14 +2535,14 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メールテンプレート生成エラー(登録): メールテンプレートエラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(登録): メールテンプレートエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("PostSignUpApi メール送信エラー(登録)", func(t *testing.T) {
@@ -2696,13 +2577,9 @@ func TestPostSignUpApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(fmt.Errorf("メール送信エラー"))
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		w := httptest.NewRecorder()
@@ -2730,14 +2607,14 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メール送信エラー(登録): メール送信エラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メール送信エラー(登録): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("PostSignUpApi result 成功", func(t *testing.T) {
@@ -2772,13 +2649,9 @@ func TestPostSignUpApi(t *testing.T) {
 			SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(nil)
 
-		data := testData{
-			Data: []RequestRedisKeyData{
-				{
-					RedisKey:      redisKey,
-					AuthEmailCode: authEmailCode,
-				},
-			},
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
 		}
 
 		w := httptest.NewRecorder()
@@ -2806,11 +2679,11 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[string]{
+		expectedOk := utils.ResponseData[string]{
 			Result: "サインアップに成功",
 		}
 		assert.Equal(t, responseBody.Result, expectedOk.Result)
@@ -2841,21 +2714,17 @@ func TestPutSignInEditApi(t *testing.T) {
 		fetcher.PutSignInEditApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
+		var response utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response["error_msg"], "unexpected EOF")
+		assert.Contains(t, response.Result, "unexpected EOF")
 	})
 
 	t.Run("PutSignInEditApi バリデーション 必須", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "",
-					UserPassword: "",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "",
+			UserPassword: "",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -2883,11 +2752,11 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -2906,22 +2775,14 @@ func TestPutSignInEditApi(t *testing.T) {
 
 	t.Run("PutSignInEditApi バリデーション 数値文字列以外", func(t *testing.T) {
 
-		dataList := []testData{
+		dataList := []models.RequestSignInEditData{
 			{
-				Data: []models.RequestSignInEditData{
-					{
-						UserEmail:    "test@example.com",
-						UserPassword: "",
-					},
-				},
+				UserEmail:    "test@example.com",
+				UserPassword: "",
 			},
 			{
-				Data: []models.RequestSignInEditData{
-					{
-						UserEmail:    "test@example.com",
-						UserPassword: "",
-					},
-				},
+				UserEmail:    "test@example.com",
+				UserPassword: "",
 			},
 		}
 
@@ -2950,11 +2811,11 @@ func TestPutSignInEditApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			var responseBody utils.ErrorValidationResponse
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ErrorValidationResponse{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_id",
@@ -2969,13 +2830,9 @@ func TestPutSignInEditApi(t *testing.T) {
 	})
 
 	t.Run("PutSignInEditApi バリデーション メールアドレス不正", func(t *testing.T) {
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "test@example",
-					UserPassword: "Test12345!",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "test@example",
+			UserPassword: "Test12345!",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -3002,11 +2859,11 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -3019,22 +2876,14 @@ func TestPutSignInEditApi(t *testing.T) {
 
 	t.Run("PutSignInEditApi バリデーション パスワード不正", func(t *testing.T) {
 
-		dataList := []testData{
+		dataList := []models.RequestSignInEditData{
 			{
-				Data: []models.RequestSignInEditData{
-					{
-						UserEmail:    "test@example.com",
-						UserPassword: "Test12!",
-					},
-				},
+				UserEmail:    "test@example.com",
+				UserPassword: "Test12!",
 			},
 			{
-				Data: []models.RequestSignInEditData{
-					{
-						UserEmail:    "test@example.com",
-						UserPassword: "Test123456",
-					},
-				},
+				UserEmail:    "test@example.com",
+				UserPassword: "Test123456",
 			},
 		}
 
@@ -3063,11 +2912,11 @@ func TestPutSignInEditApi(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			var responseBody utils.ErrorValidationResponse
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
-			expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+			expectedErrorMessage := utils.ErrorValidationResponse{
 				Result: []utils.ErrorMessages{
 					{
 						Field:   "user_password",
@@ -3081,13 +2930,9 @@ func TestPutSignInEditApi(t *testing.T) {
 
 	t.Run("PutSignInEditApi 更新チェックエラー", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -3114,25 +2959,21 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "更新チェックエラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "更新チェックエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("PutSignInEditApi sql取得で失敗しサインイン情報編集に失敗になる", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -3167,25 +3008,21 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "サインイン情報編集に失敗しました。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "サインイン情報編集に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("PutSignInEditApi メールテンプレート生成エラー(更新)", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
 		// gomock のコントローラを作成
@@ -3237,25 +3074,21 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "メールテンプレート生成エラー(更新): メールテンプレートエラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(更新): メールテンプレートエラー",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("PutSignInEditApi メール送信エラー(更新)", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
 		// gomock のコントローラを作成
@@ -3311,25 +3144,21 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "メール送信エラー(更新): メール送信エラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メール送信エラー(更新): メール送信エラー",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("PutSignInEditApi result 成功 1", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
 		// gomock のコントローラを作成
@@ -3385,11 +3214,11 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorOk := utils.ResponseWithSingle[string]{
+		expectedErrorOk := utils.ResponseData[string]{
 			Result: "サインイン編集に成功:test@example.com",
 		}
 		assert.Equal(t, responseBody.Result, expectedErrorOk.Result)
@@ -3397,13 +3226,9 @@ func TestPutSignInEditApi(t *testing.T) {
 
 	t.Run("PutSignInEditApi result 成功 2", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInEditData{
-				{
-					UserEmail:    "test@example.com",
-					UserPassword: "Test123456!!",
-				},
-			},
+		data := models.RequestSignInEditData{
+			UserEmail:    "test@example.com",
+			UserPassword: "Test123456!!",
 		}
 
 		// gomock のコントローラを作成
@@ -3459,11 +3284,11 @@ func TestPutSignInEditApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorOk := utils.ResponseWithSingle[string]{
+		expectedErrorOk := utils.ResponseData[string]{
 			Result: "サインイン編集に成功:Test123456!!",
 		}
 		assert.Equal(t, responseBody.Result, expectedErrorOk.Result)
@@ -3494,20 +3319,16 @@ func TestDeleteSignInApi(t *testing.T) {
 		fetcher.DeleteSignInApi(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response map[string]interface{}
+		var response utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response["error_msg"], "unexpected EOF")
+		assert.Contains(t, response.Result, "unexpected EOF")
 	})
 
 	t.Run("DeleteSignInApi バリデーション 必須", func(t *testing.T) {
-		data := testData{
-			Data: []models.RequestSignInDeleteData{
-				{
-					UserEmail:  "",
-					DeleteName: "",
-				},
-			},
+		data := models.RequestSignInDeleteData{
+			UserEmail:  "",
+			DeleteName: "",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -3534,11 +3355,11 @@ func TestDeleteSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -3560,13 +3381,9 @@ func TestDeleteSignInApi(t *testing.T) {
 	})
 
 	t.Run("DeleteSignInApi バリデーション メールアドレス不正", func(t *testing.T) {
-		data := testData{
-			Data: []models.RequestSignInDeleteData{
-				{
-					UserEmail:  "test@example",
-					DeleteName: "test",
-				},
-			},
+		data := models.RequestSignInDeleteData{
+			UserEmail:  "test@example",
+			DeleteName: "test",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -3593,11 +3410,11 @@ func TestDeleteSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -3612,13 +3429,9 @@ func TestDeleteSignInApi(t *testing.T) {
 
 	t.Run("DeleteSignInApi バリデーション 数値文字列以外", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInDeleteData{
-				{
-					UserEmail:  "test@example.com",
-					DeleteName: "test",
-				},
-			},
+		data := models.RequestSignInDeleteData{
+			UserEmail:  "test@example.com",
+			DeleteName: "test",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -3645,11 +3458,11 @@ func TestDeleteSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_id",
@@ -3664,13 +3477,9 @@ func TestDeleteSignInApi(t *testing.T) {
 
 	t.Run("DeleteSignInApi sql取得で失敗しサインインの削除失敗になる", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInDeleteData{
-				{
-					UserEmail:  "test@example.com",
-					DeleteName: "test",
-				},
-			},
+		data := models.RequestSignInDeleteData{
+			UserEmail:  "test@example.com",
+			DeleteName: "test",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -3697,25 +3506,21 @@ func TestDeleteSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "サインインの削除に失敗しました。",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "サインインの削除に失敗しました。",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
 
 	t.Run("DeleteSignInApi メールテンプレート生成エラー", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInDeleteData{
-				{
-					UserEmail:  "test@example.com",
-					DeleteName: "test",
-				},
-			},
+		data := models.RequestSignInDeleteData{
+			UserEmail:  "test@example.com",
+			DeleteName: "test",
 		}
 
 		// gomock のコントローラを作成
@@ -3759,25 +3564,21 @@ func TestDeleteSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "メールテンプレート生成エラー(削除): メールテンプレートエラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(削除): メールテンプレートエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("DeleteSignInApi メール送信エラー(削除)", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInDeleteData{
-				{
-					UserEmail:  "test@example.com",
-					DeleteName: "test",
-				},
-			},
+		data := models.RequestSignInDeleteData{
+			UserEmail:  "test@example.com",
+			DeleteName: "test",
 		}
 
 		// gomock のコントローラを作成
@@ -3826,25 +3627,21 @@ func TestDeleteSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "メール送信エラー(削除): メール送信エラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メール送信エラー(削除): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("DeleteSignInApi result 成功", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestSignInDeleteData{
-				{
-					UserEmail:  "test@example.com",
-					DeleteName: "test",
-				},
-			},
+		data := models.RequestSignInDeleteData{
+			UserEmail:  "test@example.com",
+			DeleteName: "test",
 		}
 
 		// gomock のコントローラを作成
@@ -3892,11 +3689,11 @@ func TestDeleteSignInApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[string]{
+		expectedOk := utils.ResponseData[string]{
 			Result: "サインイン削除に成功",
 		}
 		assert.Equal(t, responseBody.Result, expectedOk.Result)
@@ -3924,11 +3721,11 @@ func TestSignOutApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -3958,11 +3755,11 @@ func TestSignOutApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -4008,14 +3805,14 @@ func TestSignOutApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メールテンプレート生成エラー(サインアウト): メールテンプレートエラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(サインアウト): メールテンプレートエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("SignOutApi メール送信エラー(サインアウト)", func(t *testing.T) {
@@ -4057,14 +3854,14 @@ func TestSignOutApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedError := utils.ResponseWithSingle[string]{
-			ErrorMsg: "メール送信エラー(サインアウト): メール送信エラー",
+		expectedError := utils.ResponseData[string]{
+			Result: "メール送信エラー(サインアウト): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedError.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
 	t.Run("SignOutApi result 成功", func(t *testing.T) {
@@ -4106,11 +3903,11 @@ func TestSignOutApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[string]{
+		expectedOk := utils.ResponseData[string]{
 			Result: "サインアウトに成功",
 		}
 		assert.Equal(t, responseBody.Result, expectedOk.Result)
@@ -4138,11 +3935,11 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -4172,11 +3969,11 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "user_email",
@@ -4215,12 +4012,12 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "登録ユーザーが存在しません",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "登録ユーザーが存在しません",
 		}
 		assert.Equal(t, responseBody, expectedErrorMessage)
 	})
@@ -4268,14 +4065,14 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール再通知): メールテンプレートエラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メールテンプレート生成エラー(パスワード再発行メール再通知): メールテンプレートエラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("RegisterEmailCheckNotice メール送信エラー(削除)", func(t *testing.T) {
@@ -4325,14 +4122,14 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ResponseWithSlice[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[string]{
-			ErrorMsg: "メール送信エラー(パスワード再発行メール再通知): メール送信エラー",
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "メール送信エラー(パスワード再発行メール再通知): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("RegisterEmailCheckNotice result 成功", func(t *testing.T) {
@@ -4382,11 +4179,11 @@ func TestRegisterEmailCheckNotice(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ResponseData[string]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[string]{
+		expectedOk := utils.ResponseData[string]{
 			Result: "パスワード再設定通知成功",
 		}
 		assert.Equal(t, responseBody.Result, expectedOk.Result)
@@ -4416,22 +4213,18 @@ func TestNewPasswordUpdate(t *testing.T) {
 		fetcher.NewPasswordUpdate(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
-		var response utils.ErrorResponse
+		var response utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response.ErrorMsg, "unexpected EOF")
+		assert.Contains(t, response.Result, "unexpected EOF")
 	})
 
 	t.Run("TestNewPasswordUpdate バリデーション 必須", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestNewPasswordUpdateData{
-				{
-					TokenId:         "",
-					NewUserPassword: "",
-					ConfirmPassword: "",
-				},
-			},
+		data := models.RequestNewPasswordUpdateData{
+			TokenId:         "",
+			NewUserPassword: "",
+			ConfirmPassword: "",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -4450,11 +4243,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
-		var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+		var responseBody utils.ErrorValidationResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ResponseWithSlice[utils.ErrorMessages]{
+		expectedErrorMessage := utils.ErrorValidationResponse{
 			Result: []utils.ErrorMessages{
 				{
 					Field:   "token_id",
@@ -4477,37 +4270,25 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 	t.Run("TestNewPasswordUpdate バリデーション パスワード不正", func(t *testing.T) {
 
-		dataList := []testData{
+		dataList := []models.RequestNewPasswordUpdateData{
 			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						NewUserPassword: "Test12345",
-						ConfirmPassword: "Test12345!",
-					},
-				},
+				TokenId:         "token12",
+				NewUserPassword: "Test12345",
+				ConfirmPassword: "Test12345!",
 			},
 			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						NewUserPassword: "Test12345!",
-						ConfirmPassword: "test12345",
-					},
-				},
+				TokenId:         "token12",
+				NewUserPassword: "Test12345!",
+				ConfirmPassword: "test12345",
 			},
 			{
-				Data: []models.RequestNewPasswordUpdateData{
-					{
-						TokenId:         "token12",
-						NewUserPassword: "test12345",
-						ConfirmPassword: "Test12!",
-					},
-				},
+				TokenId:         "token12",
+				NewUserPassword: "test12345",
+				ConfirmPassword: "Test12!",
 			},
 		}
 
-		expectedErrorMessageList := []utils.ErrorResponse{
+		expectedErrorMessageList := []utils.ErrorValidationResponse{
 			{
 				Result: []utils.ErrorMessages{
 					{
@@ -4555,7 +4336,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 
-			var responseBody utils.ResponseWithSlice[utils.ErrorMessages]
+			var responseBody utils.ErrorValidationResponse
 			err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 			assert.NoError(t, err)
 
@@ -4566,14 +4347,10 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 	t.Run("TestNewPasswordUpdate sql処理で失敗しパスワード更新できない", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestNewPasswordUpdateData{
-				{
-					TokenId:         "token12",
-					NewUserPassword: "Test12345!",
-					ConfirmPassword: "Test12345!",
-				},
-			},
+		data := models.RequestNewPasswordUpdateData{
+			TokenId:         "token12",
+			NewUserPassword: "Test12345!",
+			ConfirmPassword: "Test12345!",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -4600,26 +4377,22 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
-		var responseBody utils.ErrorResponse
+		var responseBody utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "sql更新失敗",
+		expectedErrorMessage := utils.ErrorMessageResponse{
+			Result: "sql更新失敗",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("TestNewPasswordUpdate メールテンプレート生成エラー(パスワード再発行メール)", func(t *testing.T) {
 
-		data := testData{
-			Data: []models.RequestNewPasswordUpdateData{
-				{
-					TokenId:         "token12",
-					NewUserPassword: "Test12345!",
-					ConfirmPassword: "Test12345!",
-				},
-			},
+		data := models.RequestNewPasswordUpdateData{
+			TokenId:         "token12",
+			NewUserPassword: "Test12345!",
+			ConfirmPassword: "Test12345!",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -4664,25 +4437,21 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ErrorResponse
+		var responseBody utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール): テンプレート生成エラー",
+		expectedErrorMessage := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(パスワード再発行メール): テンプレート生成エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("TestNewPasswordUpdate メール送信エラー(パスワード再発行メール)", func(t *testing.T) {
-		data := testData{
-			Data: []models.RequestNewPasswordUpdateData{
-				{
-					TokenId:         "token12",
-					NewUserPassword: "Test12345!",
-					ConfirmPassword: "Test12345!",
-				},
-			},
+		data := models.RequestNewPasswordUpdateData{
+			TokenId:         "token12",
+			NewUserPassword: "Test12345!",
+			ConfirmPassword: "Test12345!",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -4725,25 +4494,21 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
-		var responseBody utils.ErrorResponse
+		var responseBody utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedErrorMessage := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(パスワード再発行メール): メール送信エラー",
+		expectedErrorMessage := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(パスワード再発行メール): メール送信エラー",
 		}
-		assert.Equal(t, responseBody.ErrorMsg, expectedErrorMessage.ErrorMsg)
+		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
 	t.Run("TestNewPasswordUpdate result 成功", func(t *testing.T) {
-		data := testData{
-			Data: []models.RequestNewPasswordUpdateData{
-				{
-					TokenId:         "token12",
-					NewUserPassword: "Test12345!",
-					ConfirmPassword: "Test12345!",
-				},
-			},
+		data := models.RequestNewPasswordUpdateData{
+			TokenId:         "token12",
+			NewUserPassword: "Test12345!",
+			ConfirmPassword: "Test12345!",
 		}
 
 		w, c := test_utils.CreateTestRequest(
@@ -4786,11 +4551,11 @@ func TestNewPasswordUpdate(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseWithSingle[string]
+		var responseBody utils.ErrorMessageResponse
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseWithSingle[string]{
+		expectedOk := utils.ErrorMessageResponse{
 			Result: "パスワード再発行成功",
 		}
 		assert.Equal(t, responseBody.Result, expectedOk.Result)

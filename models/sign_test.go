@@ -148,12 +148,10 @@ func TestGetSignIn(t *testing.T) {
 			t.Fatalf("Error hashing password: %v", err)
 		}
 
-		mockData := []SignInData{
-			{
-				UserId:       1,
-				UserEmail:    "test@exmple.com",
-				UserPassword: string(hashedPassword),
-			},
+		mockData := SignInData{
+			UserId:       1,
+			UserEmail:    "test@exmple.com",
+			UserPassword: string(hashedPassword),
 		}
 
 		expectedData := mockData
@@ -163,13 +161,11 @@ func TestGetSignIn(t *testing.T) {
 			"user_id", "user_email", "user_password",
 		})
 
-		for _, data := range mockData {
-			rows.AddRow(
-				data.UserId,
-				data.UserEmail,
-				data.UserPassword,
-			)
-		}
+		rows.AddRow(
+			mockData.UserId,
+			mockData.UserEmail,
+			mockData.UserPassword,
+		)
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetSignInSyntax)).
 			WithArgs(requestData.UserEmail).
@@ -337,7 +333,7 @@ func TestGetExternalAuth(t *testing.T) {
 			WillReturnRows(rows)
 
 		// テスト対象関数を実行
-		var result []ExternalAuthData
+		var result ExternalAuthData
 		result, err = dbFetcher.GetExternalAuth(UserEmail)
 
 		// エラーが発生したことを確認
@@ -368,12 +364,12 @@ func TestGetExternalAuth(t *testing.T) {
 			WillReturnRows(rows)
 
 		// テスト対象関数を実行
-		var result []ExternalAuthData
+		var result ExternalAuthData
 		result, err = dbFetcher.GetExternalAuth(UserEmail)
 
 		// エラーが発生したことを確認
 		assert.Error(t, err)
-		assert.Nil(t, result)
+		assert.Equal(t, ExternalAuthData{}, result)
 		assert.Contains(t, err.Error(), "forced row error")
 	})
 
@@ -390,11 +386,9 @@ func TestGetExternalAuth(t *testing.T) {
 		// テスト対象のデータ
 		UserEmail := "test@exmple.com"
 
-		mockData := []ExternalAuthData{
-			{
-				UserId:    1,
-				UserEmail: "test@exmple.com",
-			},
+		mockData := ExternalAuthData{
+			UserId:    1,
+			UserEmail: "test@exmple.com",
 		}
 
 		expectedData := mockData
@@ -404,12 +398,10 @@ func TestGetExternalAuth(t *testing.T) {
 			"user_id", "user_email",
 		})
 
-		for _, data := range mockData {
-			rows.AddRow(
-				data.UserId,
-				data.UserEmail,
-			)
-		}
+		rows.AddRow(
+			mockData.UserId,
+			mockData.UserEmail,
+		)
 
 		mock.ExpectQuery(regexp.QuoteMeta(DB.GetExternalAuthSyntax)).
 			WithArgs(UserEmail).

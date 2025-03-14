@@ -87,14 +87,13 @@ type RequestNewPasswordUpdateData struct {
 }
 
 type RequestGoogleCallbackData struct {
-	Code        string `json:"code" valid:"required~コードは必須です。"`
-	RedirectUri string `json:"redirect_uri" valid:"required~リダイレクトは必須です。"`
+	UserEmail string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserName  string `json:"user_name" valid:"required~ユーザー名は必須です。"`
 }
 
 type RequestLineCallbackData struct {
-	Code        string `json:"code" valid:"required~コードは必須です。"`
-	State       string `json:"state" valid:"required~ステートは必須です。"`
-	RedirectUri string `json:"redirect_uri" valid:"required~リダイレクトは必須です。"`
+	UserEmail string `json:"user_email" valid:"required~メールアドレスは必須です。,email~正しいメールアドレス形式である必要があります。"`
+	UserName  string `json:"user_name" valid:"required~ユーザー名は必須です。"`
 }
 
 type RequestPriceManagementData struct {

@@ -3,15 +3,11 @@ package utils
 
 import (
 	"fmt"
-	"net/http"
-	"net/url"
 	"server/common"
 	"server/config"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/gomail.v2"
 )
@@ -52,20 +48,15 @@ type UtilsDataFetcher struct {
 	MailDialer MailDialer
 }
 
-// ResponseWithSlice with slice Result
-type ResponseWithSlice[T any] struct {
-	RecodeRows int    `json:"recode_rows,omitempty"`
-	Token      string `json:"token,omitempty"`
-	Result     []T    `json:"result,omitempty"`
-	ErrorMsg   string `json:"error_msg,omitempty"`
+type ErrorMessages struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
 }
 
-// ResponseWithSlice with single Result
-type ResponseWithSingle[T any] struct {
+type ResponseData[T any] struct {
 	RecodeRows int    `json:"recode_rows,omitempty"`
 	Token      string `json:"token,omitempty"`
 	Result     T      `json:"result,omitempty"`
-	ErrorMsg   string `json:"error_msg,omitempty"`
 }
 
 type Request struct {
@@ -73,13 +64,8 @@ type Request struct {
 }
 
 type ErrorStruct struct {
-	Error    string `json:"error"`
-	ErrorMsg string `json:"error_msg"`
-}
-
-type ErrorMessages struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
+	Error  string `json:"error"`
+	Result string `json:"error_msg"`
 }
 
 var JwtSecret = []byte(config.GlobalEnv.JwtSecret)
@@ -94,8 +80,8 @@ var AuthTokenHour = 1
 
 var Uuid = 36
 
-// 定義する場所 (utils パッケージ内)
-type ErrorResponse = ResponseWithSlice[ErrorMessages]
+type ErrorValidationResponse = ResponseData[[]ErrorMessages]
+type ErrorMessageResponse = ResponseData[string]
 
 // 推奨：90日間だが、一旦12時間で設定
 var RefreshAuthTokenHour = 12
@@ -122,83 +108,6 @@ func GetBaseURL() string {
 		config.GlobalEnv.ClinetDomain,
 		"/money_management/",
 	)
-}
-
-// HandleError 共通エラーハンドリング
-func HandleError(c *gin.Context, status int, response ErrorResponse) {
-
-	// エラーレスポンスを返す
-	if response.ErrorMsg != "" {
-		// エラーをログに記録
-		logrus.WithFields(logrus.Fields{
-			"error":      response.ErrorMsg,
-			"status":     status,
-			"client_ip":  c.ClientIP(),
-			"method":     c.Request.Method,
-			"path":       c.Request.URL.Path,
-			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
-		}).Error("APIエラー発生")
-
-		c.JSON(status, ErrorResponse{
-			ErrorMsg: response.ErrorMsg,
-		})
-	} else {
-		// エラーをログに記録
-		logrus.WithFields(logrus.Fields{
-			"error":      response.Result,
-			"status":     status,
-			"client_ip":  c.ClientIP(),
-			"method":     c.Request.Method,
-			"path":       c.Request.URL.Path,
-			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
-		}).Error("APIエラー発生")
-
-		c.JSON(status, ErrorResponse{
-			RecodeRows: response.RecodeRows,
-			Result:     response.Result,
-		})
-	}
-
-	c.Abort()
-}
-
-// RedirectHandleError リダイレクト用共通エラーハンドリング
-func RedirectHandleError(c *gin.Context, status int, response ErrorResponse, msg string) {
-
-	errorMessage := url.QueryEscape(msg)
-	var path string = "/money_management/signin?sign_type=external"
-	var baseUrl string = fmt.Sprintf(
-		"%s://%s%s",
-		config.GlobalEnv.Protocol,
-		config.GlobalEnv.ClinetDomain,
-		path,
-	)
-	redirectURL := fmt.Sprintf("%s&error=%s", baseUrl, errorMessage)
-	// エラーレスポンスを返す
-	if response.ErrorMsg != "" {
-		// エラーをログに記録
-		logrus.WithFields(logrus.Fields{
-			"error":      response.ErrorMsg,
-			"status":     status,
-			"client_ip":  c.ClientIP(),
-			"method":     c.Request.Method,
-			"path":       c.Request.URL.Path,
-			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
-		}).Error("APIエラー発生")
-	} else {
-		// エラーをログに記録
-		logrus.WithFields(logrus.Fields{
-			"error":      response.Result,
-			"status":     status,
-			"client_ip":  c.ClientIP(),
-			"method":     c.Request.Method,
-			"path":       c.Request.URL.Path,
-			"request_id": c.GetString("request_id"), // リクエストIDを含む場合
-		}).Error("APIエラー発生")
-
-	}
-	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
-	c.Abort()
 }
 
 // トークン生成関数

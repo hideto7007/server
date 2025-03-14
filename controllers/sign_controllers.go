@@ -36,33 +36,10 @@ type (
 	}
 
 	// JSONデータを受け取るための構造体を定義
-	requestSignInData struct {
-		Data []models.RequestSignInData `json:"data"`
-	}
 
 	RequestRedisKeyData struct {
 		RedisKey      string `json:"redis_key"`
 		AuthEmailCode string `json:"auth_email_code"`
-	}
-
-	requestRegisterSignUpData struct {
-		Data []RequestRedisKeyData `json:"data"`
-	}
-
-	requesTemporaySignUpData struct {
-		Data []models.RequestSignUpData `json:"data"`
-	}
-
-	requestSignInEditData struct {
-		Data []models.RequestSignInEditData `json:"data"`
-	}
-
-	requestSignInDeleteData struct {
-		Data []models.RequestSignInDeleteData `json:"data"`
-	}
-
-	requestNewPasswordUpdateData struct {
-		Data []models.RequestNewPasswordUpdateData `json:"data"`
 	}
 
 	SignInResult struct {
@@ -94,8 +71,8 @@ type (
 	signInDeleteResult struct{}
 
 	refreshTokenDataResponse struct {
-		Token    string `json:"token,omitempty"`
-		ErrorMsg string `json:"error_msg,omitempty"`
+		Token  string `json:"token,omitempty"`
+		Result string `json:"error_msg,omitempty"`
 	}
 
 	apiSignDataFetcher struct {
@@ -128,25 +105,25 @@ func NewSignDataFetcher(
 //
 
 func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
-	var requestData requestSignInData
+	var requestData models.RequestSignInData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	validator := validation.RequestSignInData{
-		UserEmail:    requestData.Data[0].UserEmail,
-		UserPassword: requestData.Data[0].UserPassword,
+		UserEmail:    requestData.UserEmail,
+		UserPassword: requestData.UserPassword,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -154,68 +131,66 @@ func (af *apiSignDataFetcher) PostSignInApi(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := dbFetcher.GetSignIn(requestData.Data[0])
+	result, err := dbFetcher.GetSignIn(requestData)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	// UtilsFetcher を使用してトークンを生成
-	newToken, err := af.UtilsFetcher.NewToken(result[0].UserId, utils.AuthTokenHour)
+	newToken, err := af.UtilsFetcher.NewToken(result.UserId, utils.AuthTokenHour)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "新規トークンの生成に失敗しました。",
+		response := utils.ErrorMessageResponse{
+			Result: "新規トークンの生成に失敗しました。",
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	refreshToken, err := af.UtilsFetcher.RefreshToken(result[0].UserId, utils.RefreshAuthTokenHour)
+	refreshToken, err := af.UtilsFetcher.RefreshToken(result.UserId, utils.RefreshAuthTokenHour)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "リフレッシュトークンの生成に失敗しました。",
+		response := utils.ErrorMessageResponse{
+			Result: "リフレッシュトークンの生成に失敗しました。",
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result[0].UserId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.UserId, fmt.Sprintf("%d", result.UserId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.PostSignInTemplate(
-		result[0].UserEmail,
+		result.UserEmail,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(サインイン): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(サインイン): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(result[0].UserEmail, subject, body, true); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(サインイン): " + err.Error(),
+	if err := af.UtilsFetcher.SendMail(result.UserEmail, subject, body, true); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(サインイン): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// サインイン成功のレスポンス
-	response := utils.ResponseWithSlice[SignInResult]{
+	response := utils.ResponseData[SignInResult]{
 		// Token: token,
-		Result: []SignInResult{
-			{
-				UserId:       result[0].UserId,
-				UserEmail:    result[0].UserEmail,
-				UserPassword: result[0].UserPassword,
-			},
+		Result: SignInResult{
+			UserId:       result.UserId,
+			UserEmail:    result.UserEmail,
+			UserPassword: result.UserPassword,
 		},
 	}
 	c.JSON(http.StatusOK, response)
@@ -237,54 +212,54 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	signInUserId, err := c.Cookie(utils.UserId)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
+		response := utils.ErrorMessageResponse{
+			Result: "新しいアクセストークンの生成に失敗しました。",
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	} else if signInUserId != userIdCheck {
-		response := utils.ErrorResponse{
-			ErrorMsg: "サインインユーザーが異なっています。",
+		response := utils.ErrorMessageResponse{
+			Result: "サインインユーザーが異なっています。",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	refreshToken, err := c.Cookie(utils.RefreshAuthToken)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "リフレッシュトークンがありません。再ログインしてください。",
+		response := utils.ErrorMessageResponse{
+			Result: "リフレッシュトークンがありません。再ログインしてください。",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	// リフレッシュトークンの検証
 	token, err := af.UtilsFetcher.ParseWithClaims(refreshToken)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "リフレッシュトークンが無効です。再ログインしてください。",
+		response := utils.ErrorMessageResponse{
+			Result: "リフレッシュトークンが無効です。再ログインしてください。",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	// クレームからユーザー情報を取得
 	_, ok := af.UtilsFetcher.MapClaims(token.(*jwt.Token))
 	if !ok {
-		response := utils.ErrorResponse{
-			ErrorMsg: "無効なリフレッシュトークン。",
+		response := utils.ErrorMessageResponse{
+			Result: "無効なリフレッシュトークン。",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
@@ -292,10 +267,10 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 
 	newToken, err := af.UtilsFetcher.NewToken(userId, utils.RefreshAuthTokenHour)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "新しいアクセストークンの生成に失敗しました。",
+		response := utils.ErrorMessageResponse{
+			Result: "新しいアクセストークンの生成に失敗しました。",
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
@@ -307,7 +282,7 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 	// log.Println("INFO: ", newToken)
 
 	// リフレッシュトークン成功のレスポンス
-	response := utils.ResponseWithSingle[string]{
+	response := utils.ResponseData[string]{
 		Result: "新しいアクセストークンが発行されました。",
 	}
 	c.JSON(http.StatusOK, response)
@@ -320,33 +295,33 @@ func (af *apiSignDataFetcher) GetRefreshTokenApi(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) TemporaryPostSignUpApi(c *gin.Context) {
-	var requestData requesTemporaySignUpData
+	var requestData models.RequestSignUpData
 	var err error
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	validator := validation.TemporayRequestSignUpData{
-		UserEmail:    requestData.Data[0].UserEmail,
-		UserPassword: requestData.Data[0].UserPassword,
-		UserName:     requestData.Data[0].UserName,
+		UserEmail:    requestData.UserEmail,
+		UserPassword: requestData.UserPassword,
+		UserName:     requestData.UserName,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	// パスワードハッシュ化
-	hashPassword, _ := af.UtilsFetcher.EncryptPassword(requestData.Data[0].UserPassword)
+	hashPassword, _ := af.UtilsFetcher.EncryptPassword(requestData.UserPassword)
 	uid := uuid.New().String()
 	confirmCode, _ := rand.Int(rand.Reader, big.NewInt(10000))
 	// redisに登録する際のkey
@@ -354,45 +329,45 @@ func (af *apiSignDataFetcher) TemporaryPostSignUpApi(c *gin.Context) {
 	key := fmt.Sprintf("%s:%s", confirmCodeStr, uid)
 	// redisに登録する際のvalue
 	userInfo := [...]string{
-		requestData.Data[0].UserEmail,
+		requestData.UserEmail,
 		hashPassword,
-		requestData.Data[0].UserName,
+		requestData.UserName,
 	}
 	value := strings.Join(userInfo[:], ",") // 配列をカンマ区切りの文字列に変換
 
 	// 保存
 	if err = af.RedisService.RedisSet(key, value, time.Hour); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(requestData.Data[0].UserName, confirmCodeStr)
+	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(requestData.UserName, confirmCodeStr)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(仮登録): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(仮登録): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserEmail, subject, body, false); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール仮登録送信エラー(仮登録): " + err.Error(),
+	if err := af.UtilsFetcher.SendMail(requestData.UserEmail, subject, body, false); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "メール仮登録送信エラー(仮登録): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// サインアップ仮登録成功のレスポンス
-	response := utils.ResponseWithSingle[TemporayPostSignUpResult]{
+	response := utils.ResponseData[TemporayPostSignUpResult]{
 		Result: TemporayPostSignUpResult{
 			RedisKey:  key,
-			UserEmail: requestData.Data[0].UserEmail,
-			UserName:  requestData.Data[0].UserName,
+			UserEmail: requestData.UserEmail,
+			UserName:  requestData.UserName,
 		},
 	}
 	c.JSON(http.StatusOK, response)
@@ -418,20 +393,20 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	// サインアップ仮登録した情報を取得
 	redisGet, err := af.RedisService.RedisGet(RedisKey)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
@@ -444,42 +419,42 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 
 	// 更新して保存
 	if err = af.RedisService.RedisSet(newKey, redisGet, time.Hour); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// 前の情報は削除する
 	if err = af.RedisService.RedisDel(RedisKey); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	subject, body, err := af.EmailTemplateService.TemporayPostSignUpTemplate(UserName, confirmCodeStr)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(メール再通知): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(メール再通知): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(UserEmail, subject, body, false); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(メール再通知): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(メール再通知): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール再通知成功のレスポンス
-	response := utils.ResponseWithSingle[RetryAuthEmailResult]{
+	response := utils.ResponseData[RetryAuthEmailResult]{
 		Result: RetryAuthEmailResult{
 			RedisKey:  newKey,
 			UserEmail: UserEmail,
@@ -496,33 +471,33 @@ func (af *apiSignDataFetcher) RetryAuthEmail(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
-	var requestData requestRegisterSignUpData
+	var requestData RequestRedisKeyData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	// 認証コード取得
-	auth := strings.Split(requestData.Data[0].RedisKey, ":")
-	if auth[0] != requestData.Data[0].AuthEmailCode {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール認証コードが間違っています。",
+	auth := strings.Split(requestData.RedisKey, ":")
+	if auth[0] != requestData.AuthEmailCode {
+		response := utils.ErrorMessageResponse{
+			Result: "メール認証コードが間違っています。",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	// サインアップ仮登録した情報を取得
-	redisGet, err := af.RedisService.RedisGet(requestData.Data[0].RedisKey)
+	redisGet, err := af.RedisService.RedisGet(requestData.RedisKey)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
@@ -540,10 +515,10 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -552,56 +527,52 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
 	// requesTemporaySignUpDataの構造体を流用してデータ構造作成
-	data := requesTemporaySignUpData{
-		Data: []models.RequestSignUpData{
-			{
-				UserEmail:    userEmail,
-				UserPassword: userPassword,
-				UserName:     userName,
-			},
-		},
+	data := models.RequestSignUpData{
+		UserEmail:    userEmail,
+		UserPassword: userPassword,
+		UserName:     userName,
 	}
-	if err := dbFetcher.PostSignUp(data.Data[0]); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "既に登録されたメールアドレスです。",
+	if err := dbFetcher.PostSignUp(data); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "既に登録されたメールアドレスです。",
 		}
 		c.JSON(http.StatusConflict, response)
 		return
 	}
 
 	// 情報は削除する
-	if err = af.RedisService.RedisDel(requestData.Data[0].RedisKey); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+	if err = af.RedisService.RedisDel(requestData.RedisKey); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	subject, body, err := af.EmailTemplateService.PostSignUpTemplate(
-		data.Data[0].UserName,
-		data.Data[0].UserEmail,
+		data.UserName,
+		data.UserEmail,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(登録): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(登録): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(data.Data[0].UserEmail, subject, body, true); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(登録): " + err.Error(),
+	if err := af.UtilsFetcher.SendMail(data.UserEmail, subject, body, true); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(登録): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// サインアップ成功のレスポンス
-	response := utils.ResponseWithSingle[string]{
+	response := utils.ResponseData[string]{
 		Result: "サインアップに成功",
 	}
 	c.JSON(http.StatusOK, response)
@@ -614,15 +585,15 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
-	var requestData requestSignInEditData
+	var requestData models.RequestSignInEditData
 	var updateValue string
 	var result string
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -630,15 +601,15 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 
 	validator := validation.RequestSignInEditData{
 		UserId:       userIdCheck,
-		UserEmail:    requestData.Data[0].UserEmail,
-		UserPassword: requestData.Data[0].UserPassword,
+		UserEmail:    requestData.UserEmail,
+		UserPassword: requestData.UserPassword,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -646,28 +617,28 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	result, err := dbFetcher.PutCheck(requestData.Data[0])
+	result, err := dbFetcher.PutCheck(requestData)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "更新チェックエラー",
+		response := utils.ErrorMessageResponse{
+			Result: "更新チェックエラー",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	UserId, _ := af.CommonFetcher.StrToInt(userIdCheck)
-	if err := dbFetcher.PutSignInEdit(UserId, requestData.Data[0]); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "サインイン情報編集に失敗しました。",
+	if err := dbFetcher.PutSignInEdit(UserId, requestData); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "サインイン情報編集に失敗しました。",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	if result == "メールアドレス更新" {
-		updateValue = requestData.Data[0].UserEmail
+		updateValue = requestData.UserEmail
 	} else {
-		updateValue = requestData.Data[0].UserPassword
+		updateValue = requestData.UserPassword
 	}
 
 	subject, body, err := af.EmailTemplateService.PostSignInEditTemplate(
@@ -676,24 +647,24 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(更新): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(更新): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserEmail, subject, body, true); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(更新): " + err.Error(),
+	if err := af.UtilsFetcher.SendMail(requestData.UserEmail, subject, body, true); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(更新): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// サインイン編集の成功レスポンス
-	response := utils.ResponseWithSingle[string]{
+	response := utils.ResponseData[string]{
 		Result: fmt.Sprintf("%s:%s", "サインイン編集に成功", updateValue),
 	}
 	c.JSON(http.StatusOK, response)
@@ -706,29 +677,29 @@ func (af *apiSignDataFetcher) PutSignInEditApi(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
-	var requestData requestSignInDeleteData
+	var requestData models.RequestSignInDeleteData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	userIdCheck := common.AnyToStr(c.Param("user_id"))
 
 	validator := validation.RequestSignInDeleteData{
-		DeleteName: requestData.Data[0].DeleteName,
+		DeleteName: requestData.DeleteName,
 		UserId:     userIdCheck,
-		UserEmail:  requestData.Data[0].UserEmail,
+		UserEmail:  requestData.UserEmail,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -738,12 +709,12 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	)
 
 	UserId, _ := af.CommonFetcher.StrToInt(userIdCheck)
-	err := dbFetcher.DeleteSignIn(UserId, requestData.Data[0])
+	err := dbFetcher.DeleteSignIn(UserId, requestData)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "サインインの削除に失敗しました。",
+		response := utils.ErrorMessageResponse{
+			Result: "サインインの削除に失敗しました。",
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
@@ -753,29 +724,29 @@ func (af *apiSignDataFetcher) DeleteSignInApi(c *gin.Context) {
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.DeleteSignInTemplate(
-		requestData.Data[0].DeleteName,
-		requestData.Data[0].UserEmail,
+		requestData.DeleteName,
+		requestData.UserEmail,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(削除): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(削除): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := af.UtilsFetcher.SendMail(requestData.Data[0].UserEmail, subject, body, true); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(削除): " + err.Error(),
+	if err := af.UtilsFetcher.SendMail(requestData.UserEmail, subject, body, true); err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(削除): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// サインイン削除の成功レスポンス
-	response := utils.ResponseWithSingle[string]{
+	response := utils.ResponseData[string]{
 		Result: "サインイン削除に成功",
 	}
 	c.JSON(http.StatusOK, response)
@@ -796,10 +767,10 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -813,24 +784,24 @@ func (af *apiSignDataFetcher) SignOutApi(c *gin.Context) {
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(サインアウト): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(サインアウト): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(userEmail, subject, body, true); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(サインアウト): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(サインアウト): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// サインイン削除の成功レスポンス
-	response := utils.ResponseWithSingle[string]{
+	response := utils.ResponseData[string]{
 		Result: "サインアウトに成功",
 	}
 	c.JSON(http.StatusOK, response)
@@ -850,10 +821,10 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -864,10 +835,10 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 	// user_id取得
 	userId, err := dbFetcher.GetUserId(UserEmail)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
@@ -880,24 +851,24 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール再通知): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(パスワード再発行メール再通知): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(UserEmail, subject, body, true); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(パスワード再発行メール再通知): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(パスワード再発行メール再通知): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール再通知成功のレスポンス
-	response := utils.ResponseWithSingle[string]{
+	response := utils.ResponseData[string]{
 		Result: "パスワード再設定通知成功",
 	}
 	c.JSON(http.StatusOK, response)
@@ -910,27 +881,27 @@ func (af *apiSignDataFetcher) RegisterEmailCheckNotice(c *gin.Context) {
 //
 
 func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
-	var requestData requestNewPasswordUpdateData
+	var requestData models.RequestNewPasswordUpdateData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		// エラーメッセージを出力して確認
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	validator := validation.RequestNewPasswordUpdateData{
-		TokenId:         requestData.Data[0].TokenId,
-		NewUserPassword: requestData.Data[0].NewUserPassword,
-		ConfirmPassword: requestData.Data[0].ConfirmPassword,
+		TokenId:         requestData.TokenId,
+		NewUserPassword: requestData.NewUserPassword,
+		ConfirmPassword: requestData.ConfirmPassword,
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -938,38 +909,38 @@ func (af *apiSignDataFetcher) NewPasswordUpdate(c *gin.Context) {
 		config.GetDataBaseSource(),
 		utils.NewUtilsFetcher(utils.JwtSecret),
 	)
-	userEmail, err := dbFetcher.NewPasswordUpdate(requestData.Data[0])
+	userEmail, err := dbFetcher.NewPasswordUpdate(requestData)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusUnauthorized, response)
+		c.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	subject, body, err := af.EmailTemplateService.NewPasswordUpdateTemplate(
-		requestData.Data[0].NewUserPassword,
+		requestData.NewUserPassword,
 		af.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メールテンプレート生成エラー(パスワード再発行メール): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メールテンプレート生成エラー(パスワード再発行メール): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール送信ユーティリティを呼び出し
 	if err := af.UtilsFetcher.SendMail(userEmail, subject, body, true); err != nil {
-		response := utils.ErrorResponse{
-			ErrorMsg: "メール送信エラー(パスワード再発行メール): " + err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: "メール送信エラー(パスワード再発行メール): " + err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// メール再通知成功のレスポンス
-	response := utils.ResponseWithSingle[string]{
+	response := utils.ResponseData[string]{
 		Result: "パスワード再発行成功",
 	}
 	c.JSON(http.StatusOK, response)

@@ -26,8 +26,8 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 		requestID, _ := c.Get("request_id")
 		authToken, err1 := c.Cookie(utils.AuthToken)
 		if authToken == "" || err1 != nil {
-			response := utils.ErrorResponse{
-				ErrorMsg: "トークンが必要です。",
+			response := utils.ErrorMessageResponse{
+				Result: "トークンが必要です。",
 			}
 			logrus.WithField("request_id", requestID).Error(err1.Error())
 			c.JSON(http.StatusUnauthorized, response)
@@ -42,8 +42,8 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 			return utils.JwtSecret, nil
 		})
 		if err != nil || !token.Valid {
-			response := utils.ErrorResponse{
-				ErrorMsg: "無効なトークンです",
+			response := utils.ErrorMessageResponse{
+				Result: "無効なトークンです",
 			}
 			logrus.WithField("request_id", requestID).Error(err.Error())
 			c.JSON(http.StatusUnauthorized, response)
@@ -56,24 +56,24 @@ func JWTAuthMiddleware(utilsFetcher utils.UtilsDataFetcher) gin.HandlerFunc {
 			claims, _ := claimsInterface.(jwt.MapClaims)
 			if exp, ok := claims["exp"].(float64); ok {
 				if time.Unix(int64(exp), 0).Before(time.Now()) {
-					response := utils.ErrorResponse{
-						ErrorMsg: "トークンの有効期限が切れています",
+					response := utils.ErrorMessageResponse{
+						Result: "トークンの有効期限が切れています",
 					}
 					c.JSON(http.StatusUnauthorized, response)
 					c.Abort()
 					return
 				}
 			} else {
-				response := utils.ErrorResponse{
-					ErrorMsg: "トークンの有効期限が不正です",
+				response := utils.ErrorMessageResponse{
+					Result: "トークンの有効期限が不正です",
 				}
 				c.JSON(http.StatusUnauthorized, response)
 				c.Abort()
 				return
 			}
 		} else {
-			response := utils.ErrorResponse{
-				ErrorMsg: "トークンのクレームが不正です",
+			response := utils.ErrorMessageResponse{
+				Result: "トークンのクレームが不正です",
 			}
 			c.JSON(http.StatusUnauthorized, response)
 			c.Abort()
@@ -124,10 +124,23 @@ func CORSMiddleware() gin.HandlerFunc {
 	return cors.New(config)
 }
 
+type ResponseRecorder struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (r *ResponseRecorder) Write(b []byte) (int, error) {
+	r.body.Write(b)                  // レスポンス内容をバッファに記録
+	return r.ResponseWriter.Write(b) // 実際のレスポンスとして書き込む
+}
+
 func RequestLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		startTime := time.Now()
 		requestID := uuid.New().String() // リクエストIDを生成
+		// レスポンス内容取得
+		recorder := &ResponseRecorder{ResponseWriter: c.Writer, body: new(bytes.Buffer)}
+		c.Writer = recorder
 		c.Set("request_id", requestID)
 
 		c.Writer.Header().Set("X-Request-ID", requestID)
@@ -157,6 +170,7 @@ func RequestLoggerMiddleware() gin.HandlerFunc {
 		// レスポンス後ログ
 		logrus.WithFields(logrus.Fields{
 			"request_id": requestID,
+			"result":     recorder.body.String(),
 			"status":     c.Writer.Status(),
 			"latency":    time.Since(startTime).Milliseconds(),
 		}).Info("Request completed")

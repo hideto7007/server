@@ -97,10 +97,10 @@ func (pm *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 	}
 
 	if valid, errMsgList := validator.Validate(); !valid {
-		response := utils.ErrorResponse{
+		response := utils.ErrorValidationResponse{
 			Result: errMsgList,
 		}
-		utils.HandleError(c, http.StatusBadRequest, response)
+		c.JSON(http.StatusBadRequest, response)
 		return
 	}
 
@@ -109,20 +109,18 @@ func (pm *apiPriceManagementFetcher) GetPriceInfoApi(c *gin.Context) {
 	if err == nil {
 		res := pm.PriceCalc(data["money_received"], data["bouns"], data["fixed_cost"], data["loan"], data["private"], data["insurance"])
 
-		response := utils.ResponseWithSlice[PriceInfo]{
-			Result: []PriceInfo{
-				{
-					LeftAmount:  res.LeftAmount,
-					TotalAmount: res.TotalAmount,
-				},
+		response := utils.ResponseData[PriceInfo]{
+			Result: PriceInfo{
+				LeftAmount:  res.LeftAmount,
+				TotalAmount: res.TotalAmount,
 			},
 		}
 		c.JSON(http.StatusOK, response)
 	} else {
-		response := utils.ErrorResponse{
-			ErrorMsg: err.Error(),
+		response := utils.ErrorMessageResponse{
+			Result: err.Error(),
 		}
-		utils.HandleError(c, http.StatusInternalServerError, response)
+		c.JSON(http.StatusInternalServerError, response)
 	}
 
 }
