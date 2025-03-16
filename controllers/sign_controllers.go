@@ -48,6 +48,11 @@ type (
 		UserPassword string `json:"user_password"`
 	}
 
+	SignUpResult struct {
+		UserId       int    `json:"user_id"`
+		UserEmail    string `json:"user_email"`
+	}
+
 	TemporayPostSignUpResult struct {
 		RedisKey  string `json:"redis_key"`
 		UserEmail string `json:"user_email"`
@@ -62,17 +67,6 @@ type (
 
 	RequestRefreshToken struct {
 		UserId int `json:"user_id"`
-	}
-
-	signUpResult struct{}
-
-	signInEditResult struct{}
-
-	signInDeleteResult struct{}
-
-	refreshTokenDataResponse struct {
-		Token  string `json:"token,omitempty"`
-		Result string `json:"error_msg,omitempty"`
 	}
 
 	apiSignDataFetcher struct {
@@ -532,7 +526,8 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		UserPassword: userPassword,
 		UserName:     userName,
 	}
-	if err := dbFetcher.PostSignUp(data); err != nil {
+	userId, err := dbFetcher.PostSignUp(data)
+	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "既に登録されたメールアドレスです。",
 		}
@@ -548,6 +543,29 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, response)
 		return
 	}
+
+	// UtilsFetcher を使用してトークンを生成
+	newToken, err := af.UtilsFetcher.NewToken(userId, utils.AuthTokenHour)
+	if err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "新規トークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	refreshToken, err := af.UtilsFetcher.RefreshToken(userId, utils.RefreshAuthTokenHour)
+	if err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "リフレッシュトークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	c.SetCookie(utils.UserId, fmt.Sprintf("%d", userId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := af.EmailTemplateService.PostSignUpTemplate(
 		data.UserName,
@@ -572,8 +590,11 @@ func (af *apiSignDataFetcher) PostSignUpApi(c *gin.Context) {
 	}
 
 	// サインアップ成功のレスポンス
-	response := utils.ResponseData[string]{
-		Result: "サインアップに成功",
+	response := utils.ResponseData[SignUpResult]{
+		Result: SignUpResult{
+			UserId:       userId,
+			UserEmail:    userEmail,
+		},
 	}
 	c.JSON(http.StatusOK, response)
 }

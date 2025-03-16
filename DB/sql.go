@@ -69,7 +69,8 @@ const GetExternalAuthSyntax = `
 const PostSignUpSyntax = `
 			INSERT INTO users
 			(user_email, user_password, create_user, create_at, update_user, update_at, delete_flag)
-			VALUES ($1, $2, $3, $4, $5, $6, $7);
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			RETURNING user_id;
 			`
 
 const PutSignInEditSyntax = `

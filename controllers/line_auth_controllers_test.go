@@ -545,8 +545,8 @@ func TestLineSignUpCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return fmt.Errorf("sql登録失敗")
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 0, fmt.Errorf("sql登録失敗")
 			})
 		defer patches.Reset()
 
@@ -568,6 +568,109 @@ func TestLineSignUpCallback(t *testing.T) {
 		assert.Equal(t, responseBody.Result, expectedErrorMessage.Result)
 	})
 
+	t.Run("LineSignUpCallback トークン生成に失敗 1", func(t *testing.T) {
+
+		w, c := test_utils.CreateTestRequest(
+			"GET", "/api/line/signup/callback?user_email=test@example.com&user_name=test",
+			nil,
+			map[string]string{
+				"user_email": "test@example.com",
+				"user_name":  "test",
+			},
+		)
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("", fmt.Errorf("トークン生成エラー"))
+
+		lineManager := LineManager{
+			UtilsFetcher:         mockUtilsFetcher,
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		lineManager.LineSignUpCallback(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.ErrorMessageResponse
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorMessageResponse{
+			Result: "新規トークンの生成に失敗しました。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("LineSignUpCallback トークン生成に失敗 2", func(t *testing.T) {
+
+		w, c := test_utils.CreateTestRequest(
+			"GET", "/api/line/signup/callback?user_email=test@example.com&user_name=test",
+			nil,
+			map[string]string{
+				"user_email": "test@example.com",
+				"user_name":  "test",
+			},
+		)
+
+		// gomock のコントローラ作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", fmt.Errorf("トークン生成エラー"))
+
+		lineManager := LineManager{
+			UtilsFetcher:         mockUtilsFetcher,
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+		}
+		lineManager.LineSignUpCallback(c)
+
+		// レスポンスボディの確認
+		var responseBody utils.ErrorMessageResponse
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ErrorMessageResponse{
+			Result: "リフレッシュトークンの生成に失敗しました。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
 	t.Run("LineSignUpCallback メールテンプレート生成エラー(登録)", func(t *testing.T) {
 
 		w, c := test_utils.CreateTestRequest(
@@ -586,8 +689,8 @@ func TestLineSignUpCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
 			})
 		defer patches.Reset()
 
@@ -597,6 +700,14 @@ func TestLineSignUpCallback(t *testing.T) {
 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
 
 		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", nil)
+
 		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
 			Return("2024年12月2日")
@@ -641,8 +752,8 @@ func TestLineSignUpCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
 			})
 		defer patches.Reset()
 
@@ -651,6 +762,14 @@ func TestLineSignUpCallback(t *testing.T) {
 		mockEmailTemplateService := mock_templates.NewMockEmailTemplateService(ctrl)
 
 		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", nil)
+
 		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
 			Return("2024年12月2日")
@@ -699,8 +818,8 @@ func TestLineSignUpCallback(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
 			})
 		defer patches.Reset()
 
@@ -708,6 +827,14 @@ func TestLineSignUpCallback(t *testing.T) {
 		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
 
 		// モックの挙動を定義
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", nil)
+
 		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
 			Return("2024年12月2日")
@@ -725,14 +852,18 @@ func TestLineSignUpCallback(t *testing.T) {
 		// ステータスコードの確認
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ErrorMessageResponse
+		var responseBody utils.ResponseData[SignUpResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.Nil(t, err)
 
-		expectedResponse := utils.ResponseData[string]{
-			Result: "line外部認証の登録が成功しました。",
+		expectedOk := utils.ResponseData[SignUpResult]{
+			Result: SignUpResult{
+				UserId:    1,
+				UserEmail: "test@example.com",
+			},
 		}
-		assert.Equal(t, responseBody.Result, expectedResponse.Result)
+		assert.Equal(t, responseBody.Result.UserId, expectedOk.Result.UserId)
+		assert.Equal(t, responseBody.Result.UserEmail, expectedOk.Result.UserEmail)
 	})
 }
 

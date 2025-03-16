@@ -161,13 +161,38 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		UserPassword: "google",
 		UserName:     params.UserName,
 	}
-	if err := dbFetcher.PostSignUp(registerData); err != nil {
+
+	userId, err := dbFetcher.PostSignUp(registerData)
+	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "既に登録されたメールアドレスです。",
 		}
 		c.JSON(http.StatusConflict, response)
 		return
 	}
+
+	// UtilsFetcher を使用してトークンを生成
+	newToken, err := gm.UtilsFetcher.NewToken(userId, utils.AuthTokenHour)
+	if err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "新規トークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	refreshToken, err := gm.UtilsFetcher.RefreshToken(userId, utils.RefreshAuthTokenHour)
+	if err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "リフレッシュトークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	c.SetCookie(utils.UserId, fmt.Sprintf("%d", userId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
 	subject, body, err := gm.EmailTemplateService.PostSignUpTemplate(
 		params.UserName,
@@ -191,8 +216,12 @@ func (gm *GoogleManager) GoogleSignUpCallback(c *gin.Context) {
 		return
 	}
 
-	response := utils.ResponseData[string]{
-		Result: "google外部認証の登録が成功しました。",
+	// サインアップ成功のレスポンス
+	response := utils.ResponseData[SignUpResult]{
+		Result: SignUpResult{
+			UserId:       userId,
+			UserEmail:    params.UserEmail,
+		},
 	}
 	c.JSON(http.StatusOK, response)
 }

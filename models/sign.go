@@ -18,7 +18,7 @@ type (
 	SignInFetcher interface {
 		GetSignIn(data RequestSignInData) (SignInData, error)
 		GetExternalAuth(UserEmail string) (ExternalAuthData, error)
-		PostSignUp(data RequestSignUpData) error
+		PostSignUp(data RequestSignUpData) (int, error)
 		PutSignInEdit(UserId int, data RequestSignInEditData) error
 		PutCheck(data RequestSignInEditData) (string, error)
 		DeleteSignIn(userId int, data RequestSignInDeleteData) error
@@ -75,10 +75,6 @@ type (
 		UserPassword string
 	}
 
-	NewPasswordUpdateData struct {
-		UserEmail string
-	}
-
 	SignInDeleteData struct {
 		UserId interface{}
 	}
@@ -128,13 +124,6 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) (SignInData, error)
 	}
 	defer rows.Close()
 
-	// if flg := rows.Next(); !flg {
-	// 	fmt.Println(result, "存在しないメールアドレスです。")
-	// 	// return result, errors.New("存在しないメールアドレスです。")
-	// }
-
-	// fmt.Println(rows.Next())
-
 	for rows.Next() {
 		var record SignInData
 		err := rows.Scan(
@@ -161,7 +150,7 @@ func (pf *SignDataFetcher) GetSignIn(data RequestSignInData) (SignInData, error)
 		return result, err
 	}
 
-	if found == false {
+	if !found {
 		return result, errors.New("存在しないメールアドレスです。")
 	}
 
@@ -208,7 +197,7 @@ func (pf *SignDataFetcher) GetExternalAuth(UserEmail string) (ExternalAuthData, 
 	if err := rows.Err(); err != nil {
 		return result, err
 	}
-	if found == false {
+	if !found {
 		return result, errors.New("存在しないメールアドレスです。")
 	}
 
@@ -225,9 +214,10 @@ func (pf *SignDataFetcher) GetExternalAuth(UserEmail string) (ExternalAuthData, 
 //	戻り値1: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
+func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) (int, error) {
 
 	var err error
+	var userId int
 	createdAt := time.Now()
 
 	// データベースのクローズをdeferで最初に宣言
@@ -236,32 +226,41 @@ func (pf *SignDataFetcher) PostSignUp(data RequestSignUpData) error {
 	// トランザクションを開始
 	tx, err := pf.db.Begin()
 	if err != nil {
-		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
+		return 0, fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
-	// deferでロールバックまたはコミットを管理
+	// ロールバックをデフォルトに設定
+	rollback := true
 	defer func() {
-		if p := recover(); p != nil || err != nil {
-			tx.Rollback() // パニックまたはエラー発生時にロールバック
-		} else {
-			err = tx.Commit() // エラーがなければコミット
+		if rollback {
+			tx.Rollback()
 		}
 	}()
 
 	signUp := DB.PostSignUpSyntax
 
-	if _, err = tx.Exec(signUp,
+	err = tx.QueryRow(signUp,
 		data.UserEmail,
 		data.UserPassword,
 		data.UserName,
 		createdAt,
 		data.UserName,
 		createdAt,
-		1); err != nil {
-		return err
+		1).Scan(&userId)
+
+	if err != nil {
+		return 0, fmt.Errorf("ユーザー情報の登録に失敗しました: %v", err)
 	}
 
-	return nil
+	// コミット処理
+	err = tx.Commit()
+	if err != nil {
+		return 0, fmt.Errorf("トランザクションのコミットに失敗しました: %v", err)
+	}
+
+	rollback = false
+
+	return userId, nil
 }
 
 // PutSignInEdit サイン情報を編集API
@@ -291,12 +290,11 @@ func (pf *SignDataFetcher) PutSignInEdit(UserId int, data RequestSignInEditData)
 		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
-	// deferでロールバックまたはコミットを管理
+	// ロールバックをデフォルトに設定
+	rollback := true
 	defer func() {
-		if p := recover(); p != nil || err != nil {
-			tx.Rollback() // パニックまたはエラー発生時にロールバック
-		} else {
-			err = tx.Commit() // エラーがなければコミット
+		if rollback {
+			tx.Rollback()
 		}
 	}()
 
@@ -313,13 +311,22 @@ func (pf *SignDataFetcher) PutSignInEdit(UserId int, data RequestSignInEditData)
 
 	signInEdit := DB.PutSignInEditSyntax
 
-	if _, err = tx.Exec(signInEdit,
+	// クエリの実行
+	if _, err = tx.Exec(
+		signInEdit,
 		userEmail,
 		userPassword,
 		updateAt,
 		UserId); err != nil {
-		return err
+		return fmt.Errorf("ユーザー情報の更新に失敗しました: %v", err)
 	}
+
+	// コミット処理
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("トランザクションのコミットに失敗しました: %v", err)
+	}
+
+	rollback = false
 
 	return nil
 }
@@ -401,12 +408,11 @@ func (pf *SignDataFetcher) DeleteSignIn(userId int, data RequestSignInDeleteData
 		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
-	// deferでロールバックまたはコミットを管理
+	// ロールバックをデフォルトに設定
+	rollback := true
 	defer func() {
-		if p := recover(); p != nil || err != nil {
-			tx.Rollback() // パニックまたはエラー発生時にロールバック
-		} else {
-			err = tx.Commit() // エラーがなければコミット
+		if rollback {
+			tx.Rollback()
 		}
 	}()
 
@@ -415,10 +421,16 @@ func (pf *SignDataFetcher) DeleteSignIn(userId int, data RequestSignInDeleteData
 	if _, err = tx.Exec(
 		signInDelete,
 		userId,
-		data.UserEmail,
-	); err != nil {
-		return err
+		data.UserEmail); err != nil {
+		return fmt.Errorf("ユーザー削除に失敗しました: %v", err)
 	}
+
+	// コミット処理
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("トランザクションのコミットに失敗しました: %v", err)
+	}
+
+	rollback = false
 
 	return nil
 }
@@ -461,6 +473,7 @@ func (pf *SignDataFetcher) GetUserId(UserEmail string) (int, error) {
 func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) (string, error) {
 
 	var hashPassword string
+	var userEmail string
 
 	// データベースのクローズをdeferで最初に宣言
 	defer pf.db.Close()
@@ -471,8 +484,7 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 
 	// データベースクエリを実行
 	row := pf.db.QueryRow(DB.PasswordCheckSyntax, userId)
-	var record NewPasswordUpdateData
-	if err := row.Scan(&record.UserEmail); err != nil {
+	if err := row.Scan(&userEmail); err != nil {
 		if err == sql.ErrNoRows {
 			return "", fmt.Errorf("登録ユーザーが存在しません")
 		}
@@ -487,11 +499,10 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 	}
 
 	// deferでロールバックまたはコミットを管理
+	rollback := true
 	defer func() {
-		if p := recover(); p != nil || err != nil {
-			tx.Rollback() // パニックまたはエラー発生時にロールバック
-		} else {
-			err = tx.Commit() // エラーがなければコミット
+		if rollback {
+			tx.Rollback()
 		}
 	}()
 
@@ -509,5 +520,12 @@ func (pf *SignDataFetcher) NewPasswordUpdate(data RequestNewPasswordUpdateData) 
 		return "", fmt.Errorf("パスワード更新クエリの実行に失敗しました: %v", err)
 	}
 
-	return record.UserEmail, nil
+	// コミット実行
+	if err = tx.Commit(); err != nil {
+		return "", fmt.Errorf("トランザクションのコミットに失敗しました: %v", err)
+	}
+
+	rollback = false
+
+	return userEmail, nil
 }

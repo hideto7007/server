@@ -74,7 +74,7 @@ func (aid *apiIncomeDataFetcher) GetIncomeDataInRangeApi(c *gin.Context) {
 	userId, _ := aid.CommonFetcher.StrToInt(userIdPrams)
 
 	// データベースから指定範囲のデータを取得
-	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.GetDataBaseSource())
+	dbFetcher, _, _ := models.NewAnnualIncomeDataFetcher(config.GetDataBaseSource())
 	incomeData, err := dbFetcher.GetIncomeDataInRange(startDate, endDate, userId)
 
 	if err != nil {
@@ -116,7 +116,7 @@ func (aid *apiIncomeDataFetcher) GetDateRangeApi(c *gin.Context) {
 	userId, _ := aid.CommonFetcher.StrToInt(userIdPrams)
 
 	// データベースから指定範囲のデータを取得
-	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.GetDataBaseSource())
+	dbFetcher, _, _ := models.NewAnnualIncomeDataFetcher(config.GetDataBaseSource())
 	paymentDate, err := dbFetcher.GetDateRange(userId)
 
 	if err != nil {
@@ -158,7 +158,7 @@ func (aid *apiIncomeDataFetcher) GetYearIncomeAndDeductionApi(c *gin.Context) {
 	userId, _ := aid.CommonFetcher.StrToInt(userIdPrams)
 
 	// データベースから指定範囲のデータを取得
-	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.GetDataBaseSource())
+	dbFetcher, _, _ := models.NewAnnualIncomeDataFetcher(config.GetDataBaseSource())
 	yearIncomeData, err := dbFetcher.GetYearsIncomeAndDeduction(userId)
 
 	if err != nil {
@@ -225,7 +225,7 @@ func (aid *apiIncomeDataFetcher) InsertIncomeDataApi(c *gin.Context) {
 	}
 
 	// 収入データベースへ新しいデータ登録
-	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.GetDataBaseSource())
+	dbFetcher, _, _ := models.NewAnnualIncomeDataFetcher(config.GetDataBaseSource())
 	if err := dbFetcher.InsertIncome(requestData.Data); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "新規登録時にエラーが発生。",
@@ -291,7 +291,7 @@ func (aid *apiIncomeDataFetcher) UpdateIncomeDataApi(c *gin.Context) {
 	}
 
 	// 収入データベースの更新
-	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.GetDataBaseSource())
+	dbFetcher, _, _ := models.NewAnnualIncomeDataFetcher(config.GetDataBaseSource())
 	if err := dbFetcher.UpdateIncome(requestData.Data); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "更新時にエラーが発生。",
@@ -347,7 +347,7 @@ func (aid *apiIncomeDataFetcher) DeleteIncomeDataApi(c *gin.Context) {
 	}
 
 	// 収入データベースの指定されたIDの削除
-	dbFetcher, _, _ := models.NewPostgreSQLDataFetcher(config.GetDataBaseSource())
+	dbFetcher, _, _ := models.NewAnnualIncomeDataFetcher(config.GetDataBaseSource())
 	if err := dbFetcher.DeleteIncome(requestData.Data); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "削除中にエラーが発生しました。",

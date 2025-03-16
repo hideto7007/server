@@ -91,9 +91,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetIncomeDataInRange",
-			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+			func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -134,9 +134,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			c.Request = httptest.NewRequest("GET", "/?start_date=2022-07-01&end_date=2022-09-30&user_id=1", nil)
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"GetIncomeDataInRange",
-				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 					return nil, errors.New("database error")
 				})
 			defer patches.Reset()
@@ -191,9 +191,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetIncomeDataInRange",
-			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+			func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -242,9 +242,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetIncomeDataInRange",
-			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+			func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -302,9 +302,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			}
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"GetIncomeDataInRange",
-				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 					return mockData, nil
 				})
 			defer patches.Reset()
@@ -363,9 +363,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			}
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"GetIncomeDataInRange",
-				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 					return mockData, nil
 				})
 			defer patches.Reset()
@@ -416,9 +416,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetIncomeDataInRange",
-			func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+			func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -473,9 +473,9 @@ func TestGetIncomeDataInRangeApi(t *testing.T) {
 			}
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"GetIncomeDataInRange",
-				func(_ *models.PostgreSQLDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
+				func(_ *models.AnnualIncomeDataFetcher, startDate string, endDate string, userId int) ([]models.IncomeData, error) {
 					return mockData, nil
 				})
 			defer patches.Reset()
@@ -529,9 +529,9 @@ func TestGetDateRangeApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetDateRange",
-			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+			func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.PaymentDate, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -566,9 +566,9 @@ func TestGetDateRangeApi(t *testing.T) {
 		c.Request = httptest.NewRequest("GET", "/?user_id=1", nil)
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetDateRange",
-			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+			func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.PaymentDate, error) {
 				return nil, errors.New("database error")
 			})
 		defer patches.Reset()
@@ -607,9 +607,9 @@ func TestGetDateRangeApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetDateRange",
-			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+			func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.PaymentDate, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -658,9 +658,9 @@ func TestGetDateRangeApi(t *testing.T) {
 			}
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"GetDateRange",
-				func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.PaymentDate, error) {
+				func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.PaymentDate, error) {
 					return mockData, nil
 				})
 			defer patches.Reset()
@@ -715,9 +715,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetYearsIncomeAndDeduction",
-			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+			func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -756,9 +756,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 			c.Request = httptest.NewRequest("GET", "/?user_id=1", nil)
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"GetYearsIncomeAndDeduction",
-				func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+				func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
 					return nil, errors.New("database error")
 				})
 			defer patches.Reset()
@@ -809,9 +809,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 		}
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"GetYearsIncomeAndDeduction",
-			func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+			func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
 				return mockData, nil
 			})
 		defer patches.Reset()
@@ -862,9 +862,9 @@ func TestGetYearIncomeAndDeductionApi(t *testing.T) {
 			}
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"GetYearsIncomeAndDeduction",
-				func(_ *models.PostgreSQLDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
+				func(_ *models.AnnualIncomeDataFetcher, UserID int) ([]models.YearsIncomeData, error) {
 					return mockData, nil
 				})
 			defer patches.Reset()
@@ -927,9 +927,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"InsertIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.InsertIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -982,9 +982,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"InsertIncome",
-				func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+				func(_ *models.AnnualIncomeDataFetcher, data []models.InsertIncomeData) error {
 					return errors.New("database error")
 				})
 			defer patches.Reset()
@@ -1035,9 +1035,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"InsertIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.InsertIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1115,9 +1115,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"InsertIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.InsertIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1203,9 +1203,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"InsertIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.InsertIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1315,9 +1315,9 @@ func TestInsertIncomeDataApi(t *testing.T) {
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"InsertIncome",
-				func(_ *models.PostgreSQLDataFetcher, data []models.InsertIncomeData) error {
+				func(_ *models.AnnualIncomeDataFetcher, data []models.InsertIncomeData) error {
 					return nil
 				})
 			defer patches.Reset()
@@ -1386,9 +1386,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"UpdateIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.UpdateIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1442,9 +1442,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"UpdateIncome",
-				func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+				func(_ *models.AnnualIncomeDataFetcher, data []models.UpdateIncomeData) error {
 					return errors.New("database error")
 				})
 			defer patches.Reset()
@@ -1493,9 +1493,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"UpdateIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.UpdateIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1574,9 +1574,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"UpdateIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.UpdateIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1667,9 +1667,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"UpdateIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.UpdateIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1783,9 +1783,9 @@ func TestUpdateIncomeDataApi(t *testing.T) {
 			c.Request.Header.Set("Content-Type", "application/json")
 
 			patches := ApplyMethod(
-				reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+				reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 				"UpdateIncome",
-				func(_ *models.PostgreSQLDataFetcher, data []models.UpdateIncomeData) error {
+				func(_ *models.AnnualIncomeDataFetcher, data []models.UpdateIncomeData) error {
 					return nil
 				})
 			defer patches.Reset()
@@ -1840,9 +1840,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"DeleteIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.DeleteIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1880,9 +1880,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"DeleteIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.DeleteIncomeData) error {
 				return errors.New("database error")
 			})
 		defer patches.Reset()
@@ -1942,9 +1942,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"DeleteIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.DeleteIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()
@@ -1992,9 +1992,9 @@ func TestDeleteIncomeDataApi(t *testing.T) {
 		c.Request.Header.Set("Content-Type", "application/json")
 
 		patches := ApplyMethod(
-			reflect.TypeOf(&models.PostgreSQLDataFetcher{}),
+			reflect.TypeOf(&models.AnnualIncomeDataFetcher{}),
 			"DeleteIncome",
-			func(_ *models.PostgreSQLDataFetcher, data []models.DeleteIncomeData) error {
+			func(_ *models.AnnualIncomeDataFetcher, data []models.DeleteIncomeData) error {
 				return nil
 			})
 		defer patches.Reset()

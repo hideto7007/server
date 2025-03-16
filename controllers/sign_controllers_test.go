@@ -2158,14 +2158,6 @@ func TestPostSignUpApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SignDataFetcher{}),
-			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
-			})
-		defer patches.Reset()
-
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher:        common.NewCommonFetcher(),
@@ -2211,14 +2203,6 @@ func TestPostSignUpApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SignDataFetcher{}),
-			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
-			})
-		defer patches.Reset()
-
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher:        common.NewCommonFetcher(),
@@ -2263,14 +2247,6 @@ func TestPostSignUpApi(t *testing.T) {
 		body, _ := json.Marshal(data)
 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
-
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SignDataFetcher{}),
-			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
-			})
-		defer patches.Reset()
 
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
@@ -2332,14 +2308,6 @@ func TestPostSignUpApi(t *testing.T) {
 		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		patches := ApplyMethod(
-			reflect.TypeOf(&models.SignDataFetcher{}),
-			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
-			})
-		defer patches.Reset()
-
 		fetcher := apiSignDataFetcher{
 			UtilsFetcher:         utils.NewUtilsFetcher(utils.JwtSecret),
 			CommonFetcher:        common.NewCommonFetcher(),
@@ -2394,8 +2362,8 @@ func TestPostSignUpApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return fmt.Errorf("sql登録失敗")
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 0, fmt.Errorf("sql登録失敗")
 			})
 		defer patches.Reset()
 
@@ -2452,8 +2420,8 @@ func TestPostSignUpApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
 			})
 		defer patches.Reset()
 
@@ -2477,6 +2445,140 @@ func TestPostSignUpApi(t *testing.T) {
 		assert.Equal(t, responseBody.Result, expectedError.Result)
 	})
 
+	t.Run("TestPostSignUpApi トークン生成に失敗 1", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// 各モックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+		// モックの挙動を定義
+		mockRedisService.EXPECT().
+			RedisGet(gomock.Any()).
+			Return("test@example.com,Test12345!,test", nil)
+
+		mockRedisService.EXPECT().
+			RedisDel(gomock.Any()).
+			Return(nil)
+
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("", fmt.Errorf("トークン生成エラー"))
+
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		// モックを使って API を呼び出し
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         mockRedisService,
+		}
+		fetcher.PostSignUpApi(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.ResponseData[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "新規トークンの生成に失敗しました。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
+	t.Run("TestPostSignUpApi トークン生成に失敗 2", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// UtilsFetcher のモックを作成
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+		mockRedisService := mock_config.NewMockRedisService(ctrl)
+
+		// モックの挙動を定義
+		mockRedisService.EXPECT().
+			RedisGet(gomock.Any()).
+			Return("test@example.com,Test12345!,test", nil)
+
+		mockRedisService.EXPECT().
+			RedisDel(gomock.Any()).
+			Return(nil)
+
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", fmt.Errorf("トークン生成エラー"))
+
+		data := RequestRedisKeyData{
+			RedisKey:      redisKey,
+			AuthEmailCode: authEmailCode,
+		}
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		body, _ := json.Marshal(data)
+		c.Request = httptest.NewRequest("POST", "/api/signup", bytes.NewBuffer(body))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		patches := ApplyMethod(
+			reflect.TypeOf(&models.SignDataFetcher{}),
+			"PostSignUp",
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
+			})
+		defer patches.Reset()
+
+		// モックを使って API を呼び出し
+		fetcher := apiSignDataFetcher{
+			UtilsFetcher:         mockUtilsFetcher,
+			CommonFetcher:        common.NewCommonFetcher(),
+			EmailTemplateService: templates.NewEmailTemplateManager(),
+			RedisService:         mockRedisService,
+		}
+		fetcher.PostSignUpApi(c)
+
+		// ステータスコードの確認
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+		// レスポンスボディの確認
+		var responseBody utils.ResponseData[string]
+		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
+		assert.NoError(t, err)
+
+		expectedErrorMessage := utils.ResponseData[string]{
+			Result: "リフレッシュトークンの生成に失敗しました。",
+		}
+		assert.Equal(t, responseBody, expectedErrorMessage)
+	})
+
 	t.Run("PostSignUpApi メールテンプレート生成エラー(登録)", func(t *testing.T) {
 
 		// gomock のコントローラを作成
@@ -2496,6 +2598,14 @@ func TestPostSignUpApi(t *testing.T) {
 		mockRedisService.EXPECT().
 			RedisDel(gomock.Any()).
 			Return(nil)
+
+		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", nil)
 
 		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
@@ -2520,8 +2630,8 @@ func TestPostSignUpApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
 			})
 		defer patches.Reset()
 
@@ -2566,6 +2676,14 @@ func TestPostSignUpApi(t *testing.T) {
 			Return(nil)
 
 		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", nil)
+
+		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
 			Return("2024年12月2日")
 
@@ -2592,8 +2710,8 @@ func TestPostSignUpApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
 			})
 		defer patches.Reset()
 
@@ -2638,6 +2756,14 @@ func TestPostSignUpApi(t *testing.T) {
 			Return(nil)
 
 		mockUtilsFetcher.EXPECT().
+			NewToken(gomock.Any(), gomock.Any()).
+			Return("token", nil)
+
+		mockUtilsFetcher.EXPECT().
+			RefreshToken(gomock.Any(), gomock.Any()).
+			Return("", nil)
+
+		mockUtilsFetcher.EXPECT().
 			DateTimeStr(gomock.Any(), gomock.Any()).
 			Return("2024年12月2日")
 
@@ -2664,8 +2790,8 @@ func TestPostSignUpApi(t *testing.T) {
 		patches := ApplyMethod(
 			reflect.TypeOf(&models.SignDataFetcher{}),
 			"PostSignUp",
-			func(_ *models.SignDataFetcher, data models.RequestSignUpData) error {
-				return nil
+			func(_ *models.SignDataFetcher, data models.RequestSignUpData) (int, error) {
+				return 1, nil
 			})
 		defer patches.Reset()
 
@@ -2679,14 +2805,18 @@ func TestPostSignUpApi(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var responseBody utils.ResponseData[string]
+		var responseBody utils.ResponseData[SignUpResult]
 		err := json.Unmarshal(w.Body.Bytes(), &responseBody)
 		assert.NoError(t, err)
 
-		expectedOk := utils.ResponseData[string]{
-			Result: "サインアップに成功",
+		expectedOk := utils.ResponseData[SignUpResult]{
+			Result: SignUpResult{
+				UserId:    1,
+				UserEmail: "test@example.com",
+			},
 		}
-		assert.Equal(t, responseBody.Result, expectedOk.Result)
+		assert.Equal(t, responseBody.Result.UserId, expectedOk.Result.UserId)
+		assert.Equal(t, responseBody.Result.UserEmail, expectedOk.Result.UserEmail)
 	})
 }
 

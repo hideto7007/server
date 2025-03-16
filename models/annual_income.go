@@ -76,20 +76,20 @@ type (
 		IncomeForecastID string `json:"income_forecast_id"`
 	}
 
-	PostgreSQLDataFetcher struct{ db *sql.DB }
+	AnnualIncomeDataFetcher struct{ db *sql.DB }
 )
 
-func NewPostgreSQLDataFetcher(dataSourceName string) (*PostgreSQLDataFetcher, sqlmock.Sqlmock, error) {
+func NewAnnualIncomeDataFetcher(dataSourceName string) (*AnnualIncomeDataFetcher, sqlmock.Sqlmock, error) {
 	if dataSourceName == "test" {
 		db, mock, err := sqlmock.New()
-		return &PostgreSQLDataFetcher{db: db}, mock, err
+		return &AnnualIncomeDataFetcher{db: db}, mock, err
 	} else {
 		// test実行時に以下のカバレッジは無視する
 		db, err := sql.Open("postgres", dataSourceName)
 		if err != nil {
 			log.Printf("sql.Open error %s", err)
 		}
-		return &PostgreSQLDataFetcher{db: db}, nil, nil
+		return &AnnualIncomeDataFetcher{db: db}, nil, nil
 	}
 }
 
@@ -105,7 +105,7 @@ func NewPostgreSQLDataFetcher(dataSourceName string) (*PostgreSQLDataFetcher, sq
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate string, EndDate string, UserId int) ([]IncomeData, error) {
+func (pf *AnnualIncomeDataFetcher) GetIncomeDataInRange(StartDate string, EndDate string, UserId int) ([]IncomeData, error) {
 	var incomeData []IncomeData
 
 	// startDate と endDate を日付型に変換
@@ -166,7 +166,7 @@ func (pf *PostgreSQLDataFetcher) GetIncomeDataInRange(StartDate string, EndDate 
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetDateRange(UserId int) ([]PaymentDate, error) {
+func (pf *AnnualIncomeDataFetcher) GetDateRange(UserId int) ([]PaymentDate, error) {
 	var paymentDate []PaymentDate
 
 	// データベースクエリを実行
@@ -229,7 +229,7 @@ func (pf *PostgreSQLDataFetcher) GetDateRange(UserId int) ([]PaymentDate, error)
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId int) ([]YearsIncomeData, error) {
+func (pf *AnnualIncomeDataFetcher) GetYearsIncomeAndDeduction(UserId int) ([]YearsIncomeData, error) {
 	var yearsIncomeData []YearsIncomeData
 
 	// データベースクエリを実行
@@ -277,7 +277,7 @@ func (pf *PostgreSQLDataFetcher) GetYearsIncomeAndDeduction(UserId int) ([]Years
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
+func (pf *AnnualIncomeDataFetcher) InsertIncome(data []InsertIncomeData) error {
 
 	var err error
 	createdAt := time.Now()
@@ -291,12 +291,11 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
-	// deferでロールバックまたはコミットを管理
+	// ロールバックをデフォルトに設定
+	rollback := true
 	defer func() {
-		if p := recover(); p != nil || err != nil {
-			tx.Rollback() // パニックまたはエラー発生時にロールバック
-		} else {
-			err = tx.Commit() // エラーがなければコミット
+		if rollback {
+			tx.Rollback()
 		}
 	}()
 
@@ -329,6 +328,13 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 		}
 	}
 
+	// コミット処理
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("トランザクションのコミットに失敗しました: %v", err)
+	}
+
+	rollback = false
+
 	return nil
 }
 
@@ -343,7 +349,7 @@ func (pf *PostgreSQLDataFetcher) InsertIncome(data []InsertIncomeData) error {
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
+func (pf *AnnualIncomeDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 
 	var err error
 	createdAt := time.Now()
@@ -357,12 +363,11 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
-	// deferでロールバックまたはコミットを管理
+	// ロールバックをデフォルトに設定
+	rollback := true
 	defer func() {
-		if p := recover(); p != nil || err != nil {
-			tx.Rollback() // パニックまたはエラー発生時にロールバック
-		} else {
-			err = tx.Commit() // エラーがなければコミット
+		if rollback {
+			tx.Rollback()
 		}
 	}()
 
@@ -395,6 +400,13 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 		}
 	}
 
+	// コミット処理
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("トランザクションのコミットに失敗しました: %v", err)
+	}
+
+	rollback = false
+
 	return nil
 }
 
@@ -409,7 +421,7 @@ func (pf *PostgreSQLDataFetcher) UpdateIncome(data []UpdateIncomeData) error {
 //	戻り値2: エラー内容(エラーがない場合はnil)
 //
 
-func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
+func (pf *AnnualIncomeDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 
 	var err error
 
@@ -422,12 +434,11 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 		return fmt.Errorf("トランザクションの開始に失敗しました: %v", err)
 	}
 
-	// deferでロールバックまたはコミットを管理
+	// ロールバックをデフォルトに設定
+	rollback := true
 	defer func() {
-		if p := recover(); p != nil || err != nil {
-			tx.Rollback() // パニックまたはエラー発生時にロールバック
-		} else {
-			err = tx.Commit() // エラーがなければコミット
+		if rollback {
+			tx.Rollback()
 		}
 	}()
 
@@ -438,6 +449,13 @@ func (pf *PostgreSQLDataFetcher) DeleteIncome(data []DeleteIncomeData) error {
 			return err
 		}
 	}
+
+	// コミット処理
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("トランザクションのコミットに失敗しました: %v", err)
+	}
+
+	rollback = false
 
 	return nil
 }

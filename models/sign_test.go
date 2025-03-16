@@ -480,7 +480,7 @@ func TestPostSignUp(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.PostSignUpSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PostSignUpSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
@@ -490,14 +490,15 @@ func TestPostSignUp(t *testing.T) {
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
 			).
-			WillReturnResult(sqlmock.NewResult(1, 1))
+			WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(1))
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PostSignUp(testData)
+		userId, err := dbFetcher.PostSignUp(testData)
 
 		// エラーがないことを検証
 		assert.NoError(t, err)
+		assert.Equal(t, userId, 1)
 	})
 	t.Run("PostSignUp 失敗", func(t *testing.T) {
 		// テスト用のDBモックを作成
@@ -518,7 +519,7 @@ func TestPostSignUp(t *testing.T) {
 
 		// モックの準備
 		mock.ExpectBegin()
-		mock.ExpectExec(regexp.QuoteMeta(DB.PostSignUpSyntax)).
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PostSignUpSyntax)).
 			WithArgs(
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
@@ -528,15 +529,16 @@ func TestPostSignUp(t *testing.T) {
 				sqlmock.AnyArg(),
 				sqlmock.AnyArg(),
 			).
-			WillReturnError(errors.New("insert failed"))
+			WillReturnError(fmt.Errorf("ユーザー情報の登録に失敗しました"))
 		mock.ExpectCommit()
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PostSignUp(testData)
+		userId, err := dbFetcher.PostSignUp(testData)
 
 		// エラーが発生すること
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "insert failed")
+		assert.Equal(t, err.Error(), "ユーザー情報の登録に失敗しました: ユーザー情報の登録に失敗しました")
+		assert.Equal(t, userId, 0)
 
 		t.Log("error PostSignUp log", err)
 	})
@@ -551,7 +553,7 @@ func TestPostSignUp(t *testing.T) {
 		}
 
 		// トランザクションの開始に失敗させる
-		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+		mock.ExpectBegin().WillReturnError(errors.New("transaction error"))
 
 		// テストデータを作成
 		testData := RequestSignUpData{
@@ -561,13 +563,54 @@ func TestPostSignUp(t *testing.T) {
 		}
 
 		// InsertIncomeメソッドを呼び出し
-		err = dbFetcher.PostSignUp(testData)
+		userId, err := dbFetcher.PostSignUp(testData)
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "transaction begin error")
+		assert.Contains(t, err.Error(), "transaction error")
+		assert.Equal(t, userId, 0)
 
-		t.Log("transaction begin error PostSignUp log", err)
+		t.Log("transaction error PostSignUp log", err)
+	})
+	t.Run("PostSignUp 登録成功", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		testData := RequestSignUpData{
+			UserEmail:    "test@exmple.com",
+			UserPassword: "Test12345!",
+			UserName:     "test",
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PostSignUpSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnRows(sqlmock.NewRows([]string{"user_id"}).AddRow(1))
+		mock.ExpectCommit().WillReturnError(errors.New("transaction error"))
+		mock.ExpectRollback()
+
+		// InsertIncomeメソッドを呼び出し
+		userId, err := dbFetcher.PostSignUp(testData)
+
+		// エラーがないことを検証
+		assert.Error(t, err)
+		assert.Equal(t, userId, 0)
+		assert.Equal(t, "トランザクションのコミットに失敗しました: transaction error", err.Error())
 	})
 }
 
@@ -686,7 +729,7 @@ func TestPutSignInEdit(t *testing.T) {
 		}
 
 		// トランザクションの開始に失敗させる
-		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+		mock.ExpectBegin().WillReturnError(errors.New("transaction error"))
 
 		// テストデータを作成
 		testData := RequestSignInEditData{
@@ -699,9 +742,44 @@ func TestPutSignInEdit(t *testing.T) {
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "transaction begin error")
+		assert.Contains(t, err.Error(), "transaction error")
 
-		t.Log("transaction begin error PutSignInEdit log", err)
+		t.Log("transaction error PutSignInEdit log", err)
+	})
+	t.Run("PutSignInEdit トランザクションのコミットに失敗しました", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		testData := RequestSignInEditData{
+			UserEmail:    "",
+			UserPassword: "Test12345!",
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutSignInEditSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit().WillReturnError(errors.New("transaction error"))
+		mock.ExpectRollback()
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.PutSignInEdit(1, testData)
+
+		// エラーがないことを検証
+		assert.Error(t, err)
+		assert.Equal(t, "トランザクションのコミットに失敗しました: transaction error", err.Error())
 	})
 }
 
@@ -1009,7 +1087,7 @@ func TestDeleteSignIn(t *testing.T) {
 		}
 
 		// トランザクションの開始に失敗させる
-		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+		mock.ExpectBegin().WillReturnError(errors.New("transaction error"))
 
 		// テストデータを作成
 		testData := RequestSignInDeleteData{
@@ -1020,9 +1098,41 @@ func TestDeleteSignIn(t *testing.T) {
 
 		// エラーが発生することを検証
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "transaction begin error")
+		assert.Contains(t, err.Error(), "transaction error")
 
-		t.Log("transaction begin error DeleteSignIn log", err)
+		t.Log("transaction error DeleteSignIn log", err)
+	})
+	t.Run("DeleteSignIn トランザクションのコミットに失敗しました", func(t *testing.T) {
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			utils.NewUtilsFetcher(utils.JwtSecret),
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		testData := RequestSignInDeleteData{
+			UserEmail: "text@example.com",
+		}
+
+		// モックの準備
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.DeleteSignInSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit().WillReturnError(errors.New("transaction error"))
+		mock.ExpectRollback()
+
+		// InsertIncomeメソッドを呼び出し
+		err = dbFetcher.DeleteSignIn(1, testData)
+
+		// エラーがないことを検証
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "transaction error")
 	})
 }
 
@@ -1162,7 +1272,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 		assert.Equal(t, err.Error(), "dbエラー")
 	})
 
-	t.Run("NewPasswordUpdate トランザクション失敗", func(t *testing.T) {
+	t.Run("NewPasswordUpdate トランザクション開始失敗", func(t *testing.T) {
 		// gomock のコントローラを作成
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -1187,7 +1297,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 			WillReturnRows(row)
 
 		// トランザクションの開始に失敗させる
-		mock.ExpectBegin().WillReturnError(errors.New("transaction begin error"))
+		mock.ExpectBegin().WillReturnError(errors.New("transaction error"))
 
 		// テスト実行
 		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
@@ -1195,7 +1305,57 @@ func TestNewPasswordUpdate(t *testing.T) {
 		// 検証
 		assert.Error(t, err)
 		assert.Equal(t, "", userEmail)
-		assert.Equal(t, "トランザクションの開始に失敗しました: transaction begin error", err.Error())
+		assert.Equal(t, "トランザクションの開始に失敗しました: transaction error", err.Error())
+	})
+	t.Run("NewPasswordUpdate トランザクションのコミットに失敗しました", func(t *testing.T) {
+		// gomock のコントローラを作成
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		mockUtilsFetcher := mock_utils.NewMockUtilsFetcher(ctrl)
+
+		// テスト用のDBモックを作成
+		dbFetcher, mock, err := NewSignDataFetcher(
+			"test",
+			mockUtilsFetcher,
+		)
+		if err != nil {
+			t.Fatalf("Error creating DB mock: %v", err)
+		}
+
+		row := sqlmock.NewRows([]string{
+			"user_email",
+		}).AddRow(
+			"test@exmaple.com",
+		)
+		// モックの準備
+		mock.ExpectQuery(regexp.QuoteMeta(DB.PasswordCheckSyntax)).
+			WithArgs(UserId).
+			WillReturnRows(row)
+
+		mockUtilsFetcher.EXPECT().
+			EncryptPassword(gomock.Any()).
+			Return("hashPassword", nil)
+
+		// トランザクション
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta(DB.PutPasswordSyntax)).
+			WithArgs(
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+				sqlmock.AnyArg(),
+			).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectCommit().WillReturnError(errors.New("transaction error"))
+		mock.ExpectRollback()
+
+		// テスト実行
+		userEmail, err := dbFetcher.NewPasswordUpdate(Data)
+
+		// 検証
+		assert.Error(t, err)
+		assert.Equal(t, "", userEmail)
+		assert.Equal(t, "トランザクションのコミットに失敗しました: transaction error", err.Error())
 	})
 	t.Run("NewPasswordUpdate 新しいパスワードと確認用のパスワードが一致しませんでした。", func(t *testing.T) {
 		// gomock のコントローラを作成
@@ -1334,7 +1494,7 @@ func TestNewPasswordUpdate(t *testing.T) {
 				sqlmock.AnyArg(),
 			).
 			WillReturnResult(sqlmock.NewResult(1, 1))
-		mock.ExpectRollback()
+		mock.ExpectCommit()
 
 		// テスト実行
 		userEmail, err := dbFetcher.NewPasswordUpdate(Data)

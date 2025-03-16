@@ -42,7 +42,7 @@ func NewLineService(
 	}
 }
 
-func (gm *LineManager) LineSignInCallback(c *gin.Context) {
+func (lm *LineManager) LineSignInCallback(c *gin.Context) {
 	var err error
 	params := LinePrams{
 		UserEmail: c.Query("user_email"),
@@ -74,7 +74,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		return
 	}
 	// UtilsFetcher を使用してトークンを生成
-	newToken, err := gm.UtilsFetcher.NewToken(result.UserId, utils.AuthTokenHour)
+	newToken, err := lm.UtilsFetcher.NewToken(result.UserId, utils.AuthTokenHour)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "新規トークンの生成に失敗しました。",
@@ -83,7 +83,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := gm.UtilsFetcher.RefreshToken(result.UserId, utils.RefreshAuthTokenHour)
+	refreshToken, err := lm.UtilsFetcher.RefreshToken(result.UserId, utils.RefreshAuthTokenHour)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "リフレッシュトークンの生成に失敗しました。",
@@ -96,9 +96,9 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
-	subject, body, err := gm.EmailTemplateService.PostSignInTemplate(
+	subject, body, err := lm.EmailTemplateService.PostSignInTemplate(
 		result.UserEmail,
-		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+		lm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
@@ -109,7 +109,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(result.UserEmail, subject, body, true); err != nil {
+	if err := lm.UtilsFetcher.SendMail(result.UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "メール送信エラー(サインイン): " + err.Error(),
 		}
@@ -128,7 +128,7 @@ func (gm *LineManager) LineSignInCallback(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
+func (lm *LineManager) LineSignUpCallback(c *gin.Context) {
 	var err error
 	params := LinePrams{
 		UserEmail: c.Query("user_email"),
@@ -156,7 +156,8 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 		UserPassword: "line",
 		UserName:     params.UserName,
 	}
-	if err := dbFetcher.PostSignUp(registerData); err != nil {
+	userId, err := dbFetcher.PostSignUp(registerData)
+	if err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "既に登録されたメールアドレスです。",
 		}
@@ -164,10 +165,33 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 		return
 	}
 
-	subject, body, err := gm.EmailTemplateService.PostSignUpTemplate(
+	// UtilsFetcher を使用してトークンを生成
+	newToken, err := lm.UtilsFetcher.NewToken(userId, utils.AuthTokenHour)
+	if err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "新規トークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	refreshToken, err := lm.UtilsFetcher.RefreshToken(userId, utils.RefreshAuthTokenHour)
+	if err != nil {
+		response := utils.ErrorMessageResponse{
+			Result: "リフレッシュトークンの生成に失敗しました。",
+		}
+		c.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	c.SetCookie(utils.UserId, fmt.Sprintf("%d", userId), 0, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.AuthToken, newToken, utils.AuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+	c.SetCookie(utils.RefreshAuthToken, refreshToken, utils.RefreshAuthTokenHour*utils.SecondsInHour, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
+
+	subject, body, err := lm.EmailTemplateService.PostSignUpTemplate(
 		params.UserName,
 		params.UserEmail,
-		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+		lm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
@@ -178,7 +202,7 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(params.UserEmail, subject, body, true); err != nil {
+	if err := lm.UtilsFetcher.SendMail(params.UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "メール送信エラー(登録): " + err.Error(),
 		}
@@ -186,13 +210,17 @@ func (gm *LineManager) LineSignUpCallback(c *gin.Context) {
 		return
 	}
 
-	response := utils.ResponseData[string]{
-		Result: "line外部認証の登録が成功しました。",
+	// サインアップ成功のレスポンス
+	response := utils.ResponseData[SignUpResult]{
+		Result: SignUpResult{
+			UserId:    userId,
+			UserEmail: params.UserEmail,
+		},
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
+func (lm *LineManager) LineDeleteCallback(c *gin.Context) {
 	var err error
 	params := LinePrams{
 		UserEmail: c.Query("user_email"),
@@ -214,7 +242,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	// ここはフロント側で実施
 
 	// // Lineトークンを無効化
-	// err := gm.LineConfig.RevokeLineAccessToken(
+	// err := lm.LineConfig.RevokeLineAccessToken(
 	// 	userInfo.LineToken.AccessToken,
 	// )
 	// if err != nil {
@@ -261,10 +289,10 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	c.SetCookie(utils.RefreshAuthToken, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 	c.SetCookie(utils.OauthState, "", -1, "/", config.GlobalEnv.Domain, config.GlobalEnv.Secure, config.GlobalEnv.HttpOnly)
 
-	subject, body, err := gm.EmailTemplateService.DeleteSignInTemplate(
+	subject, body, err := lm.EmailTemplateService.DeleteSignInTemplate(
 		params.UserName,
 		params.UserEmail,
-		gm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
+		lm.UtilsFetcher.DateTimeStr(time.Now(), "2006年01月02日 15:04"),
 	)
 	if err != nil {
 		response := utils.ErrorMessageResponse{
@@ -275,7 +303,7 @@ func (gm *LineManager) LineDeleteCallback(c *gin.Context) {
 	}
 
 	// メール送信ユーティリティを呼び出し
-	if err := gm.UtilsFetcher.SendMail(params.UserEmail, subject, body, true); err != nil {
+	if err := lm.UtilsFetcher.SendMail(params.UserEmail, subject, body, true); err != nil {
 		response := utils.ErrorMessageResponse{
 			Result: "メール送信エラー(削除): " + err.Error(),
 		}
