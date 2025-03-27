@@ -70,7 +70,7 @@ const ENV = "ENV"
 func LeadEnv(env string, path string) Env {
 	var protocol string = "http"
 	var secure bool = false
-	var domain string = "localhost:8080"
+	var domain string = "localhost"
 	var clinetDomain string = "localhost:3000"
 	var httpOnly bool = false
 	var redirectURI string = fmt.Sprintf("%s://%s/%s", protocol, domain, path)
